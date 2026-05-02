@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "eq3Q9YzCiWsya5ogP_E_4"
+uri = "file://MATRICE_NARRATIVE_Documentation.md"
+type = "text"
+title = "Matrice Narrative — Documentation Technique & Stratégie"
