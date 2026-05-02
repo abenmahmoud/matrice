@@ -88,7 +88,7 @@ export default function Dashboard() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
                     >
-                      <Link href={`/projects/${project.id}/matrix`}>
+                      <Link href={`/projects/${project.id}`}>
                         <Card className="h-full flex flex-col bg-card hover:bg-card/80 transition-colors border-border/50 cursor-pointer group">
                           <CardHeader>
                             <div className="flex justify-between items-start mb-2">

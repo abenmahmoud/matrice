@@ -23,6 +23,7 @@ import ExportsPage from "./pages/exports";
 import AdminPage from "./pages/admin";
 import AnalysePage from "./pages/analyse";
 import ProjectAnalysePage from "./pages/project-analyse";
+import ProjectOverview from "./pages/project-overview";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/analyse" component={AnalysePage} />
       <Route path="/projects/new" component={NewProject} />
       <Route path="/projects/:id/matrix" component={MatrixPage} />
+      <Route path="/projects/:id" component={ProjectOverview} />
       <Route path="/projects/:id/emotional-core" component={EmotionalCorePage} />
       <Route path="/projects/:id/characters" component={CharactersPage} />
       <Route path="/projects/:id/relationships" component={RelationshipsPage} />

@@ -143,6 +143,42 @@ router.post("/projects", async (req, res) => {
   }
 });
 
+// GET /api/projects/:id/status — module completion map
+router.get("/projects/:id/status", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const [matrix, emotional, charRow, relRow, world, research, hpsa, book, screenplay, series, pitch] = await Promise.all([
+      db.select({ id: narrativeMatricesTable.id }).from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, id)).limit(1),
+      db.select({ id: emotionalCoresTable.id }).from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, id)).limit(1),
+      db.select({ id: charactersTable.id }).from(charactersTable).where(eq(charactersTable.projectId, id)).limit(1),
+      db.select({ id: relationshipsTable.id }).from(relationshipsTable).where(eq(relationshipsTable.projectId, id)).limit(1),
+      db.select({ id: worldDataTable.id }).from(worldDataTable).where(eq(worldDataTable.projectId, id)).limit(1),
+      db.select({ id: researchDataTable.id }).from(researchDataTable).where(eq(researchDataTable.projectId, id)).limit(1),
+      db.select({ id: hpsaScoresTable.id }).from(hpsaScoresTable).where(eq(hpsaScoresTable.projectId, id)).limit(1),
+      db.select({ id: bookOutlinesTable.id }).from(bookOutlinesTable).where(eq(bookOutlinesTable.projectId, id)).limit(1),
+      db.select({ id: screenplaysTable.id }).from(screenplaysTable).where(eq(screenplaysTable.projectId, id)).limit(1),
+      db.select({ id: seriesTable.id }).from(seriesTable).where(eq(seriesTable.projectId, id)).limit(1),
+      db.select({ id: pitchDocumentsTable.id }).from(pitchDocumentsTable).where(eq(pitchDocumentsTable.projectId, id)).limit(1),
+    ]);
+    res.json({
+      matrix: matrix.length > 0,
+      emotionalCore: emotional.length > 0,
+      characters: charRow.length > 0,
+      relationships: relRow.length > 0,
+      world: world.length > 0,
+      research: research.length > 0,
+      hpsa: hpsa.length > 0,
+      book: book.length > 0,
+      screenplay: screenplay.length > 0,
+      series: series.length > 0,
+      pitch: pitch.length > 0,
+    });
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // GET /api/projects/:id
 router.get("/projects/:id", async (req, res) => {
   try {
