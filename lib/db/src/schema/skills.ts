@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, json } from "drizzle-orm/pg-core";
 import { projectsTable } from "./projects";
 
 export const narrativeSkillsTable = pgTable("narrative_skills", {
@@ -9,6 +9,10 @@ export const narrativeSkillsTable = pgTable("narrative_skills", {
   promptContent: text("prompt_content").notNull(),
   isActive: boolean("is_active").notNull().default(true),
   isGlobal: boolean("is_global").notNull().default(true),
+  // Confidence system
+  validationCount: integer("validation_count").notNull().default(1),
+  validationSources: json("validation_sources").$type<string[]>().notNull().default([]),
+  isUniversal: boolean("is_universal").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

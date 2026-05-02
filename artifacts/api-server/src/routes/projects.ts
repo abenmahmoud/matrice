@@ -28,7 +28,33 @@ async function getSkillsContext(projectId: string): Promise<string> {
       .innerJoin(narrativeSkillsTable, eq(projectSkillsTable.skillId, narrativeSkillsTable.id))
       .where(and(eq(projectSkillsTable.projectId, projectId), eq(narrativeSkillsTable.isActive, true)));
     if (!rows.length) return "";
-    return rows.map(r => `[${r.skill.category.toUpperCase()}] ${r.skill.name}:\n${r.skill.promptContent}`).join("\n\n");
+
+    // Split by confidence — universal skills (validated by 3+ cultural traditions) carry max weight
+    const universal = rows.filter(r => r.skill.isUniversal).sort((a, b) => b.skill.validationCount - a.skill.validationCount);
+    const specialized = rows.filter(r => !r.skill.isUniversal);
+
+    const parts: string[] = [];
+
+    if (universal.length > 0) {
+      parts.push(
+        `## RÈGLES UNIVERSELLES — validées par ${universal.length > 1 ? "plusieurs" : "une"} tradition(s) culturelle(s) — poids MAXIMAL, applique toujours :`,
+        ...universal.map(r =>
+          `[${r.skill.category.toUpperCase()}] ${r.skill.name} ★ (${r.skill.validationCount} validations cross-culturelles):\n${r.skill.promptContent}`
+        )
+      );
+    }
+
+    if (specialized.length > 0) {
+      if (parts.length > 0) parts.push("");
+      parts.push(
+        "## TECHNIQUES SPÉCIALISÉES — applique si pertinent pour ce projet :",
+        ...specialized.map(r =>
+          `[${r.skill.category.toUpperCase()}] ${r.skill.name}:\n${r.skill.promptContent}`
+        )
+      );
+    }
+
+    return parts.join("\n\n");
   } catch {
     return "";
   }

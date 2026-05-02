@@ -9,10 +9,13 @@ import {
   ERAS, CULTURES, MEDIUMS, RESEARCH_TYPES, UNIVERSAL_THEMES, NARRATIVE_EMOTIONS, UNIVERSAL_ARCHETYPES,
   type ResearchEntryData,
 } from "../services/researchLabService.js";
+import type { NarrativeSkill } from "@workspace/db";
 
 const router: IRouter = Router();
 
+// ---------------------------------------------------------------------------
 // SSE helper
+// ---------------------------------------------------------------------------
 async function sseRun(req: Request, res: Response, steps: [string, string, string], work: () => Promise<unknown>): Promise<void> {
   const isSSE = (req.headers["accept"] ?? "").includes("text/event-stream");
   const send = (e: Record<string, unknown>) => { if (isSSE) res.write(`data: ${JSON.stringify(e)}\n\n`); };
@@ -35,7 +38,32 @@ async function sseRun(req: Request, res: Response, steps: [string, string, strin
   }
 }
 
-// Helper: save entry + extract skills
+// ---------------------------------------------------------------------------
+// Skill confidence merge logic
+// ---------------------------------------------------------------------------
+
+/** Normalize a skill name for fuzzy comparison */
+function normalizeSkillName(name: string): string {
+  return name.toLowerCase()
+    .replace(/[^a-z0-9àáâãäåæçèéêëìíîïðñòóôõöùúûüý\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Find if a skill with a similar name already exists */
+function findSimilarSkill(name: string, existing: NarrativeSkill[]): NarrativeSkill | undefined {
+  const normalized = normalizeSkillName(name);
+  return existing.find(s => {
+    const sn = normalizeSkillName(s.name);
+    if (sn === normalized) return true;
+    // Partial containment for short names (avoid false positives)
+    if (normalized.length >= 6 && sn.includes(normalized)) return true;
+    if (sn.length >= 6 && normalized.includes(sn)) return true;
+    return false;
+  });
+}
+
+/** Save entry + extract skills with confidence merging */
 async function saveEntry(data: ResearchEntryData, meta: {
   researchType: string; era?: string; eraLabel?: string; eraStart?: number; eraEnd?: number;
   culture?: string; cultureLabel?: string; culture2?: string; culture2Label?: string;
@@ -55,27 +83,74 @@ async function saveEntry(data: ResearchEntryData, meta: {
     skillsExtracted: data.extractedSkills.length > 0, extractedSkillIds: [],
   }).returning();
 
+  // Load all existing skills for merge check
+  const existingSkills = await db.select().from(narrativeSkillsTable);
+  const UNIVERSAL_THRESHOLD = 3;
   const skillIds: string[] = [];
+
   for (const sk of data.extractedSkills) {
-    const [saved] = await db.insert(narrativeSkillsTable).values({
-      name: sk.name, description: sk.description, category: sk.category,
-      promptContent: sk.promptContent, isActive: false, isGlobal: true,
-    }).returning();
-    skillIds.push(saved.id);
+    const match = findSimilarSkill(sk.name, existingSkills);
+
+    if (match) {
+      // Merge: increment confidence, add entry source
+      const sources = (match.validationSources as string[]);
+      if (!sources.includes(entry.id)) {
+        const newCount = match.validationCount + 1;
+        const newSources = [...sources, entry.id];
+        const isUniversal = newCount >= UNIVERSAL_THRESHOLD;
+
+        // Merge prompt content if this entry adds new cultural perspective
+        const mergedPrompt = newCount <= 2
+          ? match.promptContent
+          : `${match.promptContent}\n\n[Validé par ${newCount} traditions culturelles] ${sk.promptContent.slice(0, 200)}`;
+
+        await db.update(narrativeSkillsTable).set({
+          validationCount: newCount,
+          validationSources: newSources,
+          isUniversal,
+          promptContent: mergedPrompt,
+          updatedAt: new Date(),
+        }).where(eq(narrativeSkillsTable.id, match.id));
+
+        // Update local cache for subsequent iterations
+        match.validationCount = newCount;
+        match.validationSources = newSources;
+        match.isUniversal = isUniversal;
+      }
+      skillIds.push(match.id);
+    } else {
+      // New skill — insert with validationCount=1
+      const [saved] = await db.insert(narrativeSkillsTable).values({
+        name: sk.name, description: sk.description, category: sk.category,
+        promptContent: sk.promptContent,
+        isActive: false, isGlobal: true,
+        validationCount: 1, validationSources: [entry.id], isUniversal: false,
+      }).returning();
+      skillIds.push(saved.id);
+      // Add to local cache so next iterations can detect it as existing
+      existingSkills.push(saved as NarrativeSkill);
+    }
   }
+
   if (skillIds.length > 0) {
     await db.update(researchEntriesTable).set({ extractedSkillIds: skillIds }).where(eq(researchEntriesTable.id, entry.id));
   }
   return { ...entry, extractedSkillIds: skillIds };
 }
 
+// ---------------------------------------------------------------------------
 // GET /api/research-lab/taxonomy
+// ---------------------------------------------------------------------------
 router.get("/research-lab/taxonomy", (_req, res) => {
-  res.json({ eras: ERAS, cultures: CULTURES, mediums: MEDIUMS, researchTypes: RESEARCH_TYPES,
-    universalThemes: UNIVERSAL_THEMES, narrativeEmotions: NARRATIVE_EMOTIONS, universalArchetypes: UNIVERSAL_ARCHETYPES });
+  res.json({
+    eras: ERAS, cultures: CULTURES, mediums: MEDIUMS, researchTypes: RESEARCH_TYPES,
+    universalThemes: UNIVERSAL_THEMES, narrativeEmotions: NARRATIVE_EMOTIONS, universalArchetypes: UNIVERSAL_ARCHETYPES,
+  });
 });
 
+// ---------------------------------------------------------------------------
 // GET /api/research-lab/entries
+// ---------------------------------------------------------------------------
 router.get("/research-lab/entries", async (req, res) => {
   try {
     const entries = await db.select().from(researchEntriesTable).orderBy(researchEntriesTable.createdAt);
@@ -83,7 +158,6 @@ router.get("/research-lab/entries", async (req, res) => {
   } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
 });
 
-// GET /api/research-lab/entries/:id
 router.get("/research-lab/entries/:id", async (req, res) => {
   try {
     const [entry] = await db.select().from(researchEntriesTable).where(eq(researchEntriesTable.id, req.params.id));
@@ -92,7 +166,6 @@ router.get("/research-lab/entries/:id", async (req, res) => {
   } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
 });
 
-// DELETE /api/research-lab/entries/:id
 router.delete("/research-lab/entries/:id", async (req, res) => {
   try {
     await db.delete(researchEntriesTable).where(eq(researchEntriesTable.id, req.params.id));
@@ -100,7 +173,9 @@ router.delete("/research-lab/entries/:id", async (req, res) => {
   } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
 });
 
+// ---------------------------------------------------------------------------
 // POST /api/research-lab/generate
+// ---------------------------------------------------------------------------
 router.post("/research-lab/generate", (req, res) => {
   void (async () => {
     try {
@@ -115,7 +190,7 @@ router.post("/research-lab/generate", (req, res) => {
       const typeObj = RESEARCH_TYPES.find(t => t.key === rType);
 
       await sseRun(req, res,
-        ["Initialisation...", `${typeObj?.icon ?? "🔭"} ${typeObj?.label ?? "Recherche"} en cours...`, "Extraction des skills secrets..."],
+        ["Initialisation...", `${typeObj?.icon ?? "🔭"} ${typeObj?.label ?? "Recherche"} en cours...`, "Fusion du score de confiance..."],
         async () => {
           let data: ResearchEntryData;
           switch (rType) {
@@ -150,18 +225,23 @@ router.post("/research-lab/generate", (req, res) => {
   })();
 });
 
+// ---------------------------------------------------------------------------
 // POST /api/research-lab/daily
+// ---------------------------------------------------------------------------
 router.post("/research-lab/daily", (req, res) => {
   void (async () => {
     try {
-      const existing = await db.select({ era: researchEntriesTable.era, culture: researchEntriesTable.culture, researchType: researchEntriesTable.researchType }).from(researchEntriesTable);
+      const existing = await db.select({
+        era: researchEntriesTable.era, culture: researchEntriesTable.culture,
+        researchType: researchEntriesTable.researchType,
+      }).from(researchEntriesTable);
       const target = selectDailyTarget(existing);
       const eraObj = ERAS.find(e => e.key === target.era);
       const cultureObj = CULTURES.find(c => c.key === target.culture);
       const typeObj = RESEARCH_TYPES.find(t => t.key === target.researchType);
 
       await sseRun(req, res,
-        ["Analyse des lacunes de la bibliothèque...", `${typeObj?.icon ?? "🔭"} ${typeObj?.label ?? "Recherche"} automatique...`, "Extraction des skills secrets..."],
+        ["Analyse des lacunes...", `${typeObj?.icon ?? "🔭"} ${typeObj?.label ?? "Recherche"} automatique...`, "Fusion du score de confiance..."],
         async () => {
           let data: ResearchEntryData;
           switch (target.researchType) {
@@ -195,7 +275,9 @@ router.post("/research-lab/daily", (req, res) => {
   })();
 });
 
+// ---------------------------------------------------------------------------
 // GET /api/research-lab/stats
+// ---------------------------------------------------------------------------
 router.get("/research-lab/stats", async (req, res) => {
   try {
     const entries = await db.select().from(researchEntriesTable);
@@ -209,11 +291,16 @@ router.get("/research-lab/stats", async (req, res) => {
       if (!coverageMatrix[e.era]) coverageMatrix[e.era] = {};
       coverageMatrix[e.era][e.culture] = true;
     }
-    res.json({ totalEntries: entries.length, culturesExplored: cultures.size, erasExplored: eras.size, totalSkillsExtracted: totalSkills, coverageMatrix, totalPossible: ERAS.length * CULTURES.length, byType });
+    res.json({
+      totalEntries: entries.length, culturesExplored: cultures.size, erasExplored: eras.size,
+      totalSkillsExtracted: totalSkills, coverageMatrix, totalPossible: ERAS.length * CULTURES.length, byType,
+    });
   } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
 });
 
+// ---------------------------------------------------------------------------
 // GET /api/research-lab/dossiers
+// ---------------------------------------------------------------------------
 router.get("/research-lab/dossiers", async (req, res) => {
   try {
     const dossiers = await db.select().from(knowledgeDossiersTable).orderBy(knowledgeDossiersTable.updatedAt);

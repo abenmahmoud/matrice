@@ -70,8 +70,9 @@ export function useGenerateSSE(onDone?: (data: unknown) => void) {
         }
         return undefined;
       } catch (err) {
-        if ((err as Error).name === "AbortError") return;
+        if ((err as Error).name === "AbortError") return undefined;
         setState((s) => ({ ...s, isGenerating: false, error: (err as Error).message }));
+        return undefined;
       }
     },
     [onDone]
