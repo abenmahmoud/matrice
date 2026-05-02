@@ -129,6 +129,9 @@ router.post("/projects", async (req, res) => {
       realityLevel: body.realityLevel,
       targetAudience: body.targetAudience,
       artisticAmbition: body.artisticAmbition,
+      visualMoods: body.visualMoods ?? [],
+      cinematicReferences: body.cinematicReferences ?? "",
+      inspirationSources: body.inspirationSources ?? "",
       progression: 5,
     }).returning();
     res.status(201).json(project);

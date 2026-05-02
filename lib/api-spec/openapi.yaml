@@ -1004,6 +1004,14 @@ components:
           type: string
         artisticAmbition:
           type: string
+        inspirationSources:
+          type: string
+        cinematicReferences:
+          type: string
+        visualMoods:
+          type: array
+          items:
+            type: string
       required:
         - title
         - rawIdea

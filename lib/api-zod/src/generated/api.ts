@@ -49,6 +49,9 @@ export const CreateProjectBody = zod.object({
   realityLevel: zod.string().optional(),
   targetAudience: zod.string().optional(),
   artisticAmbition: zod.string().optional(),
+  inspirationSources: zod.string().optional(),
+  cinematicReferences: zod.string().optional(),
+  visualMoods: zod.array(zod.string()).optional(),
 });
 
 /**

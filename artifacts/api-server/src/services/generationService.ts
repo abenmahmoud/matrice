@@ -18,6 +18,9 @@ type Project = {
   realityLevel?: string | null;
   targetAudience?: string | null;
   artisticAmbition?: string | null;
+  visualMoods?: string[] | null;
+  cinematicReferences?: string | null;
+  inspirationSources?: string | null;
 };
 
 type NarrativeMatrix = {
@@ -102,7 +105,7 @@ ${skillsContext}` : systemPrompt },
 }
 
 function projectContext(project: Project): string {
-  return `Titre : "${project.title}"
+  const base = `Titre : "${project.title}"
 Idée brute : ${project.rawIdea}
 Genre : ${project.genre}
 Ton : ${project.tone}
@@ -111,6 +114,13 @@ Public cible : ${project.targetAudience ?? "Adultes exigeants"}
 Logique temporelle : ${project.temporalLogic ?? "linéaire"}
 Niveau de réalité : ${project.realityLevel ?? "réaliste"}
 Ambition artistique : ${project.artisticAmbition ?? "créer une œuvre qui résonne durablement"}`;
+
+  const extras: string[] = [];
+  if (project.inspirationSources) extras.push(`Source d'inspiration originelle (rêve / sensation / image) : ${project.inspirationSources}`);
+  if ((project.visualMoods as string[] | undefined)?.length) extras.push(`ADN visuel déclaré (atmosphères) : ${(project.visualMoods as string[]).join(", ")}`);
+  if (project.cinematicReferences) extras.push(`Références cinématographiques / artistiques : ${project.cinematicReferences}`);
+
+  return extras.length ? `${base}\n${extras.join("\n")}` : base;
 }
 
 // ---------------------------------------------------------------------------
@@ -123,6 +133,8 @@ export async function generateNarrativeMatrix(project: Project, skillsContext?: 
   const user = `À partir du projet suivant, génère une Matrice Narrative complète et professionnelle.
 
 ${projectContext(project)}
+
+${(project.visualMoods as string[] | undefined)?.length || project.cinematicReferences ? `IMPORTANT : Le projet a un ADN visuel déclaré. Incorpore les atmosphères, le langage visuel et les références dans chaque section de la matrice — monde visible, forces invisibles, motifs symboliques, règles de cohérence. La matrice doit respirer visuellement les références de l'auteur.` : ""}
 
 Génère un objet JSON avec exactement ces champs :
 {

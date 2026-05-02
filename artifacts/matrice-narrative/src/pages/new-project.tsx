@@ -1,216 +1,466 @@
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import { useCreateProject, useGenerateMatrix } from "@workspace/api-client-react";
-import { AppLayout } from "@/components/layout/AppLayout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import {
+  Sparkles, ArrowRight, ArrowLeft, Clapperboard,
+  Film, Tv, BookOpen, Mic, Gamepad2, Image, Check
+} from "lucide-react";
 
-const formSchema = z.object({
-  title: z.string().min(2, "Le titre doit faire au moins 2 caractères"),
-  rawIdea: z.string().min(10, "Décrivez votre idée en quelques phrases"),
-  targetFormat: z.string().min(1, "Format requis"),
-  genre: z.string().min(1, "Genre requis"),
-  tone: z.string().min(1, "Ton requis"),
-});
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+const MOODS = [
+  { id: "onirique",     label: "Onirique",      emoji: "🌙", desc: "comme un rêve éveillé" },
+  { id: "sombre",       label: "Sombre",         emoji: "🌑", desc: "profondément noir" },
+  { id: "lumineux",     label: "Lumineux",       emoji: "✨", desc: "transcendant, épuré" },
+  { id: "melancolique", label: "Mélancolique",   emoji: "🌧", desc: "d'une tristesse belle" },
+  { id: "epique",       label: "Épique",         emoji: "⚡", desc: "grand, monumental" },
+  { id: "brut",         label: "Brut & Cru",     emoji: "🔥", desc: "frontal, sans filtre" },
+  { id: "silencieux",   label: "Silencieux",     emoji: "🤫", desc: "les mots non dits" },
+  { id: "tendu",        label: "Tendu",          emoji: "⚙️", desc: "oppressant, étouffant" },
+  { id: "mysterieux",   label: "Mystérieux",     emoji: "🔮", desc: "énigmatique, trouble" },
+  { id: "solaire",      label: "Solaire",        emoji: "🌅", desc: "chaleureux, vivant" },
+  { id: "glacial",      label: "Glacial",        emoji: "🧊", desc: "froid, clinique" },
+  { id: "intime",       label: "Intime",         emoji: "🕯", desc: "personnel, proche" },
+  { id: "sature",       label: "Saturé",         emoji: "🎨", desc: "couleurs saturées, vivaces" },
+  { id: "desature",     label: "Désaturé",       emoji: "⬜", desc: "presque monochrome" },
+  { id: "baroque",      label: "Baroque",        emoji: "🌺", desc: "riche, ornemental" },
+  { id: "minimaliste",  label: "Minimaliste",    emoji: "◻️", desc: "dépouillé, essentiel" },
+];
+
+const FORMATS = [
+  { id: "Film long métrage", label: "Film", sub: "long métrage", icon: Film },
+  { id: "Court-métrage", label: "Court", sub: "métrage", icon: Clapperboard },
+  { id: "Série TV", label: "Série TV", sub: "épisodique", icon: Tv },
+  { id: "Mini-série", label: "Mini-série", sub: "3–6 épisodes", icon: Tv },
+  { id: "Roman", label: "Roman", sub: "fiction", icon: BookOpen },
+  { id: "Podcast narratif", label: "Podcast", sub: "narratif", icon: Mic },
+  { id: "Jeu Vidéo", label: "Jeu", sub: "vidéo", icon: Gamepad2 },
+  { id: "Bande Dessinée", label: "BD / Roman", sub: "graphique", icon: Image },
+];
+
+const GENRES = [
+  "Thriller", "Drame", "Science-Fiction", "Horror", "Romance", "Fantasy",
+  "Historique", "Crime", "Biopic", "Comédie", "Documentaire", "Néo-noir",
+  "Cyberpunk", "Surréalisme", "Réalisme magique", "Film de genre",
+];
+
+const TONES = [
+  "Sombre", "Mélancolique", "Onirique", "Épique", "Lyrique",
+  "Cynique", "Cru", "Intime", "Contemplatif", "Absurde",
+  "Mystérieux", "Poétique", "Tendu", "Lumineux", "Ironique",
+];
+
+// ---------------------------------------------------------------------------
+// Step indicator
+// ---------------------------------------------------------------------------
+const STEPS = [
+  { n: 1, label: "L'Étincelle" },
+  { n: 2, label: "L'Atmosphère" },
+  { n: 3, label: "Les Références" },
+  { n: 4, label: "Le Projet" },
+];
+
+function StepBar({ current }: { current: number }) {
+  return (
+    <div className="flex items-center gap-0 mb-14">
+      {STEPS.map((s, i) => (
+        <div key={s.n} className="flex items-center">
+          <div className="flex items-center gap-2.5">
+            <div className={cn(
+              "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-all",
+              current === s.n ? "bg-violet-600 border-violet-400 text-white shadow-[0_0_16px_rgba(139,92,246,0.5)]"
+                : current > s.n ? "bg-violet-800/60 border-violet-600/50 text-violet-300"
+                : "bg-white/[0.04] border-white/[0.10] text-white/25"
+            )}>
+              {current > s.n ? <Check className="w-3.5 h-3.5" /> : s.n}
+            </div>
+            <span className={cn(
+              "text-xs font-medium hidden sm:block",
+              current === s.n ? "text-white/80" : current > s.n ? "text-white/40" : "text-white/20"
+            )}>{s.label}</span>
+          </div>
+          {i < STEPS.length - 1 && (
+            <div className={cn("w-8 sm:w-14 h-px mx-3", current > s.n ? "bg-violet-600/40" : "bg-white/[0.06]")} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Mood tile
+// ---------------------------------------------------------------------------
+function MoodTile({ mood, selected, onToggle }: {
+  mood: typeof MOODS[0]; selected: boolean; onToggle: () => void;
+}) {
+  return (
+    <button onClick={onToggle} className={cn(
+      "relative flex flex-col items-start p-4 rounded-2xl border transition-all text-left group",
+      selected
+        ? "bg-violet-600/20 border-violet-500/60 shadow-[0_0_20px_rgba(139,92,246,0.15)]"
+        : "bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/[0.14]"
+    )}>
+      {selected && (
+        <div className="absolute top-2.5 right-2.5 w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center">
+          <Check className="w-3 h-3 text-white" />
+        </div>
+      )}
+      <span className="text-2xl mb-2">{mood.emoji}</span>
+      <p className={cn("text-sm font-bold leading-none", selected ? "text-violet-200" : "text-white/70")}>{mood.label}</p>
+      <p className="text-[10px] text-white/30 mt-1">{mood.desc}</p>
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Format tile
+// ---------------------------------------------------------------------------
+function FormatTile({ f, selected, onSelect }: {
+  f: typeof FORMATS[0]; selected: boolean; onSelect: () => void;
+}) {
+  return (
+    <button onClick={onSelect} className={cn(
+      "flex flex-col items-center justify-center p-4 rounded-2xl border transition-all gap-2",
+      selected
+        ? "bg-violet-600/20 border-violet-500/60 shadow-[0_0_20px_rgba(139,92,246,0.15)]"
+        : "bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/[0.14]"
+    )}>
+      <f.icon className={cn("w-6 h-6", selected ? "text-violet-300" : "text-white/35")} />
+      <div className="text-center">
+        <p className={cn("text-sm font-bold leading-none", selected ? "text-violet-200" : "text-white/70")}>{f.label}</p>
+        <p className="text-[10px] text-white/25 mt-0.5">{f.sub}</p>
+      </div>
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main page
+// ---------------------------------------------------------------------------
 export default function NewProject() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
-  const createProject = useCreateProject();
-  const generateMatrix = useGenerateMatrix();
+  const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      rawIdea: "",
-      targetFormat: "Roman",
-      genre: "Science-Fiction",
-      tone: "Sombre",
-    },
-  });
+  // Step 1 — L'Étincelle
+  const [spark, setSpark] = useState("");
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  // Step 2 — L'Atmosphère
+  const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
+
+  // Step 3 — Références
+  const [references, setReferences] = useState("");
+
+  // Step 4 — Le Projet
+  const [title, setTitle] = useState("");
+  const [format, setFormat] = useState("Film long métrage");
+  const [genre, setGenre] = useState("Thriller");
+  const [tone, setTone] = useState("Sombre");
+
+  const toggleMood = (id: string) => {
+    setSelectedMoods(prev => prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]);
+  };
+
+  const canProceed = () => {
+    if (step === 1) return spark.trim().length >= 10;
+    if (step === 2) return selectedMoods.length >= 1;
+    if (step === 3) return true;
+    if (step === 4) return title.trim().length >= 2;
+    return false;
+  };
+
+  const handleSubmit = async () => {
+    if (!canProceed()) return;
+    setSubmitting(true);
     try {
-      const project = await createProject.mutateAsync({
-        data: values,
+      const moodLabels = selectedMoods.map(id => MOODS.find(m => m.id === id)?.label ?? id);
+      const body = {
+        title: title.trim(),
+        rawIdea: spark.trim(),
+        genre,
+        tone,
+        targetFormat: format,
+        inspirationSources: spark.trim(),
+        visualMoods: moodLabels,
+        cinematicReferences: references.trim(),
+        targetAudience: "Adultes exigeants, amateurs de cinéma d'auteur",
+        artisticAmbition: `Créer une œuvre ${moodLabels.join(", ").toLowerCase()} qui résonne durablement`,
+      };
+      const res = await fetch(`${BASE}/api/projects`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error("Création échouée");
+      const project = await res.json() as { id: string };
+
+      // Trigger matrix generation in background (fire and forget)
+      void fetch(`${BASE}/api/projects/${project.id}/generate-matrix`, {
+        method: "POST",
+        headers: { "Accept": "text/event-stream" },
       });
 
-      // Try to generate matrix automatically
-      try {
-        await generateMatrix.mutateAsync({ id: project.id });
-        toast({
-          title: "Projet créé avec succès",
-          description: "La matrice narrative a été générée.",
-        });
-      } catch (e) {
-        toast({
-          title: "Projet créé",
-          description: "Le projet a été créé mais la génération de la matrice a échoué. Vous pourrez réessayer plus tard.",
-        });
-      }
-
+      toast({ title: "Vision capturée", description: "La matrice narrative est en cours de génération..." });
       setLocation(`/projects/${project.id}/matrix`);
-    } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "Impossible de créer le projet.",
-      });
+    } catch {
+      toast({ variant: "destructive", title: "Erreur", description: "Impossible de créer le projet." });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <AppLayout>
-      <div className="p-8 max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-serif font-bold text-foreground">Créer un univers</h1>
-          <p className="text-muted-foreground mt-1">Posez les fondations de votre prochaine histoire.</p>
+    <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col">
+      {/* Header */}
+      <header className="border-b border-white/[0.05] px-8 py-5 flex items-center justify-between sticky top-0 z-10 bg-[#0a0a0f]/80 backdrop-blur-xl">
+        <a href={`${import.meta.env.BASE_URL}`} className="font-serif font-bold text-sm tracking-[0.2em] text-violet-400 hover:text-violet-300 transition-colors">MATRICE</a>
+        <div className="text-xs text-white/20">Nouvelle vision</div>
+      </header>
+
+      <div className="flex-1 flex flex-col items-center justify-start px-6 py-12 max-w-3xl mx-auto w-full">
+        <StepBar current={step} />
+
+        {/* ── STEP 1: L'Étincelle ───────────────────── */}
+        {step === 1 && (
+          <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-400">
+            <div className="mb-10 text-center">
+              <div className="inline-flex items-center gap-2 text-xs text-violet-400/70 uppercase tracking-[0.2em] mb-4 border border-violet-500/20 rounded-full px-3 py-1.5">
+                <Sparkles className="w-3 h-3" />Étape 1
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-serif font-bold mb-4 tracking-tight">
+                Quelle est<br /><span className="text-violet-300">votre étincelle ?</span>
+              </h1>
+              <p className="text-white/35 text-base max-w-lg mx-auto leading-relaxed">
+                Un rêve, une image qui vous hante, une sensation, une scène que vous voyez.
+                Pas besoin d'une histoire complète — juste l'essence brute.
+              </p>
+            </div>
+
+            <textarea
+              value={spark}
+              onChange={e => setSpark(e.target.value)}
+              placeholder={`"Je vois une femme debout dans une gare vide à 3h du matin. Autour d'elle, des valises abandonnées. Elle ne part pas — elle attend quelqu'un qui ne viendra jamais. Et elle le sait."\n\n— Ou bien : un rêve, une image, un sentiment impossible à nommer...`}
+              className="w-full h-52 bg-white/[0.03] border border-white/[0.09] rounded-2xl p-5 text-sm text-white/80 placeholder:text-white/20 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/30 transition-all leading-relaxed"
+              autoFocus
+            />
+            <p className={cn(
+              "text-xs mt-2 text-right transition-colors",
+              spark.length < 10 ? "text-white/15" : "text-violet-400/50"
+            )}>{spark.length} caractères {spark.length >= 10 && "✓"}</p>
+          </div>
+        )}
+
+        {/* ── STEP 2: L'Atmosphère ──────────────────── */}
+        {step === 2 && (
+          <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-400">
+            <div className="mb-10 text-center">
+              <div className="inline-flex items-center gap-2 text-xs text-violet-400/70 uppercase tracking-[0.2em] mb-4 border border-violet-500/20 rounded-full px-3 py-1.5">
+                <Sparkles className="w-3 h-3" />Étape 2
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-serif font-bold mb-4 tracking-tight">
+                Quelle est<br /><span className="text-violet-300">l'atmosphère ?</span>
+              </h1>
+              <p className="text-white/35 text-base max-w-lg mx-auto">
+                Choisissez une ou plusieurs atmosphères visuelles. Elles guideront l'IA pour
+                donner à votre matrice une sensibilité visuelle précise.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              {MOODS.map(m => (
+                <MoodTile key={m.id} mood={m} selected={selectedMoods.includes(m.id)} onToggle={() => toggleMood(m.id)} />
+              ))}
+            </div>
+            {selectedMoods.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {selectedMoods.map(id => {
+                  const m = MOODS.find(x => x.id === id);
+                  return m ? (
+                    <span key={id} className="text-xs px-3 py-1.5 rounded-full bg-violet-600/25 text-violet-300 border border-violet-500/35">
+                      {m.emoji} {m.label}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── STEP 3: Les Références ────────────────── */}
+        {step === 3 && (
+          <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-400">
+            <div className="mb-10 text-center">
+              <div className="inline-flex items-center gap-2 text-xs text-violet-400/70 uppercase tracking-[0.2em] mb-4 border border-violet-500/20 rounded-full px-3 py-1.5">
+                <Sparkles className="w-3 h-3" />Étape 3
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-serif font-bold mb-4 tracking-tight">
+                Quelles sont<br /><span className="text-violet-300">vos références ?</span>
+              </h1>
+              <p className="text-white/35 text-base max-w-lg mx-auto leading-relaxed">
+                Cinéastes, films, livres, musiques, photographes, peintres — tout ce qui résonne
+                avec votre vision. L'IA s'en imprègnera pour construire votre matrice.
+              </p>
+            </div>
+
+            <textarea
+              value={references}
+              onChange={e => setReferences(e.target.value)}
+              placeholder={"Exemples :\n· Cinéma : Tarkovski, Wong Kar-wai, Arrival, 2001 A Space Odyssey, In the Mood for Love\n· Littérature : Cormac McCarthy, Murakami, Woolf, Duras\n· Musique : Arvo Pärt, Ennio Morricone, Erik Satie, Radiohead\n· Visuel : Edward Hopper, Gregory Crewdson, les couleurs de Paolo Sorrentino\n\nOu simplement : « l'ambiance des gares la nuit, les films des années 70, le sentiment du deuil »"}
+              className="w-full h-52 bg-white/[0.03] border border-white/[0.09] rounded-2xl p-5 text-sm text-white/80 placeholder:text-white/20 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/30 transition-all leading-relaxed"
+              autoFocus
+            />
+            <p className="text-xs text-white/15 mt-2">Optionnel — mais enrichit considérablement la génération</p>
+          </div>
+        )}
+
+        {/* ── STEP 4: Le Projet ─────────────────────── */}
+        {step === 4 && (
+          <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-400">
+            <div className="mb-10 text-center">
+              <div className="inline-flex items-center gap-2 text-xs text-violet-400/70 uppercase tracking-[0.2em] mb-4 border border-violet-500/20 rounded-full px-3 py-1.5">
+                <Sparkles className="w-3 h-3" />Étape 4
+              </div>
+              <h1 className="text-4xl sm:text-5xl font-serif font-bold mb-4 tracking-tight">
+                Nommez<br /><span className="text-violet-300">votre projet</span>
+              </h1>
+              <p className="text-white/35 text-base max-w-lg mx-auto">
+                Un titre de travail et les paramètres de base. Tout ceci pourra être affiné après.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {/* Title */}
+              <div>
+                <label className="block text-xs text-white/25 uppercase tracking-[0.15em] mb-3">Titre de travail</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="Ex: Le Dernier Témoin, Aurore, Séquence 47..."
+                  className="w-full h-12 bg-white/[0.03] border border-white/[0.09] rounded-xl px-4 text-white/80 placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/30 transition-all text-sm"
+                  autoFocus
+                />
+              </div>
+
+              {/* Format */}
+              <div>
+                <label className="block text-xs text-white/25 uppercase tracking-[0.15em] mb-3">Format</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {FORMATS.map(f => (
+                    <FormatTile key={f.id} f={f} selected={format === f.id} onSelect={() => setFormat(f.id)} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Genre + Tone */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-white/25 uppercase tracking-[0.15em] mb-3">Genre</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {GENRES.map(g => (
+                      <button key={g} onClick={() => setGenre(g)}
+                        className={cn(
+                          "text-xs px-2.5 py-1.5 rounded-lg border transition-all font-medium",
+                          genre === g
+                            ? "bg-violet-600/70 text-white border-violet-500/50"
+                            : "bg-white/[0.02] text-white/35 border-white/[0.08] hover:text-white/60 hover:bg-white/[0.04]"
+                        )}>
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-white/25 uppercase tracking-[0.15em] mb-3">Ton</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TONES.map(t => (
+                      <button key={t} onClick={() => setTone(t)}
+                        className={cn(
+                          "text-xs px-2.5 py-1.5 rounded-lg border transition-all font-medium",
+                          tone === t
+                            ? "bg-indigo-600/70 text-white border-indigo-500/50"
+                            : "bg-white/[0.02] text-white/35 border-white/[0.08] hover:text-white/60 hover:bg-white/[0.04]"
+                        )}>
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── NAV BUTTONS ───────────────────────────── */}
+        <div className="flex items-center justify-between w-full mt-12">
+          <button
+            onClick={() => setStep(s => Math.max(1, s - 1))}
+            disabled={step === 1}
+            className="flex items-center gap-2 text-sm text-white/30 hover:text-white/60 disabled:opacity-0 disabled:pointer-events-none transition-all">
+            <ArrowLeft className="w-4 h-4" />Retour
+          </button>
+
+          {step < 4 ? (
+            <button
+              onClick={() => setStep(s => s + 1)}
+              disabled={!canProceed()}
+              className={cn(
+                "flex items-center gap-2.5 px-7 py-3 rounded-2xl text-sm font-semibold transition-all",
+                canProceed()
+                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_4px_24px_rgba(139,92,246,0.35)] hover:shadow-[0_4px_32px_rgba(139,92,246,0.5)] hover:scale-[1.02]"
+                  : "bg-white/[0.05] text-white/20 cursor-not-allowed"
+              )}>
+              Continuer <ArrowRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={() => void handleSubmit()}
+              disabled={!canProceed() || submitting}
+              className={cn(
+                "flex items-center gap-2.5 px-8 py-3 rounded-2xl text-sm font-semibold transition-all",
+                canProceed() && !submitting
+                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-[0_4px_24px_rgba(139,92,246,0.35)] hover:shadow-[0_4px_32px_rgba(139,92,246,0.5)] hover:scale-[1.02]"
+                  : "bg-white/[0.05] text-white/20 cursor-not-allowed"
+              )}>
+              {submitting ? (
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Génération...</>
+              ) : (
+                <><Sparkles className="w-4 h-4" />Générer la matrice</>
+              )}
+            </button>
+          )}
         </div>
 
-        <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>Informations principales</CardTitle>
-            <CardDescription>
-              Ces informations serviront de base à l'intelligence artificielle pour générer votre Matrice Narrative.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Titre de travail</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ex: Chroniques de l'Aube" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        {/* Step 2 skip hint */}
+        {step === 2 && selectedMoods.length === 0 && (
+          <p className="text-xs text-white/15 mt-4 text-center">Sélectionnez au moins une atmosphère pour continuer</p>
+        )}
 
-                <FormField
-                  control={form.control}
-                  name="rawIdea"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Idée brute</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Racontez votre idée en quelques phrases. L'IA s'en servira pour extrapoler l'univers." 
-                          className="h-32"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="targetFormat"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Format cible</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Roman">Roman</SelectItem>
-                            <SelectItem value="Scénario de film">Scénario de film</SelectItem>
-                            <SelectItem value="Série TV">Série TV</SelectItem>
-                            <SelectItem value="Jeu Vidéo">Jeu Vidéo</SelectItem>
-                            <SelectItem value="Bande Dessinée">Bande Dessinée</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="genre"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Genre principal</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Science-Fiction">Science-Fiction</SelectItem>
-                            <SelectItem value="Fantasy">Fantasy</SelectItem>
-                            <SelectItem value="Thriller">Thriller</SelectItem>
-                            <SelectItem value="Horreur">Horreur</SelectItem>
-                            <SelectItem value="Drame">Drame</SelectItem>
-                            <SelectItem value="Romance">Romance</SelectItem>
-                            <SelectItem value="Historique">Historique</SelectItem>
-                            <SelectItem value="Cyberpunk">Cyberpunk</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="tone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ton</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sélectionner" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Sombre">Sombre</SelectItem>
-                            <SelectItem value="Épique">Épique</SelectItem>
-                            <SelectItem value="Mélancolique">Mélancolique</SelectItem>
-                            <SelectItem value="Humoristique">Humoristique</SelectItem>
-                            <SelectItem value="Cynique">Cynique</SelectItem>
-                            <SelectItem value="Onirique">Onirique</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+        {/* Summary preview on step 4 */}
+        {step === 4 && (
+          <div className="w-full mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
+            <p className="text-xs text-white/20 uppercase tracking-widest mb-3">Récapitulatif</p>
+            <div className="space-y-2">
+              <p className="text-xs text-white/40 italic">"{spark.length > 80 ? spark.slice(0, 80) + "..." : spark}"</p>
+              {selectedMoods.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedMoods.map(id => {
+                    const m = MOODS.find(x => x.id === id);
+                    return m ? <span key={id} className="text-[10px] px-2 py-0.5 rounded-full bg-violet-600/20 text-violet-300 border border-violet-500/25">{m.emoji} {m.label}</span> : null;
+                  })}
                 </div>
-
-                <div className="flex justify-end pt-4">
-                  <Button type="submit" disabled={createProject.isPending || generateMatrix.isPending}>
-                    {(createProject.isPending || generateMatrix.isPending) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                    {(createProject.isPending || generateMatrix.isPending) ? "Création en cours..." : "Créer l'univers"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+              )}
+              {references && <p className="text-xs text-white/30">Références : {references.slice(0, 60)}{references.length > 60 ? "..." : ""}</p>}
+            </div>
+          </div>
+        )}
       </div>
-    </AppLayout>
+    </div>
   );
 }

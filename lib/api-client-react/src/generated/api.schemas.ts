@@ -112,6 +112,9 @@ export interface CreateProjectInput {
   realityLevel?: string;
   targetAudience?: string;
   artisticAmbition?: string;
+  inspirationSources?: string;
+  cinematicReferences?: string;
+  visualMoods?: string[];
 }
 
 export interface UpdateProjectInput {
