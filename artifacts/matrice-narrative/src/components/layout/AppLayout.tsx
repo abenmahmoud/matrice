@@ -37,8 +37,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Page d'accueil", href: "/", icon: Home },
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
     { name: "Créer un univers", href: "/projects/new", icon: Plus },
-    { name: "Skills IA", href: "/skills", icon: Zap },
-    { name: "Laboratoire", href: "/research-lab", icon: FlaskConical },
   ];
 
   const projectNav = projectId && projectId !== "new" ? [
