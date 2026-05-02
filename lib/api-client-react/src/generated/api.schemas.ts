@@ -21,6 +21,10 @@ export interface Project {
   realityLevel?: string;
   targetAudience?: string;
   artisticAmbition?: string;
+  inspirationSources?: string;
+  cinematicReferences?: string;
+  manuscriptExcerpt?: string;
+  visualMoods?: string[];
   progression: number;
   createdAt: string;
   updatedAt: string;
@@ -114,6 +118,7 @@ export interface CreateProjectInput {
   artisticAmbition?: string;
   inspirationSources?: string;
   cinematicReferences?: string;
+  manuscriptExcerpt?: string;
   visualMoods?: string[];
 }
 

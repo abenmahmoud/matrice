@@ -11,7 +11,8 @@ import {
   generateNarrativeMatrix, generateEmotionalCore, generateEmotionalPath,
   generateCharacters, generateRelationships, generateWorldAndTimeline,
   generateResearchNotes, generateHpsaScore, checkCoherence,
-  generateBookOutline, generateScreenplay, generateSeries, generatePitch
+  generateBookOutline, generateScreenplay, generateSeries, generatePitch,
+  autoLinkSkills
 } from "../services/generationService.js";
 
 const router: IRouter = Router();
@@ -132,6 +133,7 @@ router.post("/projects", async (req, res) => {
       visualMoods: body.visualMoods ?? [],
       cinematicReferences: body.cinematicReferences ?? "",
       inspirationSources: body.inspirationSources ?? "",
+      manuscriptExcerpt: body.manuscriptExcerpt ?? "",
       progression: 5,
     }).returning();
     res.status(201).json(project);
@@ -976,6 +978,49 @@ router.get("/projects/:id/export/:type", async (req, res) => {
     res.json({ type, format, content, filename });
   } catch (err) {
     req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Auto-link skills from project vision
+// ---------------------------------------------------------------------------
+
+// POST /api/projects/:id/auto-link-skills
+router.post("/projects/:id/auto-link-skills", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+
+    const availableSkills = await db.select({
+      id: narrativeSkillsTable.id,
+      name: narrativeSkillsTable.name,
+      category: narrativeSkillsTable.category,
+      description: narrativeSkillsTable.description,
+      isUniversal: narrativeSkillsTable.isUniversal,
+      validationCount: narrativeSkillsTable.validationCount,
+    }).from(narrativeSkillsTable).where(eq(narrativeSkillsTable.isActive, true));
+
+    if (!availableSkills.length) return res.json([]);
+
+    const selectedIds = await autoLinkSkills(project, availableSkills);
+    const linked: typeof availableSkills = [];
+
+    for (const skillId of selectedIds) {
+      const existing = await db.select().from(projectSkillsTable).where(
+        and(eq(projectSkillsTable.projectId, req.params.id), eq(projectSkillsTable.skillId, skillId))
+      );
+      if (existing.length === 0) {
+        await db.insert(projectSkillsTable).values({ projectId: req.params.id, skillId });
+        const skill = availableSkills.find(s => s.id === skillId);
+        if (skill) linked.push(skill);
+      }
+    }
+
+    req.log.info({ projectId: req.params.id, linked: linked.length }, "Auto-linked skills");
+    res.json(linked);
+  } catch (err) {
+    req.log.error({ err }, "Failed to auto-link skills");
     res.status(500).json({ error: "Internal server error" });
   }
 });

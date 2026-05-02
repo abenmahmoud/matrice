@@ -4,7 +4,8 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
   Sparkles, ArrowRight, ArrowLeft, Clapperboard,
-  Film, Tv, BookOpen, Mic, Gamepad2, Image, Check
+  Film, Tv, BookOpen, Mic, Gamepad2, Image, Check,
+  BookText, ChevronDown, ChevronUp, Wand2
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -72,8 +73,10 @@ function StepBar({ current }: { current: number }) {
           <div className="flex items-center gap-2.5">
             <div className={cn(
               "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border transition-all",
-              current === s.n ? "bg-violet-600 border-violet-400 text-white shadow-[0_0_16px_rgba(139,92,246,0.5)]"
-                : current > s.n ? "bg-violet-800/60 border-violet-600/50 text-violet-300"
+              current === s.n
+                ? "bg-violet-600 border-violet-400 text-white shadow-[0_0_16px_rgba(139,92,246,0.5)]"
+                : current > s.n
+                ? "bg-violet-800/60 border-violet-600/50 text-violet-300"
                 : "bg-white/[0.04] border-white/[0.10] text-white/25"
             )}>
               {current > s.n ? <Check className="w-3.5 h-3.5" /> : s.n}
@@ -84,7 +87,10 @@ function StepBar({ current }: { current: number }) {
             )}>{s.label}</span>
           </div>
           {i < STEPS.length - 1 && (
-            <div className={cn("w-8 sm:w-14 h-px mx-3", current > s.n ? "bg-violet-600/40" : "bg-white/[0.06]")} />
+            <div className={cn(
+              "w-8 sm:w-14 h-px mx-3",
+              current > s.n ? "bg-violet-600/40" : "bg-white/[0.06]"
+            )} />
           )}
         </div>
       ))}
@@ -142,6 +148,9 @@ function FormatTile({ f, selected, onSelect }: {
 // ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
+
+type LinkedSkill = { id: string; name: string; category: string };
+
 export default function NewProject() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -150,6 +159,8 @@ export default function NewProject() {
 
   // Step 1 — L'Étincelle
   const [spark, setSpark] = useState("");
+  const [showManuscript, setShowManuscript] = useState(false);
+  const [manuscriptExcerpt, setManuscriptExcerpt] = useState("");
 
   // Step 2 — L'Atmosphère
   const [selectedMoods, setSelectedMoods] = useState<string[]>([]);
@@ -189,9 +200,11 @@ export default function NewProject() {
         inspirationSources: spark.trim(),
         visualMoods: moodLabels,
         cinematicReferences: references.trim(),
+        manuscriptExcerpt: manuscriptExcerpt.trim(),
         targetAudience: "Adultes exigeants, amateurs de cinéma d'auteur",
         artisticAmbition: `Créer une œuvre ${moodLabels.join(", ").toLowerCase()} qui résonne durablement`,
       };
+
       const res = await fetch(`${BASE}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -200,13 +213,29 @@ export default function NewProject() {
       if (!res.ok) throw new Error("Création échouée");
       const project = await res.json() as { id: string };
 
-      // Trigger matrix generation in background (fire and forget)
+      // Fire and forget: matrix generation (SSE)
       void fetch(`${BASE}/api/projects/${project.id}/generate-matrix`, {
         method: "POST",
         headers: { "Accept": "text/event-stream" },
       });
 
-      toast({ title: "Vision capturée", description: "La matrice narrative est en cours de génération..." });
+      // Fire and forget: auto-link skills — show toast when done
+      void fetch(`${BASE}/api/projects/${project.id}/auto-link-skills`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      }).then(r => r.json() as Promise<LinkedSkill[]>).then(skills => {
+        if (skills.length > 0) {
+          toast({
+            title: `${skills.length} compétence${skills.length > 1 ? "s" : ""} narrative${skills.length > 1 ? "s" : ""} liée${skills.length > 1 ? "s" : ""}`,
+            description: skills.map(s => s.name).join(" · "),
+          });
+        }
+      }).catch(() => null);
+
+      toast({
+        title: "Vision capturée",
+        description: "Matrice narrative en cours de génération...",
+      });
       setLocation(`/projects/${project.id}/matrix`);
     } catch {
       toast({ variant: "destructive", title: "Erreur", description: "Impossible de créer le projet." });
@@ -214,6 +243,8 @@ export default function NewProject() {
       setSubmitting(false);
     }
   };
+
+  const manuscriptWordCount = manuscriptExcerpt.trim().split(/\s+/).filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col">
@@ -246,13 +277,75 @@ export default function NewProject() {
               value={spark}
               onChange={e => setSpark(e.target.value)}
               placeholder={`"Je vois une femme debout dans une gare vide à 3h du matin. Autour d'elle, des valises abandonnées. Elle ne part pas — elle attend quelqu'un qui ne viendra jamais. Et elle le sait."\n\n— Ou bien : un rêve, une image, un sentiment impossible à nommer...`}
-              className="w-full h-52 bg-white/[0.03] border border-white/[0.09] rounded-2xl p-5 text-sm text-white/80 placeholder:text-white/20 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/30 transition-all leading-relaxed"
+              className="w-full h-48 bg-white/[0.03] border border-white/[0.09] rounded-2xl p-5 text-sm text-white/80 placeholder:text-white/20 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/30 transition-all leading-relaxed"
               autoFocus
             />
             <p className={cn(
               "text-xs mt-2 text-right transition-colors",
               spark.length < 10 ? "text-white/15" : "text-violet-400/50"
             )}>{spark.length} caractères {spark.length >= 10 && "✓"}</p>
+
+            {/* Manuscript toggle */}
+            <div className="mt-5">
+              <button
+                onClick={() => setShowManuscript(s => !s)}
+                className={cn(
+                  "w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left",
+                  showManuscript
+                    ? "bg-violet-600/10 border-violet-500/30"
+                    : "bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/[0.12]"
+                )}>
+                <div className={cn(
+                  "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors",
+                  showManuscript ? "bg-violet-600/30" : "bg-white/[0.05]"
+                )}>
+                  <BookText className={cn("w-4 h-4", showManuscript ? "text-violet-300" : "text-white/30")} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={cn(
+                    "text-sm font-semibold leading-none",
+                    showManuscript ? "text-violet-200" : "text-white/55"
+                  )}>
+                    J'ai un extrait de manuscrit ou un brouillon
+                  </p>
+                  <p className="text-xs text-white/22 mt-1.5 leading-snug">
+                    Collez un texte — l'IA détectera votre style et liera les compétences narratives adaptées
+                  </p>
+                </div>
+                <div className="flex-shrink-0 flex items-center gap-1.5">
+                  {manuscriptWordCount > 0 && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-600/25 text-violet-300 border border-violet-500/30">
+                      {manuscriptWordCount} mots
+                    </span>
+                  )}
+                  {showManuscript
+                    ? <ChevronUp className="w-4 h-4 text-violet-400/60" />
+                    : <ChevronDown className="w-4 h-4 text-white/20" />
+                  }
+                </div>
+              </button>
+
+              {showManuscript && (
+                <div className="mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <textarea
+                    value={manuscriptExcerpt}
+                    onChange={e => setManuscriptExcerpt(e.target.value)}
+                    placeholder={"Collez ici un extrait de votre brouillon, une scène, une page d'ouverture, des dialogues...\n\nL'IA analysera votre voix d'auteur et liera automatiquement les compétences narratives\nqui correspondent à votre style naturel et aux techniques à développer."}
+                    className="w-full h-52 bg-white/[0.02] border border-violet-500/20 rounded-xl p-4 text-sm text-white/75 placeholder:text-white/18 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/25 transition-all leading-relaxed"
+                    autoFocus
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-white/20">Minimum recommandé : 50 mots</p>
+                    {manuscriptWordCount > 0 && (
+                      <div className="flex items-center gap-1.5 text-xs text-violet-400/50">
+                        <Wand2 className="w-3 h-3" />
+                        Compétences auto-liées après création
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -393,6 +486,19 @@ export default function NewProject() {
                   </div>
                 </div>
               </div>
+
+              {/* Skills hint */}
+              {(manuscriptExcerpt.trim().length > 50 || selectedMoods.length > 0) && (
+                <div className="flex items-start gap-3 p-4 rounded-2xl bg-violet-600/8 border border-violet-500/20">
+                  <Wand2 className="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-violet-300 font-medium">Compétences narratives automatiques</p>
+                    <p className="text-xs text-white/35 mt-1 leading-relaxed">
+                      Après création, l'IA analysera votre vision{manuscriptExcerpt.trim().length > 50 ? " et votre manuscrit" : ""} pour lier automatiquement les compétences narratives les plus pertinentes à votre projet.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -429,15 +535,21 @@ export default function NewProject() {
                   : "bg-white/[0.05] text-white/20 cursor-not-allowed"
               )}>
               {submitting ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Génération...</>
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Génération...
+                </>
               ) : (
-                <><Sparkles className="w-4 h-4" />Générer la matrice</>
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Générer la matrice
+                </>
               )}
             </button>
           )}
         </div>
 
-        {/* Step 2 skip hint */}
+        {/* Step 2 hint */}
         {step === 2 && selectedMoods.length === 0 && (
           <p className="text-xs text-white/15 mt-4 text-center">Sélectionnez au moins une atmosphère pour continuer</p>
         )}
@@ -452,11 +564,23 @@ export default function NewProject() {
                 <div className="flex flex-wrap gap-1.5">
                   {selectedMoods.map(id => {
                     const m = MOODS.find(x => x.id === id);
-                    return m ? <span key={id} className="text-[10px] px-2 py-0.5 rounded-full bg-violet-600/20 text-violet-300 border border-violet-500/25">{m.emoji} {m.label}</span> : null;
+                    return m ? (
+                      <span key={id} className="text-[10px] px-2 py-0.5 rounded-full bg-violet-600/20 text-violet-300 border border-violet-500/25">
+                        {m.emoji} {m.label}
+                      </span>
+                    ) : null;
                   })}
                 </div>
               )}
-              {references && <p className="text-xs text-white/30">Références : {references.slice(0, 60)}{references.length > 60 ? "..." : ""}</p>}
+              {references && (
+                <p className="text-xs text-white/30">Références : {references.slice(0, 60)}{references.length > 60 ? "..." : ""}</p>
+              )}
+              {manuscriptWordCount > 0 && (
+                <div className="flex items-center gap-1.5 text-xs text-violet-400/50">
+                  <BookText className="w-3 h-3" />
+                  {manuscriptWordCount} mots de manuscrit · compétences auto-liées
+                </div>
+              )}
             </div>
           </div>
         )}

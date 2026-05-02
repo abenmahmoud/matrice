@@ -17,6 +17,7 @@ export const projectsTable = pgTable("projects", {
   visualMoods: jsonb("visual_moods").$type<string[]>().notNull().default([]),
   cinematicReferences: text("cinematic_references").notNull().default(""),
   inspirationSources: text("inspiration_sources").notNull().default(""),
+  manuscriptExcerpt: text("manuscript_excerpt").notNull().default(""),
   progression: real("progression").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

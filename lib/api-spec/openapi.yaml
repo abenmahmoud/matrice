@@ -950,6 +950,16 @@ components:
           type: string
         artisticAmbition:
           type: string
+        inspirationSources:
+          type: string
+        cinematicReferences:
+          type: string
+        manuscriptExcerpt:
+          type: string
+        visualMoods:
+          type: array
+          items:
+            type: string
         progression:
           type: number
         createdAt:
@@ -1007,6 +1017,8 @@ components:
         inspirationSources:
           type: string
         cinematicReferences:
+          type: string
+        manuscriptExcerpt:
           type: string
         visualMoods:
           type: array

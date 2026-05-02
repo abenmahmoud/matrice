@@ -19,5 +19,6 @@ export interface CreateProjectInput {
   artisticAmbition?: string;
   inspirationSources?: string;
   cinematicReferences?: string;
+  manuscriptExcerpt?: string;
   visualMoods?: string[];
 }

@@ -21,6 +21,7 @@ type Project = {
   visualMoods?: string[] | null;
   cinematicReferences?: string | null;
   inspirationSources?: string | null;
+  manuscriptExcerpt?: string | null;
 };
 
 type NarrativeMatrix = {
@@ -119,6 +120,7 @@ Ambition artistique : ${project.artisticAmbition ?? "créer une œuvre qui réso
   if (project.inspirationSources) extras.push(`Source d'inspiration originelle (rêve / sensation / image) : ${project.inspirationSources}`);
   if ((project.visualMoods as string[] | undefined)?.length) extras.push(`ADN visuel déclaré (atmosphères) : ${(project.visualMoods as string[]).join(", ")}`);
   if (project.cinematicReferences) extras.push(`Références cinématographiques / artistiques : ${project.cinematicReferences}`);
+  if (project.manuscriptExcerpt) extras.push(`Extrait de manuscrit / brouillon de l'auteur (style naturel, voix propre) :\n"""\n${project.manuscriptExcerpt.slice(0, 1200)}\n"""`);
 
   return extras.length ? `${base}\n${extras.join("\n")}` : base;
 }
@@ -855,4 +857,49 @@ export function checkCoherence(matrix: NarrativeMatrix): { score: number; issues
     suggestions,
     isCoherent: issues.length === 0,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Auto-link skills
+// ---------------------------------------------------------------------------
+
+export async function autoLinkSkills(
+  project: Project,
+  availableSkills: Array<{ id: string; name: string; category: string; description: string; isUniversal: boolean; validationCount: number }>
+): Promise<string[]> {
+  if (!availableSkills.length) return [];
+
+  const system = `Tu es un expert en techniques narratives et en pédagogie créative. À partir du projet d'un auteur, tu identifies les compétences narratives les plus pertinentes à activer. Réponds UNIQUEMENT en JSON valide.`;
+
+  const skillsList = availableSkills
+    .map(s => `{"id":"${s.id}","name":"${s.name}","category":"${s.category}","isUniversal":${s.isUniversal},"validations":${s.validationCount}}`)
+    .join("\n");
+
+  const hasManuscript = !!project.manuscriptExcerpt;
+  const hasMoods = (project.visualMoods as string[] | undefined)?.length;
+
+  const user = `Voici un projet créatif :
+
+${projectContext(project)}
+
+Compétences narratives disponibles dans la bibliothèque :
+${skillsList}
+
+${hasManuscript ? "IMPORTANT : L'auteur a fourni un extrait de manuscrit. Priorise les compétences qui correspondent au style d'écriture naturel détecté et aux techniques déjà présentes ou manquantes." : ""}
+${hasMoods ? "IMPORTANT : L'auteur a déclaré des atmosphères visuelles précises. Priorise les compétences qui renforcent l'identité visuelle et sensorielle du projet." : ""}
+
+Sélectionne exactement 3 à 5 compétences les plus pertinentes pour ce projet. Choisis celles qui :
+1. Correspondent au genre et au ton déclarés
+2. Complètent ou renforcent les intentions créatives
+3. Sont marquées isUniversal:true en priorité (validées cross-culturellement)
+
+Réponds UNIQUEMENT avec cet objet JSON :
+{"selectedIds": ["id1", "id2", "id3"]}
+
+N'invente pas d'IDs. Utilise uniquement des IDs de la liste ci-dessus.`;
+
+  const fallback = { selectedIds: [] as string[] };
+  const result = await aiJson<{ selectedIds: string[] }>(system, user, fallback);
+  const validIds = availableSkills.map(s => s.id);
+  return result.selectedIds.filter(id => validIds.includes(id));
 }
