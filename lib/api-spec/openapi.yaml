@@ -74,7 +74,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateProjectBody"
+              $ref: "#/components/schemas/CreateProjectInput"
       responses:
         "201":
           description: Created project
@@ -118,7 +118,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateProjectBody"
+              $ref: "#/components/schemas/UpdateProjectInput"
       responses:
         "200":
           description: Updated project
@@ -373,7 +373,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateCharacterBody"
+              $ref: "#/components/schemas/CreateCharacterInput"
       responses:
         "201":
           description: Created character
@@ -403,7 +403,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateCharacterBody"
+              $ref: "#/components/schemas/CreateCharacterInput"
       responses:
         "200":
           description: Updated character
@@ -981,7 +981,7 @@ components:
               items:
                 $ref: "#/components/schemas/Character"
 
-    CreateProjectBody:
+    CreateProjectInput:
       type: object
       properties:
         title:
@@ -1011,7 +1011,7 @@ components:
         - tone
         - targetFormat
 
-    UpdateProjectBody:
+    UpdateProjectInput:
       type: object
       properties:
         title:
@@ -1281,7 +1281,7 @@ components:
         - name
         - role
 
-    CreateCharacterBody:
+    CreateCharacterInput:
       type: object
       properties:
         name:

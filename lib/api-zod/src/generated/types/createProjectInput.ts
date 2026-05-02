@@ -6,13 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface UpdateProjectBody {
-  title?: string;
-  rawIdea?: string;
+export interface CreateProjectInput {
+  title: string;
+  rawIdea: string;
   inputType?: string;
-  genre?: string;
-  tone?: string;
-  targetFormat?: string;
+  genre: string;
+  tone: string;
+  targetFormat: string;
   temporalLogic?: string;
   realityLevel?: string;
   targetAudience?: string;

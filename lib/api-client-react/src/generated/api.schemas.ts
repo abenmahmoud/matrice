@@ -101,7 +101,7 @@ export type ProjectDetail = Project & {
   characters?: Character[];
 };
 
-export interface CreateProjectBody {
+export interface CreateProjectInput {
   title: string;
   rawIdea: string;
   inputType?: string;
@@ -114,7 +114,7 @@ export interface CreateProjectBody {
   artisticAmbition?: string;
 }
 
-export interface UpdateProjectBody {
+export interface UpdateProjectInput {
   title?: string;
   rawIdea?: string;
   inputType?: string;
@@ -165,7 +165,7 @@ export interface EmotionalPath {
   updatedAt?: string;
 }
 
-export interface CreateCharacterBody {
+export interface CreateCharacterInput {
   name: string;
   role: string;
   nature?: string;

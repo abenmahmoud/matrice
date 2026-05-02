@@ -20,8 +20,8 @@ import type {
   BookOutline,
   Character,
   CoherenceCheck,
-  CreateCharacterBody,
-  CreateProjectBody,
+  CreateCharacterInput,
+  CreateProjectInput,
   DashboardSummary,
   EmotionalCore,
   EmotionalPath,
@@ -36,7 +36,7 @@ import type {
   ResearchData,
   Screenplay,
   Series,
-  UpdateProjectBody,
+  UpdateProjectInput,
   WorldData,
 } from "./api.schemas";
 
@@ -207,14 +207,14 @@ export const getCreateProjectUrl = () => {
 };
 
 export const createProject = async (
-  createProjectBody: CreateProjectBody,
+  createProjectInput: CreateProjectInput,
   options?: RequestInit,
 ): Promise<Project> => {
   return customFetch<Project>(getCreateProjectUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(createProjectBody),
+    body: JSON.stringify(createProjectInput),
   });
 };
 
@@ -225,14 +225,14 @@ export const getCreateProjectMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createProject>>,
     TError,
-    { data: BodyType<CreateProjectBody> },
+    { data: BodyType<CreateProjectInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createProject>>,
   TError,
-  { data: BodyType<CreateProjectBody> },
+  { data: BodyType<CreateProjectInput> },
   TContext
 > => {
   const mutationKey = ["createProject"];
@@ -246,7 +246,7 @@ export const getCreateProjectMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createProject>>,
-    { data: BodyType<CreateProjectBody> }
+    { data: BodyType<CreateProjectInput> }
   > = (props) => {
     const { data } = props ?? {};
 
@@ -259,7 +259,7 @@ export const getCreateProjectMutationOptions = <
 export type CreateProjectMutationResult = NonNullable<
   Awaited<ReturnType<typeof createProject>>
 >;
-export type CreateProjectMutationBody = BodyType<CreateProjectBody>;
+export type CreateProjectMutationBody = BodyType<CreateProjectInput>;
 export type CreateProjectMutationError = ErrorType<unknown>;
 
 /**
@@ -272,14 +272,14 @@ export const useCreateProject = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createProject>>,
     TError,
-    { data: BodyType<CreateProjectBody> },
+    { data: BodyType<CreateProjectInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof createProject>>,
   TError,
-  { data: BodyType<CreateProjectBody> },
+  { data: BodyType<CreateProjectInput> },
   TContext
 > => {
   return useMutation(getCreateProjectMutationOptions(options));
@@ -381,14 +381,14 @@ export const getUpdateProjectUrl = (id: string) => {
 
 export const updateProject = async (
   id: string,
-  updateProjectBody: UpdateProjectBody,
+  updateProjectInput: UpdateProjectInput,
   options?: RequestInit,
 ): Promise<Project> => {
   return customFetch<Project>(getUpdateProjectUrl(id), {
     ...options,
     method: "PUT",
     headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(updateProjectBody),
+    body: JSON.stringify(updateProjectInput),
   });
 };
 
@@ -399,14 +399,14 @@ export const getUpdateProjectMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateProject>>,
     TError,
-    { id: string; data: BodyType<UpdateProjectBody> },
+    { id: string; data: BodyType<UpdateProjectInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateProject>>,
   TError,
-  { id: string; data: BodyType<UpdateProjectBody> },
+  { id: string; data: BodyType<UpdateProjectInput> },
   TContext
 > => {
   const mutationKey = ["updateProject"];
@@ -420,7 +420,7 @@ export const getUpdateProjectMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateProject>>,
-    { id: string; data: BodyType<UpdateProjectBody> }
+    { id: string; data: BodyType<UpdateProjectInput> }
   > = (props) => {
     const { id, data } = props ?? {};
 
@@ -433,7 +433,7 @@ export const getUpdateProjectMutationOptions = <
 export type UpdateProjectMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateProject>>
 >;
-export type UpdateProjectMutationBody = BodyType<UpdateProjectBody>;
+export type UpdateProjectMutationBody = BodyType<UpdateProjectInput>;
 export type UpdateProjectMutationError = ErrorType<unknown>;
 
 /**
@@ -446,14 +446,14 @@ export const useUpdateProject = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateProject>>,
     TError,
-    { id: string; data: BodyType<UpdateProjectBody> },
+    { id: string; data: BodyType<UpdateProjectInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof updateProject>>,
   TError,
-  { id: string; data: BodyType<UpdateProjectBody> },
+  { id: string; data: BodyType<UpdateProjectInput> },
   TContext
 > => {
   return useMutation(getUpdateProjectMutationOptions(options));
@@ -1480,14 +1480,14 @@ export const getCreateCharacterUrl = (id: string) => {
 
 export const createCharacter = async (
   id: string,
-  createCharacterBody: CreateCharacterBody,
+  createCharacterInput: CreateCharacterInput,
   options?: RequestInit,
 ): Promise<Character> => {
   return customFetch<Character>(getCreateCharacterUrl(id), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(createCharacterBody),
+    body: JSON.stringify(createCharacterInput),
   });
 };
 
@@ -1498,14 +1498,14 @@ export const getCreateCharacterMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createCharacter>>,
     TError,
-    { id: string; data: BodyType<CreateCharacterBody> },
+    { id: string; data: BodyType<CreateCharacterInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createCharacter>>,
   TError,
-  { id: string; data: BodyType<CreateCharacterBody> },
+  { id: string; data: BodyType<CreateCharacterInput> },
   TContext
 > => {
   const mutationKey = ["createCharacter"];
@@ -1519,7 +1519,7 @@ export const getCreateCharacterMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createCharacter>>,
-    { id: string; data: BodyType<CreateCharacterBody> }
+    { id: string; data: BodyType<CreateCharacterInput> }
   > = (props) => {
     const { id, data } = props ?? {};
 
@@ -1532,7 +1532,7 @@ export const getCreateCharacterMutationOptions = <
 export type CreateCharacterMutationResult = NonNullable<
   Awaited<ReturnType<typeof createCharacter>>
 >;
-export type CreateCharacterMutationBody = BodyType<CreateCharacterBody>;
+export type CreateCharacterMutationBody = BodyType<CreateCharacterInput>;
 export type CreateCharacterMutationError = ErrorType<unknown>;
 
 /**
@@ -1545,14 +1545,14 @@ export const useCreateCharacter = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createCharacter>>,
     TError,
-    { id: string; data: BodyType<CreateCharacterBody> },
+    { id: string; data: BodyType<CreateCharacterInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof createCharacter>>,
   TError,
-  { id: string; data: BodyType<CreateCharacterBody> },
+  { id: string; data: BodyType<CreateCharacterInput> },
   TContext
 > => {
   return useMutation(getCreateCharacterMutationOptions(options));
@@ -1568,14 +1568,14 @@ export const getUpdateCharacterUrl = (id: string, charId: string) => {
 export const updateCharacter = async (
   id: string,
   charId: string,
-  createCharacterBody: CreateCharacterBody,
+  createCharacterInput: CreateCharacterInput,
   options?: RequestInit,
 ): Promise<Character> => {
   return customFetch<Character>(getUpdateCharacterUrl(id, charId), {
     ...options,
     method: "PUT",
     headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(createCharacterBody),
+    body: JSON.stringify(createCharacterInput),
   });
 };
 
@@ -1586,14 +1586,14 @@ export const getUpdateCharacterMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateCharacter>>,
     TError,
-    { id: string; charId: string; data: BodyType<CreateCharacterBody> },
+    { id: string; charId: string; data: BodyType<CreateCharacterInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateCharacter>>,
   TError,
-  { id: string; charId: string; data: BodyType<CreateCharacterBody> },
+  { id: string; charId: string; data: BodyType<CreateCharacterInput> },
   TContext
 > => {
   const mutationKey = ["updateCharacter"];
@@ -1607,7 +1607,7 @@ export const getUpdateCharacterMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateCharacter>>,
-    { id: string; charId: string; data: BodyType<CreateCharacterBody> }
+    { id: string; charId: string; data: BodyType<CreateCharacterInput> }
   > = (props) => {
     const { id, charId, data } = props ?? {};
 
@@ -1620,7 +1620,7 @@ export const getUpdateCharacterMutationOptions = <
 export type UpdateCharacterMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateCharacter>>
 >;
-export type UpdateCharacterMutationBody = BodyType<CreateCharacterBody>;
+export type UpdateCharacterMutationBody = BodyType<CreateCharacterInput>;
 export type UpdateCharacterMutationError = ErrorType<unknown>;
 
 /**
@@ -1633,14 +1633,14 @@ export const useUpdateCharacter = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateCharacter>>,
     TError,
-    { id: string; charId: string; data: BodyType<CreateCharacterBody> },
+    { id: string; charId: string; data: BodyType<CreateCharacterInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof updateCharacter>>,
   TError,
-  { id: string; charId: string; data: BodyType<CreateCharacterBody> },
+  { id: string; charId: string; data: BodyType<CreateCharacterInput> },
   TContext
 > => {
   return useMutation(getUpdateCharacterMutationOptions(options));
