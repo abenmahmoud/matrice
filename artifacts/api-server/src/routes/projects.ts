@@ -12,8 +12,9 @@ import {
   generateCharacters, generateRelationships, generateWorldAndTimeline,
   generateResearchNotes, generateHpsaScore, checkCoherence,
   generateBookOutline, generateScreenplay, generateSeries, generatePitch,
-  autoLinkSkills
+  autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue
 } from "../services/generationService.js";
+import { tensionArcsTable, atmosphereDataTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -1012,6 +1013,95 @@ router.get("/projects/:id/export/:type", async (req, res) => {
     }
 
     res.json({ type, format, content, filename });
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Tension Arc
+// ---------------------------------------------------------------------------
+
+router.post("/projects/:id/generate-tension-arc", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+    const arcData = await generateTensionArc(project, matrix ?? null);
+    const existing = await db.select().from(tensionArcsTable).where(eq(tensionArcsTable.projectId, req.params.id));
+    let arc;
+    if (existing.length > 0) {
+      [arc] = await db.update(tensionArcsTable).set({ ...arcData, updatedAt: new Date() }).where(eq(tensionArcsTable.projectId, req.params.id)).returning();
+    } else {
+      [arc] = await db.insert(tensionArcsTable).values({ projectId: req.params.id, ...arcData }).returning();
+    }
+    res.json(arc);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/projects/:id/tension-arc", async (req, res) => {
+  try {
+    const [arc] = await db.select().from(tensionArcsTable).where(eq(tensionArcsTable.projectId, req.params.id));
+    if (!arc) return res.status(404).json({ error: "Not found" });
+    res.json(arc);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Atmosphere
+// ---------------------------------------------------------------------------
+
+router.post("/projects/:id/generate-atmosphere", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+    const atmData = await generateAtmosphere(project);
+    const existing = await db.select().from(atmosphereDataTable).where(eq(atmosphereDataTable.projectId, req.params.id));
+    let atm;
+    if (existing.length > 0) {
+      [atm] = await db.update(atmosphereDataTable).set({ ...atmData, updatedAt: new Date() }).where(eq(atmosphereDataTable.projectId, req.params.id)).returning();
+    } else {
+      [atm] = await db.insert(atmosphereDataTable).values({ projectId: req.params.id, ...atmData }).returning();
+    }
+    res.json(atm);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/projects/:id/atmosphere", async (req, res) => {
+  try {
+    const [atm] = await db.select().from(atmosphereDataTable).where(eq(atmosphereDataTable.projectId, req.params.id));
+    if (!atm) return res.status(404).json({ error: "Not found" });
+    res.json(atm);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Character Dialogue
+// ---------------------------------------------------------------------------
+
+router.post("/projects/:id/characters/:charId/dialogue", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+    const [char] = await db.select().from(charactersTable).where(eq(charactersTable.id, req.params.charId));
+    if (!char) return res.status(404).json({ error: "Character not found" });
+    const { message, history = [] } = req.body as { message: string; history: Array<{ role: "user" | "assistant"; content: string }> };
+    if (!message) return res.status(400).json({ error: "message required" });
+    const response = await characterDialogue(char, project, message, history);
+    res.json({ response });
   } catch (err) {
     req.log.error({ err });
     res.status(500).json({ error: "Internal server error" });

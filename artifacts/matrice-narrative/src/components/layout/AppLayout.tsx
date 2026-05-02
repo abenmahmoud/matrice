@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Home, LayoutDashboard, Plus, BookOpen, Brain, Users, Network, Globe2,
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
-  FileSearch, LayoutGrid, CheckCircle2, Circle
+  FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -55,6 +55,16 @@ const PHASES = [
     extra: [
       { name: "Exports", href: "exports", icon: Download },
       { name: "Analyse IA", href: "analyse", icon: FileSearch },
+    ],
+  },
+  {
+    label: "Immersion",
+    items: [],
+    extra: [
+      { name: "Arc de Tension", href: "tension-arc", icon: TrendingUp },
+      { name: "Atmosphères", href: "atmosphere", icon: Palette },
+      { name: "Constellation", href: "constellation", icon: Sparkles },
+      { name: "Parler aux persos", href: "dialogue", icon: MessageCircle },
     ],
   },
 ];

@@ -903,3 +903,124 @@ N'invente pas d'IDs. Utilise uniquement des IDs de la liste ci-dessus.`;
   const validIds = availableSkills.map(s => s.id);
   return result.selectedIds.filter(id => validIds.includes(id));
 }
+
+// ---------------------------------------------------------------------------
+// Tension Arc
+// ---------------------------------------------------------------------------
+
+export async function generateTensionArc(project: Project, matrixData: NarrativeMatrix | null): Promise<{
+  acts: Array<{ label: string; description: string; tension: number; emotion: string; keyEvent: string }>;
+  overallShape: string;
+  recommendation: string;
+}> {
+  const system = `Tu es un dramaturge expert en structure narrative et en courbes de tension. Tu analyses des projets créatifs et génères des arcs de tension précis, nuancés, évitant les schémas convenus. Réponds UNIQUEMENT en JSON valide.`;
+  const user = `${projectContext(project)}
+${matrixData ? `Matrice : logline="${matrixData.logline}", conflit="${matrixData.centralConflict}", thèmes=${matrixData.themes?.join(", ")}` : ""}
+
+Génère une courbe de tension dramatique avec 8 à 10 séquences. Chaque point a une valeur tension entre 0 et 100.
+
+{"acts":[{"label":"Nom évocateur de la séquence","description":"Ce qui se passe narrativement","tension":35,"emotion":"Émotion dominante ressentie par le lecteur","keyEvent":"L'événement pivot concret"}],"overallShape":"Description poétique de la forme de la courbe","recommendation":"Conseil précis pour améliorer le rythme dramatique"}`;
+  const fallback = {
+    acts: [
+      { label: "L'Avant", description: "Le monde avant la rupture", tension: 15, emotion: "Sérénité fragile", keyEvent: "Un équilibre qui sera brisé" },
+      { label: "L'Incident", description: "Ce qui déclenche tout", tension: 40, emotion: "Surprise", keyEvent: "Le monde du personnage bascule" },
+      { label: "La Résistance", description: "Le protagoniste refuse l'appel", tension: 35, emotion: "Hésitation", keyEvent: "Premier refus, premier doute" },
+      { label: "L'Engagement", description: "Point de non-retour", tension: 60, emotion: "Détermination mêlée de peur", keyEvent: "Décision irréversible prise" },
+      { label: "La Montée", description: "Les obstacles s'accumulent", tension: 72, emotion: "Pression croissante", keyEvent: "Chaque solution crée un nouveau problème" },
+      { label: "La Crise du Milieu", description: "Tout semble perdu", tension: 55, emotion: "Désespoir et remise en question", keyEvent: "Le personnage perd ce qu'il croit vouloir" },
+      { label: "La Révélation", description: "La vérité éclate", tension: 80, emotion: "Choc et lucidité", keyEvent: "Ce que le personnage a toujours fui lui fait face" },
+      { label: "Le Climax", description: "Confrontation ultime", tension: 95, emotion: "Terreur et catharsis", keyEvent: "Le moment de vérité — qui sera-t-il vraiment ?" },
+      { label: "La Résolution", description: "Le nouveau monde", tension: 30, emotion: "Mélancolie douce", keyEvent: "Ce qui a changé pour toujours" },
+    ],
+    overallShape: "Courbe en vallée-montagne — creux au milieu, double pic",
+    recommendation: "Votre creux de milieu est fort. Assurez-vous que la révélation change la perception de tout ce qui précède.",
+  };
+  return aiJson(system, user, fallback);
+}
+
+// ---------------------------------------------------------------------------
+// Atmosphere / Mood Board
+// ---------------------------------------------------------------------------
+
+export async function generateAtmosphere(project: Project): Promise<{
+  colorPalette: Array<{ name: string; hex: string; role: string }>;
+  lightingStyle: string;
+  musicReferences: Array<{ genre: string; artists: string[]; mood: string }>;
+  cinematicStyle: string;
+  textures: string[];
+  sensoryNotes: { smell: string; sound: string; touch: string };
+  visualReferences: string[];
+}> {
+  const system = `Tu es un directeur artistique de haut niveau, spécialiste des univers sensoriels cinématographiques et littéraires. Tu crées des chambres d'atmosphère cohérentes, originales, loin des clichés de genre. Réponds UNIQUEMENT en JSON valide.`;
+  const moods = (project.visualMoods as string[] | undefined)?.join(", ") || "non spécifié";
+  const user = `${projectContext(project)}
+Atmosphères visuelles déclarées : "${moods}"
+
+Génère une chambre des atmosphères complète et précise.
+
+{"colorPalette":[{"name":"Nom poétique","hex":"#hexcode","role":"Rôle dramatique dans l'univers"}],"lightingStyle":"Direction lumière, qualité photographique, style visuel","musicReferences":[{"genre":"Genre musical précis","artists":["Artiste 1","Artiste 2"],"mood":"Ce que cette musique apporte émotionnellement"}],"cinematicStyle":"Style cinéma de référence et pourquoi ce choix est juste","textures":["5 à 7 matières et textures physiquement présentes dans l'univers"],"sensoryNotes":{"smell":"Odeurs dominantes","sound":"Paysage sonore ambiant","touch":"Sensations tactiles et température ressentie"},"visualReferences":["6 à 8 films, séries, photographes, peintres ou artistes de référence"]}
+
+Palette : 5 à 7 couleurs. Sois précis, poétique et inattendu. Pas de clichés.`;
+  const fallback = {
+    colorPalette: [
+      { name: "Ébène Nocturne", hex: "#0a0809", role: "Fond dominant — l'espace du silence" },
+      { name: "Violet Blessure", hex: "#3b0764", role: "Accent dramatique — la douleur intérieure" },
+      { name: "Bleu Mercure", hex: "#1e3a5f", role: "Profondeur — ce qui est caché sous la surface" },
+      { name: "Ambre Trouble", hex: "#92400e", role: "Chaleur distante — souvenirs et nostalgie" },
+      { name: "Blanc Cassé", hex: "#f5f0eb", role: "Lumière rare — les moments de grâce" },
+    ],
+    lightingStyle: "Chiaroscuro contemporain. Sources uniques, ombres dures. Nuits urbaines, halos de lampadaires.",
+    musicReferences: [
+      { genre: "Ambient Noir", artists: ["Burial", "Grouper"], mood: "Mélancolie et tension diffuse" },
+      { genre: "Post-classique", artists: ["Ólafur Arnalds", "Nils Frahm"], mood: "Fragilité émotionnelle" },
+    ],
+    cinematicStyle: "Néo-noir psychologique — héritage de Lynch, épure de Haneke",
+    textures: ["Béton humide", "Verre dépoli", "Cuir vieilli", "Tissu froissé", "Métal oxydé"],
+    sensoryNotes: { smell: "Pluie sur l'asphalte chaud, cigarette froide", sound: "Bourdonnement lointain, silence dense", touch: "Froid sec, surface rugueuse" },
+    visualReferences: ["Drive (2011)", "True Detective S1", "Blade Runner 2049", "Caché (Haneke)", "La Pianiste"],
+  };
+  return aiJson(system, user, fallback);
+}
+
+// ---------------------------------------------------------------------------
+// Character Dialogue
+// ---------------------------------------------------------------------------
+
+export async function characterDialogue(
+  character: { name: string; role: string; wound?: string | null; fear?: string | null; secret?: string | null; voiceStyle?: string | null; contradiction?: string | null; innerNeed?: string | null },
+  project: Project,
+  message: string,
+  history: Array<{ role: "user" | "assistant"; content: string }>
+): Promise<string> {
+  const system = `Tu INCARNES le personnage ${character.name} (${character.role}) dans l'univers de "${project.title}".
+
+Ta psychologie profonde :
+${character.wound ? `— Blessure secrète : ${character.wound}` : ""}
+${character.fear ? `— Peur fondamentale : ${character.fear}` : ""}
+${character.secret ? `— Secret que tu caches : ${character.secret}` : ""}
+${character.contradiction ? `— Contradiction interne : ${character.contradiction}` : ""}
+${character.innerNeed ? `— Besoin intérieur : ${character.innerNeed}` : ""}
+${character.voiceStyle ? `— Ton et manière de parler : ${character.voiceStyle}` : ""}
+
+Univers : ${project.genre}, ton ${project.tone}. ${project.rawIdea?.slice(0, 150) ?? ""}
+
+RÈGLES ABSOLUES :
+1. Tu réponds toujours EN TANT QUE ${character.name} — jamais comme une IA.
+2. Tu gardes tes défenses, tes silences, tes contradictions.
+3. Tu ne révèles pas facilement tes secrets — il faut creuser.
+4. Tes réponses sont courtes à moyennes (2 à 6 phrases) — naturelles, pas des dissertations.
+5. Si la question touche ta blessure ou ton secret, tu détournes, tu minimises, tu fuis élégamment.`;
+
+  const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+    { role: "system", content: system },
+    ...history.slice(-8).map(h => ({ role: h.role as "user" | "assistant", content: h.content })),
+    { role: "user", content: message },
+  ];
+
+  try {
+    const res = await openai.chat.completions.create({ model: "gpt-5.4", messages, temperature: 0.92, max_tokens: 400 });
+    return res.choices[0]?.message?.content ?? "(silence)";
+  } catch {
+    return "(Le personnage garde le silence pour l'instant.)";
+  }
+}

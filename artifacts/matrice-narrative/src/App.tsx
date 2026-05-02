@@ -24,6 +24,10 @@ import AdminPage from "./pages/admin";
 import AnalysePage from "./pages/analyse";
 import ProjectAnalysePage from "./pages/project-analyse";
 import ProjectOverview from "./pages/project-overview";
+import TensionArcPage from "./pages/tension-arc";
+import AtmospherePage from "./pages/atmosphere";
+import ConstellationPage from "./pages/constellation";
+import DialoguePage from "./pages/dialogue";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
@@ -39,6 +43,10 @@ function Router() {
       <Route path="/projects/new" component={NewProject} />
       <Route path="/projects/:id/matrix" component={MatrixPage} />
       <Route path="/projects/:id" component={ProjectOverview} />
+      <Route path="/projects/:id/tension-arc" component={TensionArcPage} />
+      <Route path="/projects/:id/atmosphere" component={AtmospherePage} />
+      <Route path="/projects/:id/constellation" component={ConstellationPage} />
+      <Route path="/projects/:id/dialogue" component={DialoguePage} />
       <Route path="/projects/:id/emotional-core" component={EmotionalCorePage} />
       <Route path="/projects/:id/characters" component={CharactersPage} />
       <Route path="/projects/:id/relationships" component={RelationshipsPage} />

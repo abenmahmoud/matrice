@@ -252,3 +252,27 @@ export const pitchDocumentsTable = pgTable("pitch_documents", {
 });
 
 export type PitchDocument = typeof pitchDocumentsTable.$inferSelect;
+
+export const tensionArcsTable = pgTable("tension_arcs", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  acts: jsonb("acts").$type<Array<{ label: string; description: string; tension: number; emotion: string; keyEvent: string }>>().notNull().default([]),
+  overallShape: text("overall_shape").notNull().default(""),
+  recommendation: text("recommendation").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type TensionArc = typeof tensionArcsTable.$inferSelect;
+
+export const atmosphereDataTable = pgTable("atmosphere_data", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  colorPalette: jsonb("color_palette").$type<Array<{ name: string; hex: string; role: string }>>().notNull().default([]),
+  lightingStyle: text("lighting_style").notNull().default(""),
+  musicReferences: jsonb("music_references").$type<Array<{ genre: string; artists: string[]; mood: string }>>().notNull().default([]),
+  cinematicStyle: text("cinematic_style").notNull().default(""),
+  textures: jsonb("textures").$type<string[]>().notNull().default([]),
+  sensoryNotes: jsonb("sensory_notes").$type<{ smell: string; sound: string; touch: string }>().notNull().default({ smell: "", sound: "", touch: "" }),
+  visualReferences: jsonb("visual_references").$type<string[]>().notNull().default([]),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type AtmosphereData = typeof atmosphereDataTable.$inferSelect;
