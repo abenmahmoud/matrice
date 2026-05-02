@@ -17,7 +17,8 @@ import {
   Download,
   Zap,
   FlaskConical,
-  ScanText
+  ScanText,
+  FileSearch
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -54,6 +55,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Atelier Série", href: `/projects/${projectId}/series`, icon: Tv },
     { name: "Atelier Pitch", href: `/projects/${projectId}/pitch`, icon: Presentation },
     { name: "Exports", href: `/projects/${projectId}/exports`, icon: Download },
+    { name: "Analyse IA", href: `/projects/${projectId}/analyse`, icon: FileSearch },
   ] : [];
 
   return (

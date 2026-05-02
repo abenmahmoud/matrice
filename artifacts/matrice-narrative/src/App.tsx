@@ -22,15 +22,11 @@ import PitchPage from "./pages/pitch";
 import ExportsPage from "./pages/exports";
 import AdminPage from "./pages/admin";
 import AnalysePage from "./pages/analyse";
+import ProjectAnalysePage from "./pages/project-analyse";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30_000,
-    },
-  },
+  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
 
 function Router() {
@@ -52,6 +48,7 @@ function Router() {
       <Route path="/projects/:id/series" component={SeriesPage} />
       <Route path="/projects/:id/pitch" component={PitchPage} />
       <Route path="/projects/:id/exports" component={ExportsPage} />
+      <Route path="/projects/:id/analyse" component={ProjectAnalysePage} />
       <Route path="/admin" component={AdminPage} />
       <Route component={NotFound} />
     </Switch>

@@ -12,6 +12,7 @@ export const manuscriptAnalysesTable = pgTable("manuscript_analyses", {
   emotionScore: integer("emotion_score").notNull().default(0),
   archetypeScore: integer("archetype_score").notNull().default(0),
   originalityScore: integer("originality_score").notNull().default(0),
+  coherenceScore: integer("coherence_score").notNull().default(0),
   // Arrays
   strengths: json("strengths").$type<string[]>().notNull().default([]),
   weaknesses: json("weaknesses").$type<string[]>().notNull().default([]),
@@ -19,11 +20,14 @@ export const manuscriptAnalysesTable = pgTable("manuscript_analyses", {
   detectedEmotions: json("detected_emotions").$type<string[]>().notNull().default([]),
   appliedTechniques: json("applied_techniques").$type<string[]>().notNull().default([]),
   missingTechniques: json("missing_techniques").$type<string[]>().notNull().default([]),
+  coherenceValidations: json("coherence_validations").$type<string[]>().notNull().default([]),
+  coherenceIssues: json("coherence_issues").$type<string[]>().notNull().default([]),
   comparableWorks: json("comparable_works").$type<Array<{ title: string; author: string; relevance: string }>>().notNull().default([]),
   // Long text
   structureAnalysis: text("structure_analysis").notNull().default(""),
   emotionAnalysis: text("emotion_analysis").notNull().default(""),
   recommendations: text("recommendations").notNull().default(""),
+  coherenceAnalysis: text("coherence_analysis").notNull().default(""),
   verdict: text("verdict").notNull().default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
