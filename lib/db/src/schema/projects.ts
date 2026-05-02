@@ -276,3 +276,40 @@ export const atmosphereDataTable = pgTable("atmosphere_data", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 export type AtmosphereData = typeof atmosphereDataTable.$inferSelect;
+
+export const echoTempsTable = pgTable("echo_temps", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  mythicResonances: jsonb("mythic_resonances").$type<Array<{ myth: string; culture: string; connection: string }>>().notNull().default([]),
+  historicalParallels: jsonb("historical_parallels").$type<Array<{ period: string; region: string; connection: string }>>().notNull().default([]),
+  culturalEchoes: jsonb("cultural_echoes").$type<Array<{ culture: string; storyTitle: string; connection: string }>>().notNull().default([]),
+  temporalAnchor: text("temporal_anchor").notNull().default(""),
+  universalWound: text("universal_wound").notNull().default(""),
+  futureResonance: text("future_resonance").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type EchoTemps = typeof echoTempsTable.$inferSelect;
+
+export const miroirArtistiqueTable = pgTable("miroir_artistique", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  trueTheme: text("true_theme").notNull().default(""),
+  shadowStory: text("shadow_story").notNull().default(""),
+  blindSpots: jsonb("blind_spots").$type<string[]>().notNull().default([]),
+  resonanceGaps: jsonb("resonance_gaps").$type<Array<{ zone: string; reflection: string }>>().notNull().default([]),
+  artisticInvitations: jsonb("artistic_invitations").$type<Array<{ invitation: string; why: string }>>().notNull().default([]),
+  mirrorPhrase: text("mirror_phrase").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type MiroirArtistique = typeof miroirArtistiqueTable.$inferSelect;
+
+export const cinqPiliersTable = pgTable("cinq_piliers", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  pillars: jsonb("pillars").$type<Array<{ name: string; presence: number; type: string; analysis: string; strongMoment: string; artisticSuggestion: string }>>().notNull().default([]),
+  dominantPillar: text("dominant_pillar").notNull().default(""),
+  weakestPillar: text("weakest_pillar").notNull().default(""),
+  globalBalance: text("global_balance").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type CinqPiliers = typeof cinqPiliersTable.$inferSelect;

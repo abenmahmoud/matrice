@@ -29,6 +29,10 @@ import AtmospherePage from "./pages/atmosphere";
 import ConstellationPage from "./pages/constellation";
 import DialoguePage from "./pages/dialogue";
 import DirectorPage from "./pages/director";
+import NotebookPage from "./pages/director-notebook";
+import EchoTempsPage from "./pages/echo-temps";
+import MiroirPage from "./pages/miroir";
+import PiliersPage from "./pages/piliers";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
@@ -49,6 +53,10 @@ function Router() {
       <Route path="/projects/:id/constellation" component={ConstellationPage} />
       <Route path="/projects/:id/dialogue" component={DialoguePage} />
       <Route path="/projects/:id/director" component={DirectorPage} />
+      <Route path="/projects/:id/notebook" component={NotebookPage} />
+      <Route path="/projects/:id/echo-temps" component={EchoTempsPage} />
+      <Route path="/projects/:id/miroir" component={MiroirPage} />
+      <Route path="/projects/:id/piliers" component={PiliersPage} />
       <Route path="/projects/:id/emotional-core" component={EmotionalCorePage} />
       <Route path="/projects/:id/characters" component={CharactersPage} />
       <Route path="/projects/:id/relationships" component={RelationshipsPage} />

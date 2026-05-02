@@ -1068,6 +1068,171 @@ Sois technique ET poétique. Chaque plan doit avoir une raison d'être dramatiqu
 }
 
 // ---------------------------------------------------------------------------
+// Écho du Temps — mythic/historical/cross-cultural resonances
+// ---------------------------------------------------------------------------
+
+export async function generateEchoDuTemps(project: Project): Promise<{
+  mythicResonances: Array<{ myth: string; culture: string; connection: string }>;
+  historicalParallels: Array<{ period: string; region: string; connection: string }>;
+  culturalEchoes: Array<{ culture: string; storyTitle: string; connection: string }>;
+  temporalAnchor: string;
+  universalWound: string;
+  futureResonance: string;
+}> {
+  const system = `Tu es un archiviste universel et un anthropologue des récits. Tu explores comment les histoires traversent les cultures, les siècles et les civilisations. Tu trouves les liens profonds — pas les ressemblances superficielles. Réponds UNIQUEMENT en JSON valide.`;
+  const user = `${projectContext(project)}
+
+Cette histoire vibre avec quels mythes anciens, quels événements historiques, quelles traditions narratives du monde ?
+
+{
+  "mythicResonances": [
+    { "myth": "Nom du mythe ou archétype", "culture": "Culture d'origine", "connection": "Lien profond et non évident avec cette histoire — ce qui les unit au niveau de l'âme" }
+  ],
+  "historicalParallels": [
+    { "period": "Période historique précise", "region": "Région du monde", "connection": "Ce que ce moment historique partage émotionnellement avec cette histoire" }
+  ],
+  "culturalEchoes": [
+    { "culture": "Culture ou tradition", "storyTitle": "Titre d'une œuvre, conte, ou récit de cette culture", "connection": "Ce lien invisible qui unit ces deux histoires à travers le temps" }
+  ],
+  "temporalAnchor": "À quelle époque spirituelle appartient cette histoire — non pas où elle se passe, mais d'où elle vient émotionnellement",
+  "universalWound": "La blessure humaine universelle que cette histoire soigne ou explore — ce qui en fait une histoire pour tous et toujours",
+  "futureResonance": "Comment cette histoire parlera aux générations futures, ce qu'elle leur dira de nous"
+}
+
+Sois précis, inattendu, non-académique. Pas de parallèles évidents — cherche les résonances profondes. 3 de chaque liste.`;
+
+  const fallback = {
+    mythicResonances: [
+      { myth: "Prométhée", culture: "Grecque antique", connection: "Celui qui porte le feu pour les autres et se brûle lui-même — la solitude du porteur de lumière" },
+      { myth: "La Femme Araignée (Spider Woman)", culture: "Hopi / Navajo", connection: "Tisseuse invisible de réalités, celle dont le travail ordonne le monde sans être vu" },
+      { myth: "Gilgamesh et Enkidu", culture: "Mésopotamie", connection: "L'amitié qui seule permet d'affronter l'impossible — et sa perte qui révèle tout" },
+    ],
+    historicalParallels: [
+      { period: "Résistance française 1940-44", region: "France occupée", connection: "Vivre sous un régime qui efface votre identité — la résistance silencieuse et intérieure" },
+      { period: "Harlem Renaissance, années 1920", region: "États-Unis", connection: "Créer une culture entière sous la menace d'anéantissement — l'art comme survie" },
+      { period: "Transition post-apartheid, 1994-2000", region: "Afrique du Sud", connection: "Construire l'avenir sans oublier le passé — la mémoire comme acte politique" },
+    ],
+    culturalEchoes: [
+      { culture: "Japonaise", storyTitle: "La princesse Kaguya (Taketori Monogatari)", connection: "Appartenir à deux mondes sans pouvoir habiter pleinement aucun des deux" },
+      { culture: "Malienne (Mandé)", storyTitle: "L'épopée de Soundiata Keïta", connection: "La force cachée dans la faiblesse apparente — la victoire qui vient de l'intérieur" },
+      { culture: "Russe", storyTitle: "L'Idiot de Dostoïevski", connection: "La pureté absolue comme forme de violence involontaire contre un monde corrompu" },
+    ],
+    temporalAnchor: "Cette histoire appartient aux heures d'avant l'aube — quand tout peut encore basculer dans les deux sens",
+    universalWound: "La peur d'être vu tel qu'on est vraiment — et d'être rejeté pour ça",
+    futureResonance: "Les générations futures y liront notre époque comme celle où l'on a choisi entre ce qui est facile et ce qui est juste",
+  };
+  return aiJson(system, user, fallback);
+}
+
+// ---------------------------------------------------------------------------
+// Miroir Artistique — poetic artistic reflection (not correction)
+// ---------------------------------------------------------------------------
+
+export async function generateMiroirArtistique(project: Project): Promise<{
+  trueTheme: string;
+  shadowStory: string;
+  blindSpots: string[];
+  resonanceGaps: Array<{ zone: string; reflection: string }>;
+  artisticInvitations: Array<{ invitation: string; why: string }>;
+  mirrorPhrase: string;
+}> {
+  const system = `Tu es un mentor artistique rare — tu ne corriges jamais directement, tu réfléchis. Comme un miroir intelligent, tu montres à l'auteur ce qu'il écrit sans le savoir, ce qui est fort sans qu'il le voie, et tu poses des invitations poétiques là où l'œuvre peut s'ouvrir encore. Tu ne dis jamais "c'est mal" ou "tu dois". Tu murmures. Tu interroges. Réponds UNIQUEMENT en JSON valide.`;
+  const user = `${projectContext(project)}
+
+Lis cette œuvre en profondeur et réfléchis-la à l'auteur comme un miroir.
+
+{
+  "trueTheme": "Le vrai sujet de cette œuvre — non pas le sujet déclaré, mais ce dont elle parle vraiment, en profondeur",
+  "shadowStory": "L'histoire que l'auteur écrit sans le savoir — la narrative souterraine qui pulse sous la surface",
+  "blindSpots": ["Ce que l'auteur ne voit peut-être pas dans son propre travail — formulé avec douceur et curiosité, jamais comme un jugement"],
+  "resonanceGaps": [
+    { "zone": "Zone de l'œuvre ou aspect narratif", "reflection": "Ce que cette zone dit réellement — son potentiel non encore exploré, formulé comme une question ou une observation poétique" }
+  ],
+  "artisticInvitations": [
+    { "invitation": "Et si... / Que se passerait-il si... / Il y a peut-être ici...", "why": "Pourquoi cette invitation pourrait ouvrir quelque chose d'essentiel" }
+  ],
+  "mirrorPhrase": "Une seule phrase poétique qui reflète l'essence entière de cette œuvre — comme un titre secret que l'auteur ne savait pas qu'il cherchait"
+}
+
+Sois bienveillant, précis, non évident. 3 blindSpots, 3 resonanceGaps, 4 artisticInvitations. Jamais de "vous devriez". Toujours "et si", "peut-être", "il y a ici quelque chose de...".`;
+
+  const fallback = {
+    trueTheme: "Ce que cette œuvre explore vraiment, c'est la question de ce qu'on est prêt à perdre pour rester soi-même",
+    shadowStory: "Sous l'histoire racontée, il y a celle d'un enfant qui cherche à être vu — et qui a appris à se rendre invisible pour survivre",
+    blindSpots: [
+      "Il y a peut-être ici une tendance à protéger les personnages des conséquences les plus douloureuses de leurs choix",
+      "La voix narrative hésite parfois à entrer dans les silences — là où se cache pourtant l'essentiel",
+      "Les moments de légèreté sont peut-être trop tôt interrompus — comme si la joie faisait peur autant que la douleur",
+    ],
+    resonanceGaps: [
+      { zone: "Les relations secondaires", reflection: "Elles portent peut-être un amour que le récit principal n'ose pas encore nommer" },
+      { zone: "Les fins de scènes", reflection: "Il y a souvent là un mot de trop — ou un silence de trop peu. Quelque chose attend" },
+      { zone: "Le corps des personnages", reflection: "Il parle moins que l'esprit. Et pourtant le corps sait des choses que les mots refusent" },
+    ],
+    artisticInvitations: [
+      { invitation: "Et si le personnage le plus silencieux portait la clé de tout ?", why: "Ceux qu'on n'écoute pas disent souvent le vrai" },
+      { invitation: "Que se passerait-il si une scène clé se passait entièrement dans le passé ?", why: "Le présent de cette histoire semble hanter par quelque chose qui n'a pas encore été dit" },
+      { invitation: "Il y a peut-être ici un humour qui n'ose pas encore se montrer", why: "La légèreté est une forme de courage — et elle rend la douleur encore plus vraie" },
+      { invitation: "Et si la dernière image était aussi la première ?", why: "Cette histoire a peut-être la forme d'un cercle qu'elle ne sait pas encore refermer" },
+    ],
+    mirrorPhrase: "Une histoire sur les distances qu'on met entre soi et ce qu'on aime — et le chemin qu'on ne prend jamais assez tôt pour les traverser.",
+  };
+  return aiJson(system, user, fallback);
+}
+
+// ---------------------------------------------------------------------------
+// Les 5 Piliers — humor / suspense / emotion / tenderness / surprise
+// ---------------------------------------------------------------------------
+
+export async function generateCinqPiliers(project: Project): Promise<{
+  pillars: Array<{ name: string; presence: number; type: string; analysis: string; strongMoment: string; artisticSuggestion: string }>;
+  dominantPillar: string;
+  weakestPillar: string;
+  globalBalance: string;
+}> {
+  const system = `Tu es un dramaturge et analyste narratif de haut niveau. Tu analyses comment les 5 grands piliers émotionnels d'une œuvre — Humour, Suspense, Émotion, Tendresse, Surprise — sont présents, équilibrés, et comment chacun peut être approfondi artistiquement. Tu es précis, non académique, et tu respectes la vision de l'auteur. Réponds UNIQUEMENT en JSON valide.`;
+  const user = `${projectContext(project)}
+
+Analyse les 5 piliers dramatiques fondamentaux de cette œuvre.
+
+{
+  "pillars": [
+    {
+      "name": "Humour",
+      "presence": 0,
+      "type": "Type d'humour présent ou absent (absurde, noir, tendresse comique, autodérision, ironie, décalage...)",
+      "analysis": "Analyse précise de la présence et la qualité de ce pilier dans cette œuvre",
+      "strongMoment": "Moment ou aspect de l'œuvre où ce pilier est ou pourrait être le plus fort",
+      "artisticSuggestion": "Une suggestion artistique non-directive pour approfondir ce pilier — formulée comme une invitation"
+    },
+    { "name": "Suspense", "presence": 0, "type": "...", "analysis": "...", "strongMoment": "...", "artisticSuggestion": "..." },
+    { "name": "Émotion", "presence": 0, "type": "...", "analysis": "...", "strongMoment": "...", "artisticSuggestion": "..." },
+    { "name": "Tendresse", "presence": 0, "type": "...", "analysis": "...", "strongMoment": "...", "artisticSuggestion": "..." },
+    { "name": "Surprise", "presence": 0, "type": "...", "analysis": "...", "strongMoment": "...", "artisticSuggestion": "..." }
+  ],
+  "dominantPillar": "Le pilier le plus fort et naturellement présent dans cette œuvre",
+  "weakestPillar": "Le pilier le moins développé — formulé avec bienveillance",
+  "globalBalance": "Analyse d'ensemble de l'équilibre dramatique — ce qui rend cette œuvre unique et ce qui pourrait la rendre encore plus universelle"
+}
+
+presence = score de 0 à 100. Sois honnête mais bienveillant.`;
+
+  const fallback = {
+    pillars: [
+      { name: "Humour", presence: 35, type: "Ironie douce, décalage situationnel", analysis: "L'humour est présent en filigrane mais souvent étouffé par la gravité du propos. Il y a des moments de légèreté naturelle qui mériteraient d'être libérés davantage.", strongMoment: "Dans les dialogues entre personnages secondaires — là où la vérité se dit avec un sourire", artisticSuggestion: "Et si un personnage avait le droit d'être franchement drôle, même dans les moments difficiles ?" },
+      { name: "Suspense", presence: 70, type: "Suspense psychologique, tension relationnelle", analysis: "Le suspense est bien construit, surtout au niveau des relations et des secrets. La tension monte de façon organique.", strongMoment: "Dans les scènes où un personnage sait quelque chose que l'autre ignore encore", artisticSuggestion: "Le suspense pourrait être encore plus fort si le lecteur avait une information que les personnages n'ont pas" },
+      { name: "Émotion", presence: 80, type: "Émotion contenue, intérieure, rarement exprimée directement", analysis: "L'émotion est le moteur principal de l'œuvre. Elle est souvent retenue — ce qui la rend d'autant plus puissante quand elle éclate.", strongMoment: "Dans les moments de séparation et de perte — physique ou symbolique", artisticSuggestion: "Que se passerait-il si un personnage laissait l'émotion déborder là où on l'attend le moins ?" },
+      { name: "Tendresse", presence: 55, type: "Tendresse silencieuse, gestes plutôt que mots", analysis: "La tendresse est présente mais souvent cachée derrière la distance et la pudeur des personnages. C'est une force discrète mais réelle.", strongMoment: "Dans les petits gestes quotidiens entre personnages qui s'aiment sans le dire", artisticSuggestion: "Il y a peut-être ici une scène entière de pure tendresse qui attend d'être écrite" },
+      { name: "Surprise", presence: 45, type: "Révélations de caractère plus que de plot", analysis: "La surprise opère surtout au niveau de la profondeur des personnages. Les retournements de situation pourraient être plus audacieux.", strongMoment: "Quand un personnage agit à l'inverse de ce qu'on attendait de lui — et que ça révèle tout", artisticSuggestion: "Et si la plus grande surprise de l'histoire était quelque chose de minuscule et pas un grand coup de théâtre ?" },
+    ],
+    dominantPillar: "Émotion",
+    weakestPillar: "Humour — non pas par manque de talent, mais peut-être par prudence vis-à-vis de la profondeur du sujet",
+    globalBalance: "Cette œuvre a la solidité d'une construction émotionnelle forte et un suspense réel. Pour atteindre l'universel, elle pourrait oser davantage la légèreté et la surprise — car ce sont eux qui permettent à la douleur d'être vraiment supportée et partagée.",
+  };
+  return aiJson(system, user, fallback);
+}
+
+// ---------------------------------------------------------------------------
 // Character Dialogue
 // ---------------------------------------------------------------------------
 

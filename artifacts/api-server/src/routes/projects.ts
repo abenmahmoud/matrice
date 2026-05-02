@@ -12,9 +12,10 @@ import {
   generateCharacters, generateRelationships, generateWorldAndTimeline,
   generateResearchNotes, generateHpsaScore, checkCoherence,
   generateBookOutline, generateScreenplay, generateSeries, generatePitch,
-  autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue, generateDirectorMode
+  autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue, generateDirectorMode,
+  generateEchoDuTemps, generateMiroirArtistique, generateCinqPiliers
 } from "../services/generationService.js";
-import { tensionArcsTable, atmosphereDataTable } from "@workspace/db";
+import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistiqueTable, cinqPiliersTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -1106,6 +1107,90 @@ router.post("/projects/:id/characters/:charId/dialogue", async (req, res) => {
     req.log.error({ err });
     res.status(500).json({ error: "Internal server error" });
   }
+});
+
+// ---------------------------------------------------------------------------
+// Écho du Temps
+// ---------------------------------------------------------------------------
+
+router.get("/projects/:id/echo-temps", async (req, res) => {
+  try {
+    const [row] = await db.select().from(echoTempsTable).where(eq(echoTempsTable.projectId, req.params.id));
+    if (!row) return res.status(404).json({ error: "Not found" });
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+router.post("/projects/:id/generate-echo-temps", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+    const data = await generateEchoDuTemps(project);
+    const existing = await db.select().from(echoTempsTable).where(eq(echoTempsTable.projectId, req.params.id));
+    let row;
+    if (existing.length > 0) {
+      [row] = await db.update(echoTempsTable).set({ ...data, updatedAt: new Date() }).where(eq(echoTempsTable.projectId, req.params.id)).returning();
+    } else {
+      [row] = await db.insert(echoTempsTable).values({ projectId: req.params.id, ...data }).returning();
+    }
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+// ---------------------------------------------------------------------------
+// Miroir Artistique
+// ---------------------------------------------------------------------------
+
+router.get("/projects/:id/miroir", async (req, res) => {
+  try {
+    const [row] = await db.select().from(miroirArtistiqueTable).where(eq(miroirArtistiqueTable.projectId, req.params.id));
+    if (!row) return res.status(404).json({ error: "Not found" });
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+router.post("/projects/:id/generate-miroir", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+    const data = await generateMiroirArtistique(project);
+    const existing = await db.select().from(miroirArtistiqueTable).where(eq(miroirArtistiqueTable.projectId, req.params.id));
+    let row;
+    if (existing.length > 0) {
+      [row] = await db.update(miroirArtistiqueTable).set({ ...data, updatedAt: new Date() }).where(eq(miroirArtistiqueTable.projectId, req.params.id)).returning();
+    } else {
+      [row] = await db.insert(miroirArtistiqueTable).values({ projectId: req.params.id, ...data }).returning();
+    }
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+// ---------------------------------------------------------------------------
+// Les 5 Piliers
+// ---------------------------------------------------------------------------
+
+router.get("/projects/:id/cinq-piliers", async (req, res) => {
+  try {
+    const [row] = await db.select().from(cinqPiliersTable).where(eq(cinqPiliersTable.projectId, req.params.id));
+    if (!row) return res.status(404).json({ error: "Not found" });
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+router.post("/projects/:id/generate-cinq-piliers", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+    const data = await generateCinqPiliers(project);
+    const existing = await db.select().from(cinqPiliersTable).where(eq(cinqPiliersTable.projectId, req.params.id));
+    let row;
+    if (existing.length > 0) {
+      [row] = await db.update(cinqPiliersTable).set({ ...data, updatedAt: new Date() }).where(eq(cinqPiliersTable.projectId, req.params.id)).returning();
+    } else {
+      [row] = await db.insert(cinqPiliersTable).values({ projectId: req.params.id, ...data }).returning();
+    }
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
 });
 
 // ---------------------------------------------------------------------------
