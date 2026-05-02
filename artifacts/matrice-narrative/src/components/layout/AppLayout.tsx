@@ -4,7 +4,7 @@ import {
   Home, LayoutDashboard, Plus, BookOpen, Brain, Users, Network, Globe2,
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
-  Printer, Clock, Telescope, BarChart2
+  Printer, Clock, Telescope, BarChart2, Clapperboard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -71,6 +71,7 @@ const PHASES = [
       { name: "Écho du Temps", href: "echo-temps", icon: Clock },
       { name: "Miroir Artistique", href: "miroir", icon: Telescope },
       { name: "Les 5 Piliers", href: "piliers", icon: BarChart2 },
+      { name: "Séquencier", href: "sequencier", icon: Clapperboard },
     ],
   },
 ];

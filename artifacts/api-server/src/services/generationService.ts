@@ -1233,6 +1233,95 @@ presence = score de 0 à 100. Sois honnête mais bienveillant.`;
 }
 
 // ---------------------------------------------------------------------------
+// Séquencier — professional cinematic sequence breakdown
+// ---------------------------------------------------------------------------
+
+export async function generateSequencier(
+  project: Project,
+  matrix?: Partial<NarrativeMatrix> | null
+): Promise<{
+  sequences: Array<{
+    numero: number; titre: string; lieu: string; moment: string;
+    personnages: string[]; fonctionDramatique: string; arcEmotionnel: string;
+    dureeEstimee: number; liensThematiques: string; noteRealisateur: string;
+  }>;
+  totalDuree: number;
+  structure: string;
+  noteGlobale: string;
+}> {
+  const system = `Tu es un dramaturge et scénariste professionnel de haut niveau, spécialiste du cinéma d'auteur contemporain.
+Tu génères des SÉQUENCIERS professionnels — le document de référence qui précède l'écriture du scénario.
+Tu travailles à la manière des grandes écoles de cinéma (La Fémis, VGIK, UCLA).
+Tes séquenciers sont précis, vivants, porteurs d'une vision artistique forte.
+Réponds UNIQUEMENT en JSON valide, sans markdown.`;
+
+  const user = `Génère un séquencier complet et professionnel pour ce projet cinématographique :
+
+Titre : ${project.title}
+Idée originale : ${project.rawIdea}
+Genre : ${project.genre} | Ton : ${project.tone} | Format : ${project.targetFormat}
+${matrix?.logline ? `Logline : ${matrix.logline}` : ""}
+${matrix?.longSynopsis ? `Synopsis : ${matrix.longSynopsis.slice(0, 600)}` : ""}
+${matrix?.centralConflict ? `Conflit central : ${matrix.centralConflict}` : ""}
+${matrix?.protagonist ? `Protagoniste : ${matrix.protagonist}` : ""}
+${matrix?.themes?.length ? `Thèmes : ${matrix.themes.join(", ")}` : ""}
+${project.artisticAmbition ? `Ambition artistique : ${project.artisticAmbition}` : ""}
+${project.cinematicReferences ? `Références cinématographiques : ${project.cinematicReferences}` : ""}
+
+Génère entre 25 et 35 séquences qui couvrent l'arc dramatique complet du film.
+Chaque séquence doit être un moment autonome avec une intention dramatique claire.
+Les durées estimées doivent être réalistes (entre 1 et 8 minutes par séquence, total 85-110 minutes pour un long métrage).
+
+Format JSON requis :
+{
+  "sequences": [
+    {
+      "numero": 1,
+      "titre": "Titre évocateur et cinématographique de la séquence",
+      "lieu": "INT/EXT + Lieu précis (ex: INT. APPARTEMENT - SALON)",
+      "moment": "Jour | Nuit | Crépuscule | Aube | Contrejour | Non précisé",
+      "personnages": ["Prénom1", "Prénom2"],
+      "fonctionDramatique": "Une de : Exposition | Mise en situation | Incident déclencheur | Premier tournant | Complication | Point milieu | Crise montante | Point bas | Climax | Résolution | Dénouement",
+      "arcEmotionnel": "Ce qui change émotionnellement dans cette séquence — ce que le personnage ressent au début vs à la fin",
+      "dureeEstimee": 3,
+      "liensThematiques": "Comment cette séquence résonne avec les thèmes profonds de l'œuvre",
+      "noteRealisateur": "Une note de mise en scène précise — regard caméra, mouvement, lumière, silence, symbole visuel fort"
+    }
+  ],
+  "totalDuree": 95,
+  "structure": "Structure en 3 actes | Structure en 5 actes | Structure circulaire | Structure en miroir | Structure fragmentée",
+  "noteGlobale": "Note dramaturgique d'ensemble — ce qui fait la force et l'unicité de cet arc narratif"
+}
+
+Sois précis et cinématographique. Chaque titre de séquence doit donner envie de voir cette scène.`;
+
+  const fallbackSeqs = [
+    { numero: 1, titre: "Le monde d'avant", lieu: "EXT. VILLE - MATIN", moment: "Aube", personnages: ["Protagoniste"], fonctionDramatique: "Exposition", arcEmotionnel: "Calme apparent, routine installée — une vie qui semble équilibrée mais quelque chose manque", dureeEstimee: 3, liensThematiques: "Établit l'état initial que l'histoire viendra briser", noteRealisateur: "Caméra portée, proche du personnage — on entre dans son monde sans distanciation" },
+    { numero: 2, titre: "Les premières fissures", lieu: "INT. LIEU INTIME - JOUR", moment: "Jour", personnages: ["Protagoniste"], fonctionDramatique: "Mise en situation", arcEmotionnel: "Le doute s'installe — quelque chose ne va plus comme avant", dureeEstimee: 4, liensThematiques: "La blessure intérieure commence à affleurer", noteRealisateur: "Plans fixes, le personnage cherche sa place dans le cadre" },
+    { numero: 3, titre: "Ce qui change tout", lieu: "EXT. LIEU NEUTRE - JOUR", moment: "Jour", personnages: ["Protagoniste", "Personnage déclencheur"], fonctionDramatique: "Incident déclencheur", arcEmotionnel: "Rupture — il n'y a plus de retour possible, le monde a changé", dureeEstimee: 5, liensThematiques: "Le conflit central prend corps pour la première fois", noteRealisateur: "Coupe franche — avant/après. La caméra recule légèrement quand tout bascule" },
+    { numero: 4, titre: "Le refus du changement", lieu: "INT. ESPACE QUOTIDIEN - NUIT", moment: "Nuit", personnages: ["Protagoniste"], fonctionDramatique: "Complication", arcEmotionnel: "Résistance, déni — le personnage essaie de revenir en arrière", dureeEstimee: 4, liensThematiques: "L'ancienne vie contre la nouvelle réalité", noteRealisateur: "Lumière chaude rassurante mais quelque chose dans le cadrage dit que c'est faux" },
+    { numero: 5, titre: "S'engager ou disparaître", lieu: "EXT. CARREFOUR SYMBOLIQUE - JOUR", moment: "Crépuscule", personnages: ["Protagoniste", "Allié"], fonctionDramatique: "Premier tournant", arcEmotionnel: "Décision difficile prise — le protagoniste s'engage vraiment dans l'histoire", dureeEstimee: 5, liensThematiques: "Le choix fondamental qui définit qui est ce personnage", noteRealisateur: "Plan large puis zoom lent — le monde rétrécit autour du choix" },
+    { numero: 6, titre: "Les nouvelles règles", lieu: "INT. NOUVEL ESPACE - JOUR", moment: "Jour", personnages: ["Protagoniste", "Nouveaux personnages"], fonctionDramatique: "Complication", arcEmotionnel: "Apprentissage, adaptation — le protagoniste découvre un monde nouveau avec ses règles", dureeEstimee: 5, liensThematiques: "L'identité mise à l'épreuve", noteRealisateur: "Montage nerveux, coupes courtes — on est dans le rythme du nouveau monde" },
+    { numero: 7, titre: "Le premier vrai test", lieu: "EXT. LIEU D'AFFRONTEMENT - JOUR", moment: "Jour", personnages: ["Protagoniste", "Antagoniste ou obstacle"], fonctionDramatique: "Complication", arcEmotionnel: "Première confrontation réelle — le protagoniste révèle ses vraies forces et faiblesses", dureeEstimee: 6, liensThematiques: "La blessure sous la compétence", noteRealisateur: "Plans rapprochés sur les visages — on lit tout dans les yeux" },
+    { numero: 8, titre: "La mi-chemin — tout s'inverse", lieu: "INT. ESPACE CENTRAL - NUIT", moment: "Nuit", personnages: ["Protagoniste", "Personnages clés"], fonctionDramatique: "Point milieu", arcEmotionnel: "Fausse victoire ou fausse défaite — quelque chose de fondamental change de direction", dureeEstimee: 6, liensThematiques: "Le miroir du début — mais tout a changé", noteRealisateur: "Scène longue, respirée — la caméra observe sans intervenir" },
+    { numero: 9, titre: "Le coût caché", lieu: "INT. ESPACE INTIME - NUIT", moment: "Nuit", personnages: ["Protagoniste"], fonctionDramatique: "Crise montante", arcEmotionnel: "La solitude, le doute — le protagoniste réalise le prix de ce qu'il fait", dureeEstimee: 4, liensThematiques: "Ce que l'on sacrifie pour avancer", noteRealisateur: "Une seule source lumineuse, beaucoup d'ombre — le personnage seul avec lui-même" },
+    { numero: 10, titre: "Tout s'effondre", lieu: "EXT. ESPACE OUVERT - NUIT", moment: "Nuit", personnages: ["Protagoniste", "Antagoniste"], fonctionDramatique: "Point bas", arcEmotionnel: "Défaite totale, apparente — le protagoniste touche le fond", dureeEstimee: 5, liensThematiques: "La blessure originelle à nu", noteRealisateur: "Caméra distante, froide — le personnage est seul dans un grand espace vide" },
+    { numero: 11, titre: "La dernière ressource", lieu: "INT. ESPACE REFUGE - AUBE", moment: "Aube", personnages: ["Protagoniste", "Allié essentiel"], fonctionDramatique: "Résolution", arcEmotionnel: "Un dernier souffle, une vérité acceptée — le personnage trouve sa vraie force", dureeEstimee: 5, liensThematiques: "Ce pour quoi ça valait le coup de se battre", noteRealisateur: "Lumière qui revient doucement — renaissance visuelle" },
+    { numero: 12, titre: "L'affrontement final", lieu: "EXT. LIEU SYMBOLIQUE - JOUR", moment: "Jour", personnages: ["Protagoniste", "Antagoniste", "Témoins"], fonctionDramatique: "Climax", arcEmotionnel: "Tout se joue maintenant — la transformation du protagoniste se révèle dans l'action", dureeEstimee: 7, liensThematiques: "Tous les thèmes convergent en un seul moment", noteRealisateur: "Montage alterné, tension maximale puis soudain le silence — l'action décisive dans un plan fixe" },
+    { numero: 13, titre: "Ce qui reste", lieu: "EXT. LIEU DU DÉBUT - JOUR", moment: "Jour", personnages: ["Protagoniste"], fonctionDramatique: "Dénouement", arcEmotionnel: "Paix intérieure, même dans l'ambiguïté — le personnage a changé pour toujours", dureeEstimee: 4, liensThematiques: "L'écho du début — mais tout a changé", noteRealisateur: "Le même cadre qu'au début, filmé différemment — on voit que le protagoniste voit le monde autrement" },
+  ];
+
+  const fallback = {
+    sequences: fallbackSeqs,
+    totalDuree: fallbackSeqs.reduce((s, sq) => s + sq.dureeEstimee, 0),
+    structure: "Structure en 3 actes",
+    noteGlobale: "Cet arc narratif repose sur une transformation intérieure profonde du protagoniste. La force de cette structure tient à sa capacité à relier la blessure intime aux enjeux du monde extérieur — ce qui en fait une histoire universelle ancrée dans une singularité précise.",
+  };
+
+  return aiJson(system, user, fallback);
+}
+
+// ---------------------------------------------------------------------------
 // Character Dialogue
 // ---------------------------------------------------------------------------
 

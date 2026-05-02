@@ -13,9 +13,9 @@ import {
   generateResearchNotes, generateHpsaScore, checkCoherence,
   generateBookOutline, generateScreenplay, generateSeries, generatePitch,
   autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue, generateDirectorMode,
-  generateEchoDuTemps, generateMiroirArtistique, generateCinqPiliers
+  generateEchoDuTemps, generateMiroirArtistique, generateCinqPiliers, generateSequencier
 } from "../services/generationService.js";
-import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistiqueTable, cinqPiliersTable } from "@workspace/db";
+import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistiqueTable, cinqPiliersTable, sequencierTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -1196,6 +1196,38 @@ router.post("/projects/:id/generate-cinq-piliers", async (req, res) => {
 // ---------------------------------------------------------------------------
 // Director Mode — POST /api/projects/:id/director-mode
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Séquencier
+// ---------------------------------------------------------------------------
+
+router.get("/projects/:id/sequencier", async (req, res) => {
+  try {
+    const [row] = await db.select().from(sequencierTable).where(eq(sequencierTable.projectId, req.params.id));
+    if (!row) return res.status(404).json({ error: "Not found" });
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+router.post("/projects/:id/generate-sequencier", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+
+    const [matrixRow] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+    const data = await generateSequencier(project, matrixRow ?? null);
+
+    const existing = await db.select().from(sequencierTable).where(eq(sequencierTable.projectId, req.params.id));
+    let row;
+    if (existing.length > 0) {
+      [row] = await db.update(sequencierTable).set({ ...data, updatedAt: new Date() }).where(eq(sequencierTable.projectId, req.params.id)).returning();
+    } else {
+      [row] = await db.insert(sequencierTable).values({ projectId: req.params.id, ...data }).returning();
+    }
+    req.log.info({ projectId: req.params.id, seqCount: data.sequences.length }, "Séquencier generated");
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
 
 router.post("/projects/:id/director-mode", async (req, res) => {
   try {

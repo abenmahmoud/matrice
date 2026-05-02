@@ -6,6 +6,8 @@
 
 **Stack** : React + Vite (frontend) • Express 5 (API) • PostgreSQL + Drizzle ORM • OpenAI GPT (via Replit AI Integrations) • pnpm monorepo
 
+**19 tables DB • 25 modules • 10 outils Immersion**
+
 ---
 
 ## Architecture
@@ -84,6 +86,7 @@ pnpm monorepo
 | `/projects/:id/echo-temps` | Écho du Temps | Résonances mythiques, historiques, culturelles cross-civilisations |
 | `/projects/:id/miroir` | Miroir Artistique | Réflexion poétique de l'œuvre (thème caché, angles morts, invitations) |
 | `/projects/:id/piliers` | Les 5 Piliers | Analyse Humour / Suspense / Émotion / Tendresse / Surprise |
+| `/projects/:id/sequencier` | Séquencier | Découpage professionnel en séquences numérotées (fonction dramatique, arc émotionnel, durée, note réalisation) |
 
 ---
 
@@ -108,6 +111,7 @@ atmosphere_data           — Chambre des atmosphères
 echo_temps                — Écho du temps (résonances mythiques/historiques)
 miroir_artistique         — Miroir artistique (réflexion poétique)
 cinq_piliers              — Les 5 piliers dramatiques
+sequencier                — Séquencier professionnel (découpage en séquences)
 ```
 
 ---

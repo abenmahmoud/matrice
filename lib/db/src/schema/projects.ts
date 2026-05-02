@@ -313,3 +313,25 @@ export const cinqPiliersTable = pgTable("cinq_piliers", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 export type CinqPiliers = typeof cinqPiliersTable.$inferSelect;
+
+export const sequencierTable = pgTable("sequencier", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  sequences: jsonb("sequences").$type<Array<{
+    numero: number;
+    titre: string;
+    lieu: string;
+    moment: string;
+    personnages: string[];
+    fonctionDramatique: string;
+    arcEmotionnel: string;
+    dureeEstimee: number;
+    liensThematiques: string;
+    noteRealisateur: string;
+  }>>().notNull().default([]),
+  totalDuree: real("total_duree").notNull().default(0),
+  structure: text("structure").notNull().default(""),
+  noteGlobale: text("note_globale").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type Sequencier = typeof sequencierTable.$inferSelect;
