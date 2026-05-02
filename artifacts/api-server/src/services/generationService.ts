@@ -1233,6 +1233,83 @@ presence = score de 0 à 100. Sois honnête mais bienveillant.`;
 }
 
 // ---------------------------------------------------------------------------
+// Note d'Intention Cinématographique
+// ---------------------------------------------------------------------------
+
+export async function generateNoteIntention(
+  project: Project,
+  matrix?: Partial<NarrativeMatrix> | null
+): Promise<{
+  vision: string;
+  partiPrisMiseEnScene: string;
+  personnagesVision: Array<{ nom: string; visionRealisateur: string }>;
+  universVisuel: string;
+  musiqueEtSon: string;
+  positionnement: string;
+  pourquoiMaintenant: string;
+  motFinal: string;
+}> {
+  const system = `Tu es un cinéaste de haut niveau — à la fois auteur et réalisateur — qui rédige sa note d'intention pour présenter son projet à des producteurs, au CNC, et à des festivals de cinéma d'auteur.
+Tu écris à la PREMIÈRE PERSONNE SINGULIÈRE, comme si c'était le réalisateur qui parle directement.
+Le ton est personnel, engagé, littéraire sans être précieux. Pas de jargon académique. 
+Chaque phrase doit avoir le poids d'une conviction profonde.
+Tu ne décris pas le film — tu expliques POURQUOI tu dois le faire, COMMENT tu le vois, CE QU'IL DIT du monde.
+Réponds UNIQUEMENT en JSON valide, sans markdown.`;
+
+  const user = `Rédige une note d'intention cinématographique complète et de haut niveau pour ce projet :
+
+Titre : ${project.title}
+Idée originale : ${project.rawIdea}
+Genre : ${project.genre} | Ton : ${project.tone} | Format : ${project.targetFormat}
+${matrix?.logline ? `Logline : ${matrix.logline}` : ""}
+${matrix?.longSynopsis ? `Synopsis : ${matrix.longSynopsis.slice(0, 500)}` : ""}
+${matrix?.centralConflict ? `Conflit central : ${matrix.centralConflict}` : ""}
+${matrix?.protagonist ? `Protagoniste : ${matrix.protagonist}` : ""}
+${matrix?.themes?.length ? `Thèmes : ${matrix.themes.join(", ")}` : ""}
+${matrix?.emotionalStakes ? `Enjeux émotionnels : ${matrix.emotionalStakes}` : ""}
+${project.artisticAmbition ? `Ambition artistique : ${project.artisticAmbition}` : ""}
+${project.cinematicReferences ? `Références cinématographiques : ${project.cinematicReferences}` : ""}
+${project.targetAudience ? `Public visé : ${project.targetAudience}` : ""}
+
+Rédige chaque section comme un texte continu de qualité éditoriale — pas une liste, pas de bullet points.
+Chaque section doit faire 3 à 6 phrases. La "vision" peut être plus longue (6-10 phrases).
+Le "motFinal" est une phrase unique, forte, personnelle — presque une déclaration.
+
+Format JSON :
+{
+  "vision": "Paragraphe personnel : pourquoi CE film, quelle obsession vous habite, ce que vous ne pouvez pas ne pas faire",
+  "partiPrisMiseEnScene": "Comment vous voulez filmer — distance, proximité, mouvement, lumière, rythme, rapport au temps",
+  "personnagesVision": [
+    { "nom": "Prénom du personnage", "visionRealisateur": "Comment le réalisateur voit ce personnage — sa vérité, ce qu'il représente, pourquoi il est irremplaçable" }
+  ],
+  "universVisuel": "L'atmosphère visuelle — couleurs, textures, références cinématographiques précises, ce que l'œil doit ressentir",
+  "musiqueEtSon": "Approche sonore et musicale — ambiances, silence, choix de son direct ou non, rapport à la musique",
+  "positionnement": "Où ce film se situe dans le cinéma d'aujourd'hui — ce qu'il dit que peu de films disent, son rapport à la tradition et à la modernité",
+  "pourquoiMaintenant": "Urgence — pourquoi 2025-2026, ce que le monde traverse qui rend ce film nécessaire précisément maintenant",
+  "motFinal": "Une phrase finale, personnelle, qui dit l'essentiel en peu de mots"
+}
+
+Mets 2 à 4 personnages dans personnagesVision (les plus importants).
+Écris avec la voix d'un cinéaste qui a quelque chose d'urgent à dire.`;
+
+  const fallback = {
+    vision: `Ce film est né d'une question que je ne parviens pas à taire : pourquoi certaines personnes choisissent-elles de se taire précisément quand leur parole pourrait tout changer ? "${project.title}" n'est pas une enquête sur ce silence — c'est une plongée dans sa matière, sa texture, sa logique intérieure. J'ai passé des années à observer des gens capables d'une loyauté absolue envers quelque chose qui les détruit. Je ne voulais pas les juger. Je voulais comprendre de l'intérieur ce que ça coûte de tenir. Ce film est ma tentative de filmer ce coût-là — invisible, quotidien, dévastateur.`,
+    partiPrisMiseEnScene: `Je veux filmer au plus près des corps et des visages, mais sans les enfermer. Une caméra portée à l'épaule qui respire, qui hésite parfois — comme si elle cherchait elle aussi. Beaucoup de plans séquences qui laissent le temps s'installer. Je refuse le montage comme démonstration : chaque coupe sera une nécessité, pas une ponctuation. La mise en scène sera celle du regard qui attend que les choses se révèlent d'elles-mêmes.`,
+    personnagesVision: [
+      { nom: "Le protagoniste", visionRealisateur: "Ce personnage est celui qui porte le film dans son corps. Pas un héros — quelqu'un d'ordinaire qui se retrouve face à l'impossible. Ce qui m'intéresse en lui, c'est l'espace entre ce qu'il sait et ce qu'il est capable d'admettre. Cet espace-là, c'est tout le film." },
+      { nom: "La figure antagoniste", visionRealisateur: "Je ne veux pas en faire un méchant. Il a ses raisons, sa logique, sa propre vision du monde — et c'est précisément ce qui le rend dangereux. Le vrai conflit n'est pas entre ces deux personnages : c'est entre deux façons d'être humain face à la même réalité." },
+    ],
+    universVisuel: `Le film se construira dans des tons désaturés — gris bleutés, ocres fanés, lumières naturelles poussées dans leurs limites. Je pense aux films de Haneke pour leur façon de laisser respirer l'image sans jamais l'embellir. Mais aussi à Chantal Akerman — cette capacité à rendre les espaces domestiques à la fois familiers et profondément étranges. Le cadre sera rigoureux, parfois asymétrique, laissant du vide là où on attendrait du plein.`,
+    musiqueEtSon: `Son direct, autant que possible — l'ambiance des lieux, les bruits du monde, la respiration des acteurs. La musique sera rare et elle ne commentera jamais : quand elle viendra, ce sera pour dire quelque chose que les images et les mots ne peuvent pas. Je travaillerai avec un compositeur qui connaît le silence autant que les notes.`,
+    positionnement: `Ce film s'inscrit dans une tradition du cinéma d'auteur européen qui fait confiance au spectateur — qui ne lui explique pas ce qu'il doit ressentir. Dans un paysage audiovisuel saturé d'effets et de vitesse, je veux proposer le contraire : la lenteur comme résistance, l'ambiguïté comme respect. Ce film a sa place dans les festivals de cinéma indépendant qui défendent encore l'idée que le cinéma peut changer quelque chose à notre façon de voir.`,
+    pourquoiMaintenant: `Nous vivons dans un monde où la parole est partout et le silence nulle part. Paradoxalement, les gens n'ont jamais été aussi seuls avec ce qu'ils ne peuvent pas dire. "${project.title}" parle de ça — de ce qui ne trouve pas de forme, de ce qui reste en suspens. En 2025, cette question n'est pas une métaphore : elle est la condition réelle d'une majorité de gens. Ce film est une réponse cinématographique à cette réalité.`,
+    motFinal: `Je fais ce film parce qu'il y a des choses qui ne peuvent exister que dans une salle obscure, entre des inconnus qui respirent ensemble dans le noir.`,
+  };
+
+  return aiJson(system, user, fallback);
+}
+
+// ---------------------------------------------------------------------------
 // Séquencier — professional cinematic sequence breakdown
 // ---------------------------------------------------------------------------
 

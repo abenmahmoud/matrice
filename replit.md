@@ -6,7 +6,7 @@
 
 **Stack** : React + Vite (frontend) • Express 5 (API) • PostgreSQL + Drizzle ORM • OpenAI GPT (via Replit AI Integrations) • pnpm monorepo
 
-**19 tables DB • 25 modules • 10 outils Immersion**
+**20 tables DB • 26 modules • 11 outils Immersion**
 
 ---
 
@@ -87,6 +87,7 @@ pnpm monorepo
 | `/projects/:id/miroir` | Miroir Artistique | Réflexion poétique de l'œuvre (thème caché, angles morts, invitations) |
 | `/projects/:id/piliers` | Les 5 Piliers | Analyse Humour / Suspense / Émotion / Tendresse / Surprise |
 | `/projects/:id/sequencier` | Séquencier | Découpage professionnel en séquences numérotées (fonction dramatique, arc émotionnel, durée, note réalisation) |
+| `/projects/:id/note-intention` | Note d'Intention | Document formel à la 1ère personne pour CNC / producteurs / festivals (vision, parti pris, personnages, univers visuel, positionnement) |
 
 ---
 
@@ -112,6 +113,7 @@ echo_temps                — Écho du temps (résonances mythiques/historiques)
 miroir_artistique         — Miroir artistique (réflexion poétique)
 cinq_piliers              — Les 5 piliers dramatiques
 sequencier                — Séquencier professionnel (découpage en séquences)
+note_intention            — Note d'intention cinématographique (document CNC/producteurs)
 ```
 
 ---

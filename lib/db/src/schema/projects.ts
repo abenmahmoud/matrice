@@ -335,3 +335,18 @@ export const sequencierTable = pgTable("sequencier", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 export type Sequencier = typeof sequencierTable.$inferSelect;
+
+export const noteIntentionTable = pgTable("note_intention", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  vision: text("vision").notNull().default(""),
+  partiPrisMiseEnScene: text("parti_pris_mise_en_scene").notNull().default(""),
+  personnagesVision: jsonb("personnages_vision").$type<Array<{ nom: string; visionRealisateur: string }>>().notNull().default([]),
+  universVisuel: text("univers_visuel").notNull().default(""),
+  musiqueEtSon: text("musique_et_son").notNull().default(""),
+  positionnement: text("positionnement").notNull().default(""),
+  pourquoiMaintenant: text("pourquoi_maintenant").notNull().default(""),
+  motFinal: text("mot_final").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type NoteIntention = typeof noteIntentionTable.$inferSelect;
