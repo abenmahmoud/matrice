@@ -1,0 +1,434 @@
+Create a professional full-stack MVP called “Matrice Narrative”.
+
+IMPORTANT — LANGUAGE REQUIREMENT
+The entire user-facing application must be in French.
+All page titles, buttons, labels, forms, menus, dashboards, generated content, exports, placeholders, empty states and error messages must be in French.
+Internal code, variable names, API routes and file names can remain in English for developer clarity, but the product experience must be 100% French.
+
+Do NOT use the word “Bible”. Use “Matrice Narrative” everywhere.
+The Matrice Narrative is the central source of truth for the fictional universe.
+
+PRODUCT VISION
+This is not a basic AI writing app.
+It is a futuristic French creative studio that transforms a raw idea, a dream, a voice note, a memory, a dialogue or a story fragment into:
+1. a structured fictional universe,
+2. an emotional core,
+3. a professional book structure,
+4. a film screenplay structure,
+5. a series structure,
+6. a pitch document,
+7. exportable creative documents.
+
+CORE WORKFLOW
+Idée brute → Matrice Narrative → Noyau Émotionnel → Recherche Vivante → H.P.S.A. → Livre → Scénario → Série → Pitch → Exports
+
+TECH STACK
+- React + Vite
+- Tailwind CSS
+- Node.js + Express
+- SQLite for MVP
+- Clean modular architecture
+- No paid external API required for the first version
+- Use high-quality deterministic mock generation now
+- Prepare the architecture for future AI providers: OpenAI, Claude, Mistral, local models
+
+DESIGN REQUIREMENTS
+Create a very modern, premium, futuristic French interface.
+Dark mode by default.
+Elegant gradients, glassmorphism cards, soft glow, cinematic feeling, minimal typography.
+Responsive desktop and mobile.
+The product must feel like a professional creative OS for authors, filmmakers, artists and creators.
+Do not make a toy app.
+
+FRENCH PRODUCT TERMS
+- Narrative Matrix = Matrice Narrative
+- Emotional Core = Noyau Émotionnel
+- Emotional Narrative Engine = Moteur Narratif Émotionnel
+- Living Research Engine = Moteur de Recherche Vivant
+- H.P.S.A. = Humour, Pleur, Suspense, Attractivité
+- Book Studio = Atelier Livre
+- Screen Studio = Atelier Scénario
+- Series Studio = Atelier Série
+- Pitch Studio = Atelier Pitch
+- World & Timeline = Monde & Temporalité
+- Characters = Personnages
+- Relationships = Relations
+
+PAGES
+
+1. Page d’accueil
+Hero title: “Transformez une idée brute en univers fictionnel.”
+Subtitle: “De la voix, du rêve ou du fragment d’histoire vers un livre, un scénario et un dossier de pitch.”
+CTA: “Créer un univers”
+Sections:
+- Capture d’idée
+- Matrice Narrative
+- Noyau Émotionnel
+- Moteur de Recherche Vivant
+- H.P.S.A.
+- Atelier Livre
+- Atelier Scénario
+- Atelier Pitch
+- Exports
+
+2. Tableau de bord
+Show all projects as cinematic cards.
+Each project card shows:
+- titre
+- genre
+- ton
+- format cible
+- dernière modification
+- progression
+Button: “Créer un nouveau projet”
+
+3. Créer un univers
+Form fields in French:
+- Titre du projet
+- Idée brute
+- Type d’entrée: idée, rêve, souvenir, dialogue, scène, personnage, concept d’univers
+- Genre: thriller, fantastique, science-fiction, drame, romance, horreur, mystère, expérimental, poétique, métaphysique
+- Ton: sombre, poétique, cinématographique, commercial, littéraire, surréaliste, mystique, futuriste
+- Format cible: livre, film, série, livre + film, univers transmedia
+- Logique temporelle: linéaire, fragmentée, boucle, hors du temps, logique de rêve, mondes parallèles
+- Niveau de réalité: réaliste, symbolique, surnaturel, psychologique, métaphysique, inconnu
+- Public visé
+- Ambition artistique
+Button: “Générer la Matrice Narrative”
+
+4. Matrice Narrative
+Editable generated sections:
+- Concept central
+- Logline
+- Pitch court
+- Synopsis long
+- Genre
+- Ton
+- Thèmes
+- Lois de l’univers fictionnel
+- Règles temporelles
+- Règles spatiales
+- Monde visible
+- Forces invisibles
+- Conflit central
+- Protagoniste
+- Antagoniste ou force d’opposition
+- Enjeux émotionnels
+- Motifs symboliques
+- Objets de pouvoir ou de mémoire
+- Secrets
+- Fins possibles
+- Règles de cohérence
+Button: “Vérifier la cohérence de la Matrice”
+
+5. Noyau Émotionnel
+This is the soul of the story.
+Do not present it as therapy or medical diagnosis. Present it as creative emotional storytelling.
+Editable generated sections:
+- Émotion dominante
+- Blessure cachée
+- Manque émotionnel
+- Signal de l’enfant intérieur
+- Masque de protection
+- Désir apparent
+- Besoin profond
+- Peur centrale
+- Point de honte
+- Point de culpabilité
+- Objet symbolique
+- Lieu symbolique
+- Antagoniste émotionnel
+- Contradiction émotionnelle
+- Chemin de correction émotionnelle
+- Arc de transformation
+- État émotionnel final
+
+Add visual component: “Chemin émotionnel”
+Blessure initiale → masque → désir → conflit → confrontation symbolique → effondrement → vérité → correction → transformation
+
+6. Personnages
+Allow creating/editing characters:
+- Nom
+- Rôle
+- Nature: humain, mémoire, force, voix, double, ombre, entité, inconnu
+- Objectif externe
+- Besoin intérieur
+- Blessure
+- Peur
+- Secret
+- Contradiction
+- Arc de transformation
+- Identité visuelle
+- Style de voix/dialogue
+- Lien avec le conflit central
+Button: “Générer les personnages depuis la Matrice”
+
+7. Relations
+Show relationship cards:
+- Personnage A
+- Personnage B
+- Type de relation
+- Tension émotionnelle
+- Vérité cachée
+- Conflit
+- Évolution
+- Signification symbolique
+Add a simple visual graph layout if possible.
+
+8. Monde & Temporalité
+Sections:
+- Lieux
+- Atmosphères
+- Règles du temps
+- Événements de la timeline
+- Timelines parallèles
+- Couches de rêve ou mémoire
+- Règles interdites
+- Logique cause/effet
+The app must support stories outside normal space and time.
+
+9. Moteur de Recherche Vivant
+The app must not be static.
+Create a module that stores and analyzes references without copying them.
+Sections:
+- Œuvres de référence
+- Critiques et réception
+- Signaux de succès
+- Tendances actuelles
+- Risques de cliché
+- Opportunités d’originalité
+- Notes de création
+- Mécaniques abstraites à utiliser
+
+The system must support:
+- reference works
+- critical notes
+- audience signals
+- success patterns
+- emotional arc analysis
+- humor pattern analysis
+- suspense pattern analysis
+- tear trigger analysis
+- attractiveness scoring
+
+Never copy existing works. Extract abstract creative mechanisms only.
+
+10. Scores H.P.S.A.
+Create a scoring page for:
+- Humour
+- Pleur
+- Suspense
+- Attractivité
+- Profondeur émotionnelle
+- Originalité
+- Cohérence
+
+For each score, generate:
+- score /100
+- diagnostic
+- weaknesses
+- creative corrections
+- reference-inspired but original suggestions
+- current trend notes
+- risk of cliché
+- originality opportunities
+
+Humor must never be random.
+It must come from:
+- the character wound
+- contradiction
+- social mask
+- situation
+- fear
+- defense mechanism
+- relationship tension
+- contrast between cosmic and ordinary
+
+11. Atelier Livre
+Generate:
+- idées de titre
+- pitch de quatrième de couverture
+- synopsis court
+- synopsis long
+- table des matières
+- structure en 3 actes or experimental structure
+- liste des chapitres
+- résumé de chapitre
+- éditeur de brouillon
+Buttons:
+- Créer le plan du livre
+- Générer un chapitre
+- Réécrire en style littéraire
+- Réécrire en style cinématographique
+- Réécrire en style thriller commercial
+- Vérifier la cohérence avec la Matrice
+
+12. Atelier Scénario
+Generate:
+- logline du film
+- synopsis cinématographique
+- traitement
+- 15 grands beats
+- liste de scènes
+- cartes de scènes
+- brouillon de dialogues
+- scénario au format Fountain
+Buttons:
+- Générer les scènes
+- Générer le scénario Fountain
+- Réécrire les dialogues
+- Vérifier la cohérence émotionnelle
+
+Fountain output must use French content but standard screenplay formatting:
+INT. APPARTEMENT - NUIT
+ASSMA observe le verre posé devant elle.
+
+VOIX
+Tu m’as enfin entendue.
+
+13. Atelier Série
+Generate:
+- format série
+- concept de saison
+- arcs longs
+- épisodes
+- cliffhangers
+- évolution émotionnelle par épisode
+- révélations progressives
+- personnages secondaires
+
+14. Atelier Pitch
+Generate:
+- titre
+- format: long métrage, court métrage, série limitée, roman, univers transmedia
+- genre
+- public
+- références comparables
+- direction visuelle
+- note d’auteur
+- note d’intention
+- pourquoi maintenant
+- personnages
+- monde
+- arc film/saison
+- arguments de vente
+
+15. Exports
+Allow exporting:
+- Matrice Narrative as JSON
+- Noyau Émotionnel as JSON
+- Scores H.P.S.A. as JSON
+- Plan du livre as Markdown
+- Manuscrit as Markdown
+- Scénario as .fountain
+- Dossier Pitch as Markdown
+- Projet complet as JSON
+
+BACKEND API
+GET /api/projects
+POST /api/projects
+GET /api/projects/:id
+PUT /api/projects/:id
+DELETE /api/projects/:id
+POST /api/projects/:id/generate-matrix
+POST /api/projects/:id/generate-emotional-core
+POST /api/projects/:id/generate-emotional-path
+POST /api/projects/:id/generate-characters
+POST /api/projects/:id/generate-relationships
+POST /api/projects/:id/generate-world
+POST /api/projects/:id/generate-research-notes
+POST /api/projects/:id/generate-hpsa-score
+POST /api/projects/:id/check-coherence
+POST /api/projects/:id/generate-book-outline
+POST /api/projects/:id/generate-screenplay
+POST /api/projects/:id/generate-series
+POST /api/projects/:id/generate-pitch
+GET /api/projects/:id/export/:type
+
+DATABASE TABLES
+projects
+narrative_matrices
+emotional_cores
+emotional_paths
+hpsa_scores
+research_sources
+reference_works
+story_patterns
+characters
+relationships
+world_rules
+locations
+timeline_events
+chapters
+scenes
+series_episodes
+pitch_documents
+exports
+
+GENERATION ARCHITECTURE
+Create /server/services/generationService.js
+Functions:
+- generateNarrativeMatrix(project)
+- generateEmotionalCore(project, matrix)
+- generateEmotionalPath(project, matrix, emotionalCore)
+- generateCharacters(project, matrix, emotionalCore)
+- generateRelationships(project, characters)
+- generateWorldAndTimeline(project, matrix)
+- generateResearchNotes(project, matrix)
+- generateHpsaScore(project, matrix, emotionalCore)
+- checkCoherence(project, matrix, content)
+- generateBookOutline(project, matrix, emotionalCore)
+- generateScreenplay(project, matrix, emotionalCore)
+- generateSeries(project, matrix, emotionalCore)
+- generatePitch(project, matrix, emotionalCore)
+
+For now, implement deterministic mock generation based on user raw idea.
+Add clear comments showing where to plug real AI providers later.
+
+FRONTEND COMPONENTS
+- Layout
+- Sidebar
+- ProjectCard
+- MatrixSection
+- EmotionalCoreCard
+- EmotionalPathTimeline
+- HpsaScoreRadar or score cards
+- CharacterCard
+- RelationshipCard
+- WorldTimeline
+- ResearchNoteCard
+- ChapterEditor
+- SceneEditor
+- PitchPanel
+- ExportPanel
+- ProgressIndicator
+
+UI REQUIREMENTS
+Left sidebar:
+- Tableau de bord
+- Créer un univers
+- Matrice Narrative
+- Noyau Émotionnel
+- Personnages
+- Relations
+- Monde & Temporalité
+- Moteur de Recherche
+- Scores H.P.S.A.
+- Atelier Livre
+- Atelier Scénario
+- Atelier Série
+- Atelier Pitch
+- Exports
+
+Add autosave for editable fields.
+Add loading states.
+Add empty states.
+Add sample project data so the app looks alive immediately.
+
+QUALITY REQUIREMENTS
+- The code must run with npm install and npm run dev.
+- Create a README.md with setup, architecture, roadmap and deployment notes.
+- Create .env.example.
+- Keep everything clean and production-oriented.
+- Make the MVP feel like the foundation of a real SaaS.
+- The final user experience must be French, polished and impressive.

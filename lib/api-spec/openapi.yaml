@@ -3,20 +3,46 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Matrice Narrative API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: projects
+    description: Project management
+  - name: matrix
+    description: Narrative matrix generation
+  - name: emotional
+    description: Emotional core and path
+  - name: characters
+    description: Character management
+  - name: world
+    description: World and timeline
+  - name: research
+    description: Living research engine
+  - name: hpsa
+    description: HPSA scoring
+  - name: book
+    description: Book studio
+  - name: screenplay
+    description: Screenplay studio
+  - name: series
+    description: Series studio
+  - name: pitch
+    description: Pitch studio
+  - name: exports
+    description: Export management
+  - name: dashboard
+    description: Dashboard summaries
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +50,871 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /projects:
+    get:
+      operationId: listProjects
+      tags: [projects]
+      summary: List all projects
+      responses:
+        "200":
+          description: List of projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Project"
+    post:
+      operationId: createProject
+      tags: [projects]
+      summary: Create a new project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProjectBody"
+      responses:
+        "201":
+          description: Created project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      tags: [projects]
+      summary: Get a project by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProjectDetail"
+        "404":
+          description: Not found
+    put:
+      operationId: updateProject
+      tags: [projects]
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProjectBody"
+      responses:
+        "200":
+          description: Updated project
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Project"
+    delete:
+      operationId: deleteProject
+      tags: [projects]
+      summary: Delete a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get dashboard summary stats
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /projects/{id}/generate-matrix:
+    post:
+      operationId: generateMatrix
+      tags: [matrix]
+      summary: Generate narrative matrix for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated narrative matrix
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NarrativeMatrix"
+
+  /projects/{id}/matrix:
+    get:
+      operationId: getMatrix
+      tags: [matrix]
+      summary: Get narrative matrix for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Narrative matrix
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NarrativeMatrix"
+        "404":
+          description: Not found
+    put:
+      operationId: updateMatrix
+      tags: [matrix]
+      summary: Update narrative matrix
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NarrativeMatrix"
+      responses:
+        "200":
+          description: Updated matrix
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NarrativeMatrix"
+
+  /projects/{id}/check-coherence:
+    post:
+      operationId: checkCoherence
+      tags: [matrix]
+      summary: Check narrative coherence
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Coherence check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoherenceCheck"
+
+  /projects/{id}/generate-emotional-core:
+    post:
+      operationId: generateEmotionalCore
+      tags: [emotional]
+      summary: Generate emotional core
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated emotional core
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmotionalCore"
+
+  /projects/{id}/emotional-core:
+    get:
+      operationId: getEmotionalCore
+      tags: [emotional]
+      summary: Get emotional core
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Emotional core
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmotionalCore"
+        "404":
+          description: Not found
+    put:
+      operationId: updateEmotionalCore
+      tags: [emotional]
+      summary: Update emotional core
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmotionalCore"
+      responses:
+        "200":
+          description: Updated emotional core
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmotionalCore"
+
+  /projects/{id}/generate-emotional-path:
+    post:
+      operationId: generateEmotionalPath
+      tags: [emotional]
+      summary: Generate emotional path
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated emotional path
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmotionalPath"
+
+  /projects/{id}/generate-characters:
+    post:
+      operationId: generateCharacters
+      tags: [characters]
+      summary: Generate characters from matrix
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated characters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Character"
+
+  /projects/{id}/characters:
+    get:
+      operationId: listCharacters
+      tags: [characters]
+      summary: List characters for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Characters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Character"
+    post:
+      operationId: createCharacter
+      tags: [characters]
+      summary: Create a character
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCharacterBody"
+      responses:
+        "201":
+          description: Created character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+
+  /projects/{id}/characters/{charId}:
+    put:
+      operationId: updateCharacter
+      tags: [characters]
+      summary: Update a character
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: charId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCharacterBody"
+      responses:
+        "200":
+          description: Updated character
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Character"
+    delete:
+      operationId: deleteCharacter
+      tags: [characters]
+      summary: Delete a character
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: charId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /projects/{id}/generate-relationships:
+    post:
+      operationId: generateRelationships
+      tags: [characters]
+      summary: Generate relationships between characters
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated relationships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Relationship"
+
+  /projects/{id}/relationships:
+    get:
+      operationId: listRelationships
+      tags: [characters]
+      summary: List relationships for a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Relationships
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Relationship"
+
+  /projects/{id}/generate-world:
+    post:
+      operationId: generateWorld
+      tags: [world]
+      summary: Generate world and timeline
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated world data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorldData"
+
+  /projects/{id}/world:
+    get:
+      operationId: getWorld
+      tags: [world]
+      summary: Get world data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: World data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorldData"
+        "404":
+          description: Not found
+    put:
+      operationId: updateWorld
+      tags: [world]
+      summary: Update world data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorldData"
+      responses:
+        "200":
+          description: Updated world data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorldData"
+
+  /projects/{id}/generate-research-notes:
+    post:
+      operationId: generateResearchNotes
+      tags: [research]
+      summary: Generate research notes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated research notes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchData"
+
+  /projects/{id}/research:
+    get:
+      operationId: getResearch
+      tags: [research]
+      summary: Get research data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Research data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchData"
+        "404":
+          description: Not found
+    put:
+      operationId: updateResearch
+      tags: [research]
+      summary: Update research data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResearchData"
+      responses:
+        "200":
+          description: Updated research data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResearchData"
+
+  /projects/{id}/generate-hpsa-score:
+    post:
+      operationId: generateHpsaScore
+      tags: [hpsa]
+      summary: Generate HPSA score
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated HPSA score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HpsaScore"
+
+  /projects/{id}/hpsa:
+    get:
+      operationId: getHpsaScore
+      tags: [hpsa]
+      summary: Get HPSA score
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: HPSA score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HpsaScore"
+        "404":
+          description: Not found
+
+  /projects/{id}/generate-book-outline:
+    post:
+      operationId: generateBookOutline
+      tags: [book]
+      summary: Generate book outline
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated book outline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookOutline"
+
+  /projects/{id}/book:
+    get:
+      operationId: getBookOutline
+      tags: [book]
+      summary: Get book outline
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Book outline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookOutline"
+        "404":
+          description: Not found
+    put:
+      operationId: updateBookOutline
+      tags: [book]
+      summary: Update book outline
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookOutline"
+      responses:
+        "200":
+          description: Updated book outline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookOutline"
+
+  /projects/{id}/generate-screenplay:
+    post:
+      operationId: generateScreenplay
+      tags: [screenplay]
+      summary: Generate screenplay
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated screenplay
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Screenplay"
+
+  /projects/{id}/screenplay:
+    get:
+      operationId: getScreenplay
+      tags: [screenplay]
+      summary: Get screenplay
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Screenplay
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Screenplay"
+        "404":
+          description: Not found
+    put:
+      operationId: updateScreenplay
+      tags: [screenplay]
+      summary: Update screenplay
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Screenplay"
+      responses:
+        "200":
+          description: Updated screenplay
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Screenplay"
+
+  /projects/{id}/generate-series:
+    post:
+      operationId: generateSeries
+      tags: [series]
+      summary: Generate series structure
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated series
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Series"
+
+  /projects/{id}/series:
+    get:
+      operationId: getSeries
+      tags: [series]
+      summary: Get series data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Series data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Series"
+        "404":
+          description: Not found
+    put:
+      operationId: updateSeries
+      tags: [series]
+      summary: Update series data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Series"
+      responses:
+        "200":
+          description: Updated series
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Series"
+
+  /projects/{id}/generate-pitch:
+    post:
+      operationId: generatePitch
+      tags: [pitch]
+      summary: Generate pitch document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated pitch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PitchDocument"
+
+  /projects/{id}/pitch:
+    get:
+      operationId: getPitch
+      tags: [pitch]
+      summary: Get pitch document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pitch document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PitchDocument"
+        "404":
+          description: Not found
+    put:
+      operationId: updatePitch
+      tags: [pitch]
+      summary: Update pitch document
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PitchDocument"
+      responses:
+        "200":
+          description: Updated pitch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PitchDocument"
+
+  /projects/{id}/export/{type}:
+    get:
+      operationId: exportProject
+      tags: [exports]
+      summary: Export project data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [matrix, emotional-core, hpsa, book-outline, manuscript, screenplay, pitch, complete]
+      responses:
+        "200":
+          description: Export data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportResult"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +925,813 @@ components:
       required:
         - status
 
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        rawIdea:
+          type: string
+        inputType:
+          type: string
+        genre:
+          type: string
+        tone:
+          type: string
+        targetFormat:
+          type: string
+        temporalLogic:
+          type: string
+        realityLevel:
+          type: string
+        targetAudience:
+          type: string
+        artisticAmbition:
+          type: string
+        progression:
+          type: number
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - rawIdea
+        - genre
+        - tone
+        - targetFormat
+        - progression
+        - createdAt
+        - updatedAt
+
+    ProjectDetail:
+      allOf:
+        - $ref: "#/components/schemas/Project"
+        - type: object
+          properties:
+            matrix:
+              $ref: "#/components/schemas/NarrativeMatrix"
+            emotionalCore:
+              $ref: "#/components/schemas/EmotionalCore"
+            characters:
+              type: array
+              items:
+                $ref: "#/components/schemas/Character"
+
+    CreateProjectBody:
+      type: object
+      properties:
+        title:
+          type: string
+        rawIdea:
+          type: string
+        inputType:
+          type: string
+        genre:
+          type: string
+        tone:
+          type: string
+        targetFormat:
+          type: string
+        temporalLogic:
+          type: string
+        realityLevel:
+          type: string
+        targetAudience:
+          type: string
+        artisticAmbition:
+          type: string
+      required:
+        - title
+        - rawIdea
+        - genre
+        - tone
+        - targetFormat
+
+    UpdateProjectBody:
+      type: object
+      properties:
+        title:
+          type: string
+        rawIdea:
+          type: string
+        inputType:
+          type: string
+        genre:
+          type: string
+        tone:
+          type: string
+        targetFormat:
+          type: string
+        temporalLogic:
+          type: string
+        realityLevel:
+          type: string
+        targetAudience:
+          type: string
+        artisticAmbition:
+          type: string
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalProjects:
+          type: integer
+        byGenre:
+          type: array
+          items:
+            type: object
+            properties:
+              genre:
+                type: string
+              count:
+                type: integer
+            required: [genre, count]
+        byFormat:
+          type: array
+          items:
+            type: object
+            properties:
+              format:
+                type: string
+              count:
+                type: integer
+            required: [format, count]
+        recentProjects:
+          type: array
+          items:
+            $ref: "#/components/schemas/Project"
+        averageProgression:
+          type: number
+      required:
+        - totalProjects
+        - byGenre
+        - byFormat
+        - recentProjects
+        - averageProgression
+
+    NarrativeMatrix:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        centralConcept:
+          type: string
+        logline:
+          type: string
+        shortPitch:
+          type: string
+        longSynopsis:
+          type: string
+        genre:
+          type: string
+        tone:
+          type: string
+        themes:
+          type: array
+          items:
+            type: string
+        universeLaws:
+          type: array
+          items:
+            type: string
+        temporalRules:
+          type: string
+        spatialRules:
+          type: string
+        visibleWorld:
+          type: string
+        invisibleForces:
+          type: string
+        centralConflict:
+          type: string
+        protagonist:
+          type: string
+        antagonist:
+          type: string
+        emotionalStakes:
+          type: string
+        symbolicMotifs:
+          type: array
+          items:
+            type: string
+        powerObjects:
+          type: array
+          items:
+            type: string
+        secrets:
+          type: array
+          items:
+            type: string
+        possibleEndings:
+          type: array
+          items:
+            type: string
+        coherenceRules:
+          type: array
+          items:
+            type: string
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - centralConcept
+        - logline
+        - shortPitch
+        - longSynopsis
+
+    CoherenceCheck:
+      type: object
+      properties:
+        score:
+          type: integer
+        issues:
+          type: array
+          items:
+            type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+        isCoherent:
+          type: boolean
+      required:
+        - score
+        - issues
+        - suggestions
+        - isCoherent
+
+    EmotionalCore:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        dominantEmotion:
+          type: string
+        hiddenWound:
+          type: string
+        emotionalLack:
+          type: string
+        innerChildSignal:
+          type: string
+        protectionMask:
+          type: string
+        apparentDesire:
+          type: string
+        deepNeed:
+          type: string
+        centralFear:
+          type: string
+        shamePoint:
+          type: string
+        guiltyPoint:
+          type: string
+        symbolicObject:
+          type: string
+        symbolicPlace:
+          type: string
+        emotionalAntagonist:
+          type: string
+        emotionalContradiction:
+          type: string
+        correctionPath:
+          type: string
+        transformationArc:
+          type: string
+        finalEmotionalState:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - dominantEmotion
+        - hiddenWound
+        - transformationArc
+
+    EmotionalPath:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        stages:
+          type: array
+          items:
+            type: object
+            properties:
+              stage:
+                type: string
+              label:
+                type: string
+              description:
+                type: string
+            required: [stage, label, description]
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - stages
+
+    Character:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+        nature:
+          type: string
+        externalObjective:
+          type: string
+        innerNeed:
+          type: string
+        wound:
+          type: string
+        fear:
+          type: string
+        secret:
+          type: string
+        contradiction:
+          type: string
+        transformationArc:
+          type: string
+        visualIdentity:
+          type: string
+        voiceStyle:
+          type: string
+        linkToConflict:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - projectId
+        - name
+        - role
+
+    CreateCharacterBody:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+        nature:
+          type: string
+        externalObjective:
+          type: string
+        innerNeed:
+          type: string
+        wound:
+          type: string
+        fear:
+          type: string
+        secret:
+          type: string
+        contradiction:
+          type: string
+        transformationArc:
+          type: string
+        visualIdentity:
+          type: string
+        voiceStyle:
+          type: string
+        linkToConflict:
+          type: string
+      required:
+        - name
+        - role
+
+    Relationship:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        characterAId:
+          type: string
+        characterBId:
+          type: string
+        characterAName:
+          type: string
+        characterBName:
+          type: string
+        relationshipType:
+          type: string
+        emotionalTension:
+          type: string
+        hiddenTruth:
+          type: string
+        conflict:
+          type: string
+        evolution:
+          type: string
+        symbolicMeaning:
+          type: string
+      required:
+        - id
+        - projectId
+        - characterAName
+        - characterBName
+        - relationshipType
+
+    WorldData:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        locations:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              atmosphere:
+                type: string
+            required: [name, description]
+        atmospheres:
+          type: array
+          items:
+            type: string
+        temporalRules:
+          type: string
+        timelineEvents:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              event:
+                type: string
+              significance:
+                type: string
+            required: [date, event]
+        parallelTimelines:
+          type: array
+          items:
+            type: string
+        dreamLayers:
+          type: array
+          items:
+            type: string
+        forbiddenRules:
+          type: array
+          items:
+            type: string
+        causeEffectLogic:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - locations
+        - temporalRules
+
+    ResearchData:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        referenceWorks:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              author:
+                type: string
+              medium:
+                type: string
+              relevance:
+                type: string
+            required: [title, relevance]
+        criticalNotes:
+          type: array
+          items:
+            type: string
+        successSignals:
+          type: array
+          items:
+            type: string
+        currentTrends:
+          type: array
+          items:
+            type: string
+        clicheRisks:
+          type: array
+          items:
+            type: string
+        originalityOpportunities:
+          type: array
+          items:
+            type: string
+        creationNotes:
+          type: string
+        abstractMechanics:
+          type: array
+          items:
+            type: string
+        humorPatterns:
+          type: array
+          items:
+            type: string
+        suspensePatterns:
+          type: array
+          items:
+            type: string
+        tearTriggers:
+          type: array
+          items:
+            type: string
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - referenceWorks
+
+    HpsaScore:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        humour:
+          $ref: "#/components/schemas/ScoreCategory"
+        pleur:
+          $ref: "#/components/schemas/ScoreCategory"
+        suspense:
+          $ref: "#/components/schemas/ScoreCategory"
+        attractivite:
+          $ref: "#/components/schemas/ScoreCategory"
+        profondeurEmotionnelle:
+          $ref: "#/components/schemas/ScoreCategory"
+        originalite:
+          $ref: "#/components/schemas/ScoreCategory"
+        coherence:
+          $ref: "#/components/schemas/ScoreCategory"
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - humour
+        - pleur
+        - suspense
+        - attractivite
+        - profondeurEmotionnelle
+        - originalite
+        - coherence
+
+    ScoreCategory:
+      type: object
+      properties:
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+        diagnostic:
+          type: string
+        weaknesses:
+          type: array
+          items:
+            type: string
+        corrections:
+          type: array
+          items:
+            type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+        trendNotes:
+          type: string
+        clicheRisk:
+          type: string
+        originalityOpportunity:
+          type: string
+      required:
+        - score
+        - diagnostic
+        - weaknesses
+        - corrections
+
+    BookOutline:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        titleIdeas:
+          type: array
+          items:
+            type: string
+        backCoverPitch:
+          type: string
+        shortSynopsis:
+          type: string
+        longSynopsis:
+          type: string
+        tableOfContents:
+          type: array
+          items:
+            type: string
+        structure:
+          type: string
+        chapters:
+          type: array
+          items:
+            type: object
+            properties:
+              number:
+                type: integer
+              title:
+                type: string
+              summary:
+                type: string
+              draftContent:
+                type: string
+            required: [number, title, summary]
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - titleIdeas
+        - shortSynopsis
+        - chapters
+
+    Screenplay:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        logline:
+          type: string
+        cinematicSynopsis:
+          type: string
+        treatment:
+          type: string
+        beats:
+          type: array
+          items:
+            type: object
+            properties:
+              number:
+                type: integer
+              description:
+                type: string
+            required: [number, description]
+        scenes:
+          type: array
+          items:
+            type: object
+            properties:
+              number:
+                type: integer
+              heading:
+                type: string
+              description:
+                type: string
+              dialogueDraft:
+                type: string
+            required: [number, heading, description]
+        fountainScript:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - logline
+        - scenes
+
+    Series:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        format:
+          type: string
+        seasonConcept:
+          type: string
+        longArcs:
+          type: array
+          items:
+            type: string
+        episodes:
+          type: array
+          items:
+            type: object
+            properties:
+              number:
+                type: integer
+              title:
+                type: string
+              summary:
+                type: string
+              cliffhanger:
+                type: string
+              emotionalEvolution:
+                type: string
+            required: [number, title, summary]
+        progressiveRevelations:
+          type: array
+          items:
+            type: string
+        secondaryCharacters:
+          type: array
+          items:
+            type: string
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - format
+        - episodes
+
+    PitchDocument:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        title:
+          type: string
+        format:
+          type: string
+        genre:
+          type: string
+        targetAudience:
+          type: string
+        comparableReferences:
+          type: array
+          items:
+            type: string
+        visualDirection:
+          type: string
+        authorNote:
+          type: string
+        intentionNote:
+          type: string
+        whyNow:
+          type: string
+        characters:
+          type: string
+        world:
+          type: string
+        filmSeasonArc:
+          type: string
+        sellingPoints:
+          type: array
+          items:
+            type: string
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - title
+        - format
+        - genre
+
+    ExportResult:
+      type: object
+      properties:
+        type:
+          type: string
+        format:
+          type: string
+        content:
+          type: string
+        filename:
+          type: string
+      required:
+        - type
+        - format
+        - content
+        - filename
