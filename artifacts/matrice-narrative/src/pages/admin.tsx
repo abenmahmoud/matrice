@@ -5,9 +5,11 @@ import { useToast } from "@/hooks/use-toast";
 import {
   FlaskConical, Zap, BookOpen, Globe2, Clock, Sparkles, LogOut,
   Lock, Eye, EyeOff, Trash2, Shield, RefreshCw, CheckCircle2, Circle,
-  ChevronDown, ChevronUp, TrendingUp, Calendar, Map, Check, Circle as CircleIcon
+  ChevronDown, ChevronUp, TrendingUp, Calendar, Map, Check, Circle as CircleIcon,
+  ScanText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminAnalysesTab } from "@/components/AdminAnalysesTab";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -545,6 +547,7 @@ const TABS = [
   { key: "lab", label: "Laboratoire", icon: FlaskConical },
   { key: "skills", label: "Skills", icon: Zap },
   { key: "entries", label: "Entrées", icon: BookOpen },
+  { key: "analyses", label: "Analyses IA", icon: ScanText },
   { key: "roadmap", label: "Roadmap", icon: Map },
 ];
 
@@ -751,6 +754,9 @@ function AdminDashboard() {
                 : <div className="space-y-2">{filteredEntries.map(e => <EntryRow key={e.id} entry={e} types={taxonomy?.researchTypes ?? []} onDelete={id => void deleteEntry(id)} />)}</div>}
             </div>
           )}
+
+          {/* TAB: ANALYSES IA */}
+          {tab === "analyses" && <AdminAnalysesTab />}
 
           {/* TAB: ROADMAP */}
           {tab === "roadmap" && <Roadmap />}
