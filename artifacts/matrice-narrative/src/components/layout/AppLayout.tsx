@@ -16,7 +16,8 @@ import {
   Presentation, 
   Download,
   Zap,
-  FlaskConical
+  FlaskConical,
+  ScanText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -36,6 +37,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const rootNav = [
     { name: "Page d'accueil", href: "/", icon: Home },
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Analyser un texte", href: "/analyse", icon: ScanText },
     { name: "Créer un univers", href: "/projects/new", icon: Plus },
   ];
 

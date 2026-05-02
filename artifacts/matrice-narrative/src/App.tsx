@@ -21,6 +21,7 @@ import SeriesPage from "./pages/series";
 import PitchPage from "./pages/pitch";
 import ExportsPage from "./pages/exports";
 import AdminPage from "./pages/admin";
+import AnalysePage from "./pages/analyse";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
@@ -37,6 +38,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/analyse" component={AnalysePage} />
       <Route path="/projects/new" component={NewProject} />
       <Route path="/projects/:id/matrix" component={MatrixPage} />
       <Route path="/projects/:id/emotional-core" component={EmotionalCorePage} />

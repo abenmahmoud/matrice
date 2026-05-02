@@ -4,6 +4,7 @@ import projectsRouter from "./projects.js";
 import skillsRouter from "./skills.js";
 import researchLabRouter from "./researchLab.js";
 import adminRouter from "./admin.js";
+import manuscriptsRouter from "./manuscripts.js";
 import { adminAuthMiddleware } from "../middleware/adminAuth.js";
 
 const router: IRouter = Router();
@@ -12,6 +13,7 @@ const router: IRouter = Router();
 router.use(healthRouter);
 router.use(adminRouter);
 router.use(projectsRouter);
+router.use(manuscriptsRouter);
 
 // Admin-protected
 router.use(adminAuthMiddleware, skillsRouter);
