@@ -19,6 +19,7 @@ import ScreenplayPage from "./pages/screenplay";
 import SeriesPage from "./pages/series";
 import PitchPage from "./pages/pitch";
 import ExportsPage from "./pages/exports";
+import SkillsPage from "./pages/skills";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/projects/:id/series" component={SeriesPage} />
       <Route path="/projects/:id/pitch" component={PitchPage} />
       <Route path="/projects/:id/exports" component={ExportsPage} />
+      <Route path="/skills" component={SkillsPage} />
       <Route component={NotFound} />
     </Switch>
   );

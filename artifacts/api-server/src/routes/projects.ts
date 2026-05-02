@@ -1,11 +1,12 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { db } from "@workspace/db";
 import {
   projectsTable, narrativeMatricesTable, emotionalCoresTable, emotionalPathsTable,
   charactersTable, relationshipsTable, worldDataTable, researchDataTable,
-  hpsaScoresTable, bookOutlinesTable, screenplaysTable, seriesTable, pitchDocumentsTable
+  hpsaScoresTable, bookOutlinesTable, screenplaysTable, seriesTable, pitchDocumentsTable,
+  narrativeSkillsTable, projectSkillsTable
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import {
   generateNarrativeMatrix, generateEmotionalCore, generateEmotionalPath,
   generateCharacters, generateRelationships, generateWorldAndTimeline,
@@ -14,6 +15,67 @@ import {
 } from "../services/generationService.js";
 
 const router: IRouter = Router();
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+async function getSkillsContext(projectId: string): Promise<string> {
+  try {
+    const rows = await db
+      .select({ skill: narrativeSkillsTable })
+      .from(projectSkillsTable)
+      .innerJoin(narrativeSkillsTable, eq(projectSkillsTable.skillId, narrativeSkillsTable.id))
+      .where(and(eq(projectSkillsTable.projectId, projectId), eq(narrativeSkillsTable.isActive, true)));
+    if (!rows.length) return "";
+    return rows.map(r => `[${r.skill.category.toUpperCase()}] ${r.skill.name}:\n${r.skill.promptContent}`).join("\n\n");
+  } catch {
+    return "";
+  }
+}
+
+async function sseRun(
+  req: Request,
+  res: Response,
+  steps: [string, string, string],
+  work: () => Promise<unknown>
+): Promise<void> {
+  const isSSE = (req.headers["accept"] ?? "").includes("text/event-stream");
+  const send = (event: Record<string, unknown>) => {
+    if (isSSE) res.write(`data: ${JSON.stringify(event)}\n\n`);
+  };
+
+  if (isSSE) {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    send({ type: "progress", step: steps[0], percent: 10 });
+  }
+
+  try {
+    send({ type: "progress", step: steps[1], percent: 35 });
+    const result = await work();
+    send({ type: "progress", step: steps[2], percent: 90 });
+    if (isSSE) {
+      send({ type: "done", data: result });
+      res.end();
+    } else {
+      res.json(result);
+    }
+  } catch (err) {
+    if (isSSE) {
+      send({ type: "error", message: "Erreur lors de la génération IA" });
+      res.end();
+    } else {
+      throw err;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Projects CRUD
+// ---------------------------------------------------------------------------
 
 // GET /api/projects
 router.get("/projects", async (req, res) => {
@@ -68,9 +130,8 @@ router.get("/projects/:id", async (req, res) => {
 // PUT /api/projects/:id
 router.put("/projects/:id", async (req, res) => {
   try {
-    const body = req.body;
     const [project] = await db.update(projectsTable)
-      .set({ ...body, updatedAt: new Date() })
+      .set({ ...req.body, updatedAt: new Date() })
       .where(eq(projectsTable.id, req.params.id))
       .returning();
     if (!project) return res.status(404).json({ error: "Not found" });
@@ -117,26 +178,38 @@ router.get("/dashboard/summary", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Narrative Matrix
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-matrix
-router.post("/projects/:id/generate-matrix", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const matrixData = await generateNarrativeMatrix(project);
-    const existing = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    let matrix;
-    if (existing.length > 0) {
-      [matrix] = await db.update(narrativeMatricesTable).set({ ...matrixData, updatedAt: new Date() })
-        .where(eq(narrativeMatricesTable.projectId, req.params.id)).returning();
-    } else {
-      [matrix] = await db.insert(narrativeMatricesTable).values({ projectId: req.params.id, ...matrixData }).returning();
+router.post("/projects/:id/generate-matrix", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Génération de la matrice narrative en cours...", "Enregistrement..."],
+        async () => {
+          const matrixData = await generateNarrativeMatrix(project, skills);
+          const existing = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          let matrix;
+          if (existing.length > 0) {
+            [matrix] = await db.update(narrativeMatricesTable).set({ ...matrixData, updatedAt: new Date() })
+              .where(eq(narrativeMatricesTable.projectId, req.params.id)).returning();
+          } else {
+            [matrix] = await db.insert(narrativeMatricesTable).values({ projectId: req.params.id, ...matrixData }).returning();
+          }
+          await db.update(projectsTable).set({ progression: Math.max(project.progression, 20), updatedAt: new Date() }).where(eq(projectsTable.id, req.params.id));
+          return matrix;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err }, "Failed to generate matrix");
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    await db.update(projectsTable).set({ progression: 20, updatedAt: new Date() }).where(eq(projectsTable.id, req.params.id));
-    res.json(matrix);
-  } catch (err) {
-    req.log.error({ err }, "Failed to generate matrix");
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
 // GET /api/projects/:id/matrix
@@ -177,28 +250,40 @@ router.post("/projects/:id/check-coherence", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Emotional Core
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-emotional-core
-router.post("/projects/:id/generate-emotional-core", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const coreData = generateEmotionalCore(project, matrixData);
-    const existing = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    let core;
-    if (existing.length > 0) {
-      [core] = await db.update(emotionalCoresTable).set({ ...coreData, updatedAt: new Date() })
-        .where(eq(emotionalCoresTable.projectId, req.params.id)).returning();
-    } else {
-      [core] = await db.insert(emotionalCoresTable).values({ projectId: req.params.id, ...coreData }).returning();
+router.post("/projects/:id/generate-emotional-core", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Analyse du noyau émotionnel en cours...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const coreData = await generateEmotionalCore(project, matrixData, skills);
+          const existing = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
+          let core;
+          if (existing.length > 0) {
+            [core] = await db.update(emotionalCoresTable).set({ ...coreData, updatedAt: new Date() })
+              .where(eq(emotionalCoresTable.projectId, req.params.id)).returning();
+          } else {
+            [core] = await db.insert(emotionalCoresTable).values({ projectId: req.params.id, ...coreData }).returning();
+          }
+          await db.update(projectsTable).set({ progression: Math.max(project.progression, 35), updatedAt: new Date() }).where(eq(projectsTable.id, req.params.id));
+          return core;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    await db.update(projectsTable).set({ progression: Math.max(project.progression, 35), updatedAt: new Date() }).where(eq(projectsTable.id, req.params.id));
-    res.json(core);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
 // GET /api/projects/:id/emotional-core
@@ -226,50 +311,74 @@ router.put("/projects/:id/emotional-core", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Emotional Path
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-emotional-path
-router.post("/projects/:id/generate-emotional-path", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const coreData = core ?? await generateEmotionalCore(project, matrixData);
-    const stages = await generateEmotionalPath(project, matrixData, coreData);
-    const existing = await db.select().from(emotionalPathsTable).where(eq(emotionalPathsTable.projectId, req.params.id));
-    let path;
-    if (existing.length > 0) {
-      [path] = await db.update(emotionalPathsTable).set({ stages, updatedAt: new Date() })
-        .where(eq(emotionalPathsTable.projectId, req.params.id)).returning();
-    } else {
-      [path] = await db.insert(emotionalPathsTable).values({ projectId: req.params.id, stages }).returning();
+router.post("/projects/:id/generate-emotional-path", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture des données émotionnelles...", "Construction du chemin émotionnel...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const coreData = core ?? await generateEmotionalCore(project, matrixData, skills);
+          const stages = await generateEmotionalPath(project, matrixData, coreData, skills);
+          const existing = await db.select().from(emotionalPathsTable).where(eq(emotionalPathsTable.projectId, req.params.id));
+          let path;
+          if (existing.length > 0) {
+            [path] = await db.update(emotionalPathsTable).set({ stages, updatedAt: new Date() })
+              .where(eq(emotionalPathsTable.projectId, req.params.id)).returning();
+          } else {
+            [path] = await db.insert(emotionalPathsTable).values({ projectId: req.params.id, stages }).returning();
+          }
+          return path;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    res.json(path);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
+// ---------------------------------------------------------------------------
+// Characters
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-characters
-router.post("/projects/:id/generate-characters", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const coreData = core ?? await generateEmotionalCore(project, matrixData);
-    const charsData = await generateCharacters(project, matrixData, coreData);
-    await db.delete(charactersTable).where(eq(charactersTable.projectId, req.params.id));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const chars = await db.insert(charactersTable).values(charsData.map(c => ({ projectId: req.params.id, ...c })) as any[]).returning();
-    await db.update(projectsTable).set({ progression: Math.max(project.progression, 50), updatedAt: new Date() }).where(eq(projectsTable.id, req.params.id));
-    res.json(chars);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+router.post("/projects/:id/generate-characters", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture de la matrice...", "Création des personnages en cours...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const coreData = core ?? await generateEmotionalCore(project, matrixData, skills);
+          const charsData = await generateCharacters(project, matrixData, coreData, skills);
+          await db.delete(charactersTable).where(eq(charactersTable.projectId, req.params.id));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const chars = await db.insert(charactersTable).values(charsData.map(c => ({ projectId: req.params.id, ...c })) as any[]).returning();
+          await db.update(projectsTable).set({ progression: Math.max(project.progression, 50), updatedAt: new Date() }).where(eq(projectsTable.id, req.params.id));
+          return chars;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
+    }
+  })();
 });
 
 // GET /api/projects/:id/characters
@@ -318,6 +427,10 @@ router.delete("/projects/:id/characters/:charId", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Relationships
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-relationships
 router.post("/projects/:id/generate-relationships", async (req, res) => {
   try {
@@ -343,27 +456,39 @@ router.get("/projects/:id/relationships", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// World
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-world
-router.post("/projects/:id/generate-world", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const worldData = await generateWorldAndTimeline(project, matrixData);
-    const existing = await db.select().from(worldDataTable).where(eq(worldDataTable.projectId, req.params.id));
-    let world;
-    if (existing.length > 0) {
-      [world] = await db.update(worldDataTable).set({ ...worldData, updatedAt: new Date() })
-        .where(eq(worldDataTable.projectId, req.params.id)).returning();
-    } else {
-      [world] = await db.insert(worldDataTable).values({ projectId: req.params.id, ...worldData }).returning();
+router.post("/projects/:id/generate-world", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture de la matrice...", "Construction de l'univers et de la chronologie...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const worldData = await generateWorldAndTimeline(project, matrixData, skills);
+          const existing = await db.select().from(worldDataTable).where(eq(worldDataTable.projectId, req.params.id));
+          let world;
+          if (existing.length > 0) {
+            [world] = await db.update(worldDataTable).set({ ...worldData, updatedAt: new Date() })
+              .where(eq(worldDataTable.projectId, req.params.id)).returning();
+          } else {
+            [world] = await db.insert(worldDataTable).values({ projectId: req.params.id, ...worldData }).returning();
+          }
+          return world;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    res.json(world);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
 // GET /api/projects/:id/world
@@ -391,27 +516,39 @@ router.put("/projects/:id/world", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Research
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-research-notes
-router.post("/projects/:id/generate-research-notes", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const researchData = await generateResearchNotes(project, matrixData);
-    const existing = await db.select().from(researchDataTable).where(eq(researchDataTable.projectId, req.params.id));
-    let research;
-    if (existing.length > 0) {
-      [research] = await db.update(researchDataTable).set({ ...researchData, updatedAt: new Date() })
-        .where(eq(researchDataTable.projectId, req.params.id)).returning();
-    } else {
-      [research] = await db.insert(researchDataTable).values({ projectId: req.params.id, ...researchData }).returning();
+router.post("/projects/:id/generate-research-notes", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Génération des notes de recherche...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const researchData = await generateResearchNotes(project, matrixData, skills);
+          const existing = await db.select().from(researchDataTable).where(eq(researchDataTable.projectId, req.params.id));
+          let research;
+          if (existing.length > 0) {
+            [research] = await db.update(researchDataTable).set({ ...researchData, updatedAt: new Date() })
+              .where(eq(researchDataTable.projectId, req.params.id)).returning();
+          } else {
+            [research] = await db.insert(researchDataTable).values({ projectId: req.params.id, ...researchData }).returning();
+          }
+          return research;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    res.json(research);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
 // GET /api/projects/:id/research
@@ -439,29 +576,41 @@ router.put("/projects/:id/research", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// HPSA Score
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-hpsa-score
-router.post("/projects/:id/generate-hpsa-score", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const coreData = core ?? await generateEmotionalCore(project, matrixData);
-    const scores = await generateHpsaScore(project, matrixData, coreData);
-    const existing = await db.select().from(hpsaScoresTable).where(eq(hpsaScoresTable.projectId, req.params.id));
-    let hpsa;
-    if (existing.length > 0) {
-      [hpsa] = await db.update(hpsaScoresTable).set({ ...scores, updatedAt: new Date() })
-        .where(eq(hpsaScoresTable.projectId, req.params.id)).returning();
-    } else {
-      [hpsa] = await db.insert(hpsaScoresTable).values({ projectId: req.params.id, ...scores }).returning();
+router.post("/projects/:id/generate-hpsa-score", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Analyse des scores H.P.S.A. en cours...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const coreData = core ?? await generateEmotionalCore(project, matrixData, skills);
+          const scores = await generateHpsaScore(project, matrixData, coreData, skills);
+          const existing = await db.select().from(hpsaScoresTable).where(eq(hpsaScoresTable.projectId, req.params.id));
+          let hpsa;
+          if (existing.length > 0) {
+            [hpsa] = await db.update(hpsaScoresTable).set({ ...scores, updatedAt: new Date() })
+              .where(eq(hpsaScoresTable.projectId, req.params.id)).returning();
+          } else {
+            [hpsa] = await db.insert(hpsaScoresTable).values({ projectId: req.params.id, ...scores }).returning();
+          }
+          return hpsa;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    res.json(hpsa);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
 // GET /api/projects/:id/hpsa
@@ -476,29 +625,41 @@ router.get("/projects/:id/hpsa", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Book Outline
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-book-outline
-router.post("/projects/:id/generate-book-outline", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const coreData = core ?? await generateEmotionalCore(project, matrixData);
-    const bookData = await generateBookOutline(project, matrixData, coreData);
-    const existing = await db.select().from(bookOutlinesTable).where(eq(bookOutlinesTable.projectId, req.params.id));
-    let book;
-    if (existing.length > 0) {
-      [book] = await db.update(bookOutlinesTable).set({ ...bookData, updatedAt: new Date() })
-        .where(eq(bookOutlinesTable.projectId, req.params.id)).returning();
-    } else {
-      [book] = await db.insert(bookOutlinesTable).values({ projectId: req.params.id, ...bookData }).returning();
+router.post("/projects/:id/generate-book-outline", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Construction du plan du livre en cours...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const coreData = core ?? await generateEmotionalCore(project, matrixData, skills);
+          const bookData = await generateBookOutline(project, matrixData, coreData, skills);
+          const existing = await db.select().from(bookOutlinesTable).where(eq(bookOutlinesTable.projectId, req.params.id));
+          let book;
+          if (existing.length > 0) {
+            [book] = await db.update(bookOutlinesTable).set({ ...bookData, updatedAt: new Date() })
+              .where(eq(bookOutlinesTable.projectId, req.params.id)).returning();
+          } else {
+            [book] = await db.insert(bookOutlinesTable).values({ projectId: req.params.id, ...bookData }).returning();
+          }
+          return book;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    res.json(book);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
 // GET /api/projects/:id/book
@@ -526,29 +687,41 @@ router.put("/projects/:id/book", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Screenplay
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-screenplay
-router.post("/projects/:id/generate-screenplay", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const coreData = core ?? await generateEmotionalCore(project, matrixData);
-    const spData = await generateScreenplay(project, matrixData, coreData);
-    const existing = await db.select().from(screenplaysTable).where(eq(screenplaysTable.projectId, req.params.id));
-    let sp;
-    if (existing.length > 0) {
-      [sp] = await db.update(screenplaysTable).set({ ...spData, updatedAt: new Date() })
-        .where(eq(screenplaysTable.projectId, req.params.id)).returning();
-    } else {
-      [sp] = await db.insert(screenplaysTable).values({ projectId: req.params.id, ...spData }).returning();
+router.post("/projects/:id/generate-screenplay", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Rédaction du scénario en cours...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const coreData = core ?? await generateEmotionalCore(project, matrixData, skills);
+          const spData = await generateScreenplay(project, matrixData, coreData, skills);
+          const existing = await db.select().from(screenplaysTable).where(eq(screenplaysTable.projectId, req.params.id));
+          let sp;
+          if (existing.length > 0) {
+            [sp] = await db.update(screenplaysTable).set({ ...spData, updatedAt: new Date() })
+              .where(eq(screenplaysTable.projectId, req.params.id)).returning();
+          } else {
+            [sp] = await db.insert(screenplaysTable).values({ projectId: req.params.id, ...spData }).returning();
+          }
+          return sp;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    res.json(sp);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
 // GET /api/projects/:id/screenplay
@@ -576,29 +749,41 @@ router.put("/projects/:id/screenplay", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Series
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-series
-router.post("/projects/:id/generate-series", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const coreData = core ?? await generateEmotionalCore(project, matrixData);
-    const seriesData = await generateSeries(project, matrixData, coreData);
-    const existing = await db.select().from(seriesTable).where(eq(seriesTable.projectId, req.params.id));
-    let series;
-    if (existing.length > 0) {
-      [series] = await db.update(seriesTable).set({ ...seriesData, updatedAt: new Date() })
-        .where(eq(seriesTable.projectId, req.params.id)).returning();
-    } else {
-      [series] = await db.insert(seriesTable).values({ projectId: req.params.id, ...seriesData }).returning();
+router.post("/projects/:id/generate-series", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Structuration de la série en cours...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const coreData = core ?? await generateEmotionalCore(project, matrixData, skills);
+          const seriesData = await generateSeries(project, matrixData, coreData, skills);
+          const existing = await db.select().from(seriesTable).where(eq(seriesTable.projectId, req.params.id));
+          let series;
+          if (existing.length > 0) {
+            [series] = await db.update(seriesTable).set({ ...seriesData, updatedAt: new Date() })
+              .where(eq(seriesTable.projectId, req.params.id)).returning();
+          } else {
+            [series] = await db.insert(seriesTable).values({ projectId: req.params.id, ...seriesData }).returning();
+          }
+          return series;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    res.json(series);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
 // GET /api/projects/:id/series
@@ -626,29 +811,41 @@ router.put("/projects/:id/series", async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Pitch
+// ---------------------------------------------------------------------------
+
 // POST /api/projects/:id/generate-pitch
-router.post("/projects/:id/generate-pitch", async (req, res) => {
-  try {
-    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
-    if (!project) return res.status(404).json({ error: "Not found" });
-    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? await generateNarrativeMatrix(project);
-    const coreData = core ?? await generateEmotionalCore(project, matrixData);
-    const pitchData = await generatePitch(project, matrixData, coreData);
-    const existing = await db.select().from(pitchDocumentsTable).where(eq(pitchDocumentsTable.projectId, req.params.id));
-    let pitch;
-    if (existing.length > 0) {
-      [pitch] = await db.update(pitchDocumentsTable).set({ ...pitchData, updatedAt: new Date() })
-        .where(eq(pitchDocumentsTable.projectId, req.params.id)).returning();
-    } else {
-      [pitch] = await db.insert(pitchDocumentsTable).values({ projectId: req.params.id, ...pitchData }).returning();
+router.post("/projects/:id/generate-pitch", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Rédaction du dossier pitch en cours...", "Enregistrement..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
+          const matrixData = matrix ?? await generateNarrativeMatrix(project, skills);
+          const coreData = core ?? await generateEmotionalCore(project, matrixData, skills);
+          const pitchData = await generatePitch(project, matrixData, coreData, skills);
+          const existing = await db.select().from(pitchDocumentsTable).where(eq(pitchDocumentsTable.projectId, req.params.id));
+          let pitch;
+          if (existing.length > 0) {
+            [pitch] = await db.update(pitchDocumentsTable).set({ ...pitchData, updatedAt: new Date() })
+              .where(eq(pitchDocumentsTable.projectId, req.params.id)).returning();
+          } else {
+            [pitch] = await db.insert(pitchDocumentsTable).values({ projectId: req.params.id, ...pitchData }).returning();
+          }
+          return pitch;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
-    res.json(pitch);
-  } catch (err) {
-    req.log.error({ err });
-    res.status(500).json({ error: "Internal server error" });
-  }
+  })();
 });
 
 // GET /api/projects/:id/pitch
@@ -675,6 +872,10 @@ router.put("/projects/:id/pitch", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// ---------------------------------------------------------------------------
+// Exports
+// ---------------------------------------------------------------------------
 
 // GET /api/projects/:id/export/:type
 router.get("/projects/:id/export/:type", async (req, res) => {
@@ -709,7 +910,7 @@ router.get("/projects/:id/export/:type", async (req, res) => {
       case "book-outline": {
         const [b] = await db.select().from(bookOutlinesTable).where(eq(bookOutlinesTable.projectId, id));
         if (b) {
-          content = `# ${project.title}\n\n## Plan du livre\n\n**Structure :** ${b.structure}\n\n**Synopsis court :**\n${b.shortSynopsis}\n\n## Table des matières\n${b.tableOfContents?.map((t, i) => `${i + 1}. ${t}`).join("\n")}\n\n## Chapitres\n${b.chapters?.map(c => `\n### Chapitre ${c.number} : ${c.title}\n${c.summary}`).join("\n")}`;
+          content = `# ${project.title}\n\n## Plan du livre\n\n**Structure :** ${b.structure}\n\n**Synopsis court :**\n${b.shortSynopsis}\n\n## Table des matières\n${(b.tableOfContents as string[] | null)?.map((t: string, i: number) => `${i + 1}. ${t}`).join("\n")}\n\n## Chapitres\n${(b.chapters as Array<{ number: number; title: string; summary: string }> | null)?.map((c) => `\n### Chapitre ${c.number} : ${c.title}\n${c.summary}`).join("\n")}`;
           format = "markdown";
           filename += "_plan_livre.md";
         }
@@ -717,7 +918,7 @@ router.get("/projects/:id/export/:type", async (req, res) => {
       }
       case "screenplay": {
         const [s] = await db.select().from(screenplaysTable).where(eq(screenplaysTable.projectId, id));
-        content = s?.fountainScript ?? "";
+        content = (s?.fountainScript as string | null) ?? "";
         format = "fountain";
         filename += "_scenario.fountain";
         break;
@@ -725,7 +926,7 @@ router.get("/projects/:id/export/:type", async (req, res) => {
       case "pitch": {
         const [p] = await db.select().from(pitchDocumentsTable).where(eq(pitchDocumentsTable.projectId, id));
         if (p) {
-          content = `# DOSSIER DE PITCH — ${project.title}\n\n**Format :** ${p.format}\n**Genre :** ${p.genre}\n**Public :** ${p.targetAudience}\n\n## Références comparables\n${p.comparableReferences?.join("\n")}\n\n## Note d'auteur\n${p.authorNote}\n\n## Note d'intention\n${p.intentionNote}\n\n## Pourquoi maintenant\n${p.whyNow}\n\n## Direction visuelle\n${p.visualDirection}\n\n## Personnages\n${p.characters}\n\n## Monde\n${p.world}\n\n## Arc narratif\n${p.filmSeasonArc}\n\n## Arguments de vente\n${p.sellingPoints?.map(s => `- ${s}`).join("\n")}`;
+          content = `# DOSSIER DE PITCH — ${project.title}\n\n**Format :** ${p.format}\n**Genre :** ${p.genre}\n**Public :** ${p.targetAudience}\n\n## Références comparables\n${(p.comparableReferences as string[] | null)?.join("\n")}\n\n## Note d'auteur\n${p.authorNote}\n\n## Note d'intention\n${p.intentionNote}\n\n## Pourquoi maintenant\n${p.whyNow}\n\n## Direction visuelle\n${p.visualDirection}\n\n## Personnages\n${p.characters}\n\n## Monde\n${p.world}\n\n## Arc narratif\n${p.filmSeasonArc}\n\n## Arguments de vente\n${(p.sellingPoints as string[] | null)?.map((s: string) => `- ${s}`).join("\n")}`;
           format = "markdown";
           filename += "_dossier_pitch.md";
         }

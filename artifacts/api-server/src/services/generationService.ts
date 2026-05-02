@@ -79,14 +79,17 @@ type ScoreCategory = {
 // Core AI helper
 // ---------------------------------------------------------------------------
 
-async function aiJson<T>(systemPrompt: string, userPrompt: string, fallback: T): Promise<T> {
+async function aiJson<T>(systemPrompt: string, userPrompt: string, fallback: T, skillsContext?: string): Promise<T> {
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-5.4",
       max_completion_tokens: 8192,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: skillsContext ? `${systemPrompt}
+
+### SKILLS IA ACTIFS — applique impérativement ces contraintes créatives :
+${skillsContext}` : systemPrompt },
         { role: "user", content: userPrompt },
       ],
     });
@@ -114,7 +117,7 @@ Ambition artistique : ${project.artisticAmbition ?? "créer une œuvre qui réso
 // 1. Narrative Matrix
 // ---------------------------------------------------------------------------
 
-export async function generateNarrativeMatrix(project: Project): Promise<NarrativeMatrix> {
+export async function generateNarrativeMatrix(project: Project, skillsContext?: string): Promise<NarrativeMatrix> {
   const system = `Tu es un dramaturge et architecte narratif de haut niveau, expert des littératures française et mondiale, du cinéma d'auteur et des séries complexes. Tu travailles en français. Tu génères des matrices narratives profondes, originales et cohérentes. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `À partir du projet suivant, génère une Matrice Narrative complète et professionnelle.
@@ -172,14 +175,14 @@ Sois précis, profond, original. Évite les clichés. Chaque élément doit êtr
     coherenceRules: ["À établir"],
   };
 
-  return aiJson<NarrativeMatrix>(system, user, fallback);
+  return aiJson<NarrativeMatrix>(system, user, fallback, skillsContext);
 }
 
 // ---------------------------------------------------------------------------
 // 2. Emotional Core
 // ---------------------------------------------------------------------------
 
-export async function generateEmotionalCore(project: Project, matrix: NarrativeMatrix): Promise<EmotionalCore> {
+export async function generateEmotionalCore(project: Project, matrix: NarrativeMatrix, skillsContext?: string): Promise<EmotionalCore> {
   const system = `Tu es un psychologue narratif et thérapeute du récit de haut niveau. Tu analyses les structures émotionnelles profondes des personnages en t'appuyant sur la psychologie du développement, l'attachement, et les théories du traumatisme narratif. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère le Noyau Émotionnel du protagoniste de ce projet.
@@ -233,14 +236,14 @@ Génère un objet JSON avec exactement ces champs :
     finalEmotionalState: "La paix gagnée, fragile, réelle",
   };
 
-  return aiJson<EmotionalCore>(system, user, fallback);
+  return aiJson<EmotionalCore>(system, user, fallback, skillsContext);
 }
 
 // ---------------------------------------------------------------------------
 // 3. Emotional Path
 // ---------------------------------------------------------------------------
 
-export async function generateEmotionalPath(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore) {
+export async function generateEmotionalPath(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string) {
   const system = `Tu es un architecte du voyage du héros et expert des structures narratives émotionnelles. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère les 9 étapes du chemin émotionnel du protagoniste.
@@ -286,7 +289,7 @@ Chaque description doit être précise, unique à ce projet, littéraire et acti
     ],
   };
 
-  const result = await aiJson<PathResult>(system, user, fallback);
+  const result = await aiJson<PathResult>(system, user, fallback, skillsContext);
   return result.path;
 }
 
@@ -294,7 +297,7 @@ Chaque description doit être précise, unique à ce projet, littéraire et acti
 // 4. Characters
 // ---------------------------------------------------------------------------
 
-export async function generateCharacters(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore) {
+export async function generateCharacters(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string) {
   const system = `Tu es un créateur de personnages de fiction de haut niveau, spécialisé dans la psychologie des personnages complexes et les arcs narratifs. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère 3 personnages principaux pour ce projet.
@@ -364,7 +367,7 @@ Les noms doivent être adaptés au genre et à la culture du récit. Chaque pers
     ],
   };
 
-  const result = await aiJson<CharResult>(system, user, fallback);
+  const result = await aiJson<CharResult>(system, user, fallback, skillsContext);
   return result.characters;
 }
 
@@ -411,7 +414,7 @@ export function generateRelationships(projectId: string, characters: Array<{ id:
 // 6. World & Timeline
 // ---------------------------------------------------------------------------
 
-export async function generateWorldAndTimeline(project: Project, matrix: NarrativeMatrix) {
+export async function generateWorldAndTimeline(project: Project, matrix: NarrativeMatrix, skillsContext?: string) {
   const system = `Tu es un world-builder expert, spécialisé dans la construction d'univers cohérents et atmosphériques pour la fiction littéraire et cinématographique. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère l'univers et la chronologie de ce projet.
@@ -476,7 +479,7 @@ Les lieux doivent être mémorables, chargés de sens narratif. Chaque événeme
 // 7. Research Notes
 // ---------------------------------------------------------------------------
 
-export async function generateResearchNotes(project: Project, matrix: NarrativeMatrix) {
+export async function generateResearchNotes(project: Project, matrix: NarrativeMatrix, skillsContext?: string) {
   const system = `Tu es un chercheur littéraire et culturel spécialisé dans l'analyse des tendances narratives, la critique de genre, et le conseil éditorial. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère les notes de recherche et d'analyse pour ce projet.
@@ -529,7 +532,7 @@ Les œuvres de référence doivent être réelles et pertinentes. Les analyses d
 // 8. H.P.S.A. Scores
 // ---------------------------------------------------------------------------
 
-export async function generateHpsaScore(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore): Promise<Record<string, ScoreCategory>> {
+export async function generateHpsaScore(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string): Promise<Record<string, ScoreCategory>> {
   const system = `Tu es un analyste narratif et consultant en développement de projets créatifs. Tu évalues les projets narratifs selon 7 axes : humour, pleur (émotion), suspense, attractivité, profondeur émotionnelle, originalité, cohérence. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Évalue ce projet narratif sur 7 axes et génère les scores H.P.S.A.
@@ -584,7 +587,7 @@ Les scores doivent être cohérents avec le genre "${project.genre}" et le ton "
 // 9. Book Outline
 // ---------------------------------------------------------------------------
 
-export async function generateBookOutline(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore) {
+export async function generateBookOutline(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string) {
   const system = `Tu es un éditeur littéraire et architecte de roman de haut niveau. Tu construis des plans de roman détaillés, cohérents et engageants. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère le plan complet du roman pour ce projet.
@@ -632,7 +635,7 @@ Les titres de chapitres doivent être littéraires et significatifs. Les résum�
 // 10. Screenplay
 // ---------------------------------------------------------------------------
 
-export async function generateScreenplay(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore) {
+export async function generateScreenplay(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string) {
   const system = `Tu es un scénariste professionnel formé aux meilleures écoles de cinéma, expert de la structure en beats, du format Fountain, et du développement de projets pour le marché français et international. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère la structure scénaristique complète pour ce projet.
@@ -704,7 +707,7 @@ Génère un objet JSON :
 // 11. Series
 // ---------------------------------------------------------------------------
 
-export async function generateSeries(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore) {
+export async function generateSeries(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string) {
   const system = `Tu es un showrunner et développeur de séries télévisées, expert du marché francophone et international, spécialisé dans la construction d'arcs long et de finales de saison. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Développe la structure de série pour ce projet.
@@ -756,7 +759,7 @@ Génère un objet JSON :
 // 12. Pitch
 // ---------------------------------------------------------------------------
 
-export async function generatePitch(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore) {
+export async function generatePitch(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string) {
   const system = `Tu es un agent littéraire et consultant en développement créatif, expert dans la présentation de projets aux éditeurs, producteurs et chaînes. Tu maîtrises les codes du pitch français et international. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère le document de pitch professionnel complet pour ce projet.

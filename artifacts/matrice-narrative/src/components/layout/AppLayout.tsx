@@ -14,7 +14,8 @@ import {
   Film, 
   Tv, 
   Presentation, 
-  Download 
+  Download,
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -35,6 +36,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Page d'accueil", href: "/", icon: Home },
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
     { name: "Créer un univers", href: "/projects/new", icon: Plus },
+    { name: "Skills IA", href: "/skills", icon: Zap },
   ];
 
   const projectNav = projectId && projectId !== "new" ? [
