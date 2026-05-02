@@ -15,7 +15,8 @@ import {
   Tv, 
   Presentation, 
   Download,
-  Zap
+  Zap,
+  FlaskConical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -37,6 +38,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
     { name: "Créer un univers", href: "/projects/new", icon: Plus },
     { name: "Skills IA", href: "/skills", icon: Zap },
+    { name: "Laboratoire", href: "/research-lab", icon: FlaskConical },
   ];
 
   const projectNav = projectId && projectId !== "new" ? [
