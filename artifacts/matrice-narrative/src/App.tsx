@@ -28,6 +28,7 @@ import TensionArcPage from "./pages/tension-arc";
 import AtmospherePage from "./pages/atmosphere";
 import ConstellationPage from "./pages/constellation";
 import DialoguePage from "./pages/dialogue";
+import DirectorPage from "./pages/director";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/projects/:id/atmosphere" component={AtmospherePage} />
       <Route path="/projects/:id/constellation" component={ConstellationPage} />
       <Route path="/projects/:id/dialogue" component={DialoguePage} />
+      <Route path="/projects/:id/director" component={DirectorPage} />
       <Route path="/projects/:id/emotional-core" component={EmotionalCorePage} />
       <Route path="/projects/:id/characters" component={CharactersPage} />
       <Route path="/projects/:id/relationships" component={RelationshipsPage} />

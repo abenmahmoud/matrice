@@ -12,7 +12,7 @@ import {
   generateCharacters, generateRelationships, generateWorldAndTimeline,
   generateResearchNotes, generateHpsaScore, checkCoherence,
   generateBookOutline, generateScreenplay, generateSeries, generatePitch,
-  autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue
+  autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue, generateDirectorMode
 } from "../services/generationService.js";
 import { tensionArcsTable, atmosphereDataTable } from "@workspace/db";
 
@@ -1104,6 +1104,29 @@ router.post("/projects/:id/characters/:charId/dialogue", async (req, res) => {
     res.json({ response });
   } catch (err) {
     req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Director Mode — POST /api/projects/:id/director-mode
+// ---------------------------------------------------------------------------
+
+router.post("/projects/:id/director-mode", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+
+    const { passage } = req.body as { passage?: string };
+    if (!passage || passage.trim().length < 20) {
+      return res.status(400).json({ error: "Passage trop court — minimum 20 caractères." });
+    }
+
+    const breakdown = await generateDirectorMode(project, passage.trim());
+    req.log.info({ projectId: req.params.id }, "Director mode breakdown generated");
+    res.json(breakdown);
+  } catch (err) {
+    req.log.error({ err }, "Failed to generate director breakdown");
     res.status(500).json({ error: "Internal server error" });
   }
 });

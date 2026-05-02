@@ -65,6 +65,7 @@ const PHASES = [
       { name: "Atmosphères", href: "atmosphere", icon: Palette },
       { name: "Constellation", href: "constellation", icon: Sparkles },
       { name: "Parler aux persos", href: "dialogue", icon: MessageCircle },
+      { name: "Mode Réalisateur", href: "director", icon: Film },
     ],
   },
 ];

@@ -983,6 +983,91 @@ Palette : 5 à 7 couleurs. Sois précis, poétique et inattendu. Pas de clichés
 }
 
 // ---------------------------------------------------------------------------
+// Director Mode — technical scene breakdown
+// ---------------------------------------------------------------------------
+
+export async function generateDirectorMode(
+  project: Project,
+  passage: string
+): Promise<{
+  sceneTitle: string;
+  overallMood: string;
+  colorGrading: string;
+  productionNote: string;
+  shots: Array<{
+    index: number;
+    excerpt: string;
+    planType: string;
+    cameraMovement: string;
+    lens: string;
+    lighting: string;
+    soundDesign: string;
+    editingRhythm: string;
+    mood: string;
+    directorNote: string;
+  }>;
+}> {
+  const system = `Tu es un réalisateur de cinéma de niveau international — précis, visionnaire, technique. 
+Tu lis des passages d'œuvres et tu génères une découpe technique complète comme si tu allais tourner cette scène demain.
+Réponds UNIQUEMENT en JSON valide. Sois précis, concret, non-académique — comme un carnet de tournage réel.`;
+
+  const user = `${projectContext(project)}
+
+PASSAGE À DÉCOUPER :
+"""
+${passage.slice(0, 1500)}
+"""
+
+Génère une découpe technique de réalisateur pour ce passage. Décompose en 3 à 6 plans/moments clés.
+
+{
+  "sceneTitle": "Titre cinématographique évocateur pour cette scène",
+  "overallMood": "L'humeur émotionnelle dominante de la scène en 1 phrase",
+  "colorGrading": "Direction colorimétrique — température, contraste, saturation, références",
+  "productionNote": "Note globale de mise en scène — ce qui rend cette scène unique et puissante",
+  "shots": [
+    {
+      "index": 1,
+      "excerpt": "Courte citation ou description du moment précis couvert par ce plan",
+      "planType": "Type de plan exact (Très gros plan, Gros plan, Plan rapproché épaules, Plan taille, Plan américain, Plan moyen, Plan d'ensemble, Grand ensemble, etc.)",
+      "cameraMovement": "Mouvement caméra précis (Fixe, Panoramique horizontal, Travelling avant/arrière/latéral, Zoom, Steadicam, Caméra à l'épaule, Grue, Drone, etc.)",
+      "lens": "Longueur focale et justification (ex: 85mm — compression douce, regard intime)",
+      "lighting": "Description lumière : source, qualité, direction, ambiance",
+      "soundDesign": "Son direct, ambiance, musique, silence — ce qu'on entend et pourquoi",
+      "editingRhythm": "Type de coupe et durée estimée du plan (ex: Coupe sèche — 3s, Fondu enchaîné — 8s)",
+      "mood": "Émotion que ce plan doit provoquer chez le spectateur",
+      "directorNote": "Note personnelle du réalisateur — l'intention secrète, ce qui doit être ressenti"
+    }
+  ]
+}
+
+Sois technique ET poétique. Chaque plan doit avoir une raison d'être dramatique précise.`;
+
+  const fallback = {
+    sceneTitle: "Scène sans titre — analysez le passage",
+    overallMood: "Tension latente, silence chargé de non-dit",
+    colorGrading: "Tons froids désaturés, hautes lumières légèrement brûlées, ombres profondes",
+    productionNote: "Laisser le silence travailler. Éviter la surexplication. La caméra observe, elle ne commente pas.",
+    shots: [
+      {
+        index: 1,
+        excerpt: "Ouverture de la scène",
+        planType: "Plan d'ensemble",
+        cameraMovement: "Fixe — légère vibration d'un Steadicam",
+        lens: "35mm — légère distorsion, sentiment d'espace oppressant",
+        lighting: "Lumière naturelle diffuse, contre-jour doux",
+        soundDesign: "Ambiance extérieure lointaine, silence intérieur pesant",
+        editingRhythm: "Maintien long — 6 à 8 secondes",
+        mood: "Inquiétude sourde, attente",
+        directorNote: "On installe. Le spectateur doit sentir qu'il se passe quelque chose — sans savoir quoi encore.",
+      },
+    ],
+  };
+
+  return aiJson(system, user, fallback);
+}
+
+// ---------------------------------------------------------------------------
 // Character Dialogue
 // ---------------------------------------------------------------------------
 
