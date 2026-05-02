@@ -1,26 +1,53 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
+import { Router as WouterRouter } from "wouter";
 
-const queryClient = new QueryClient();
+import Home from "./pages/home";
+import Dashboard from "./pages/dashboard";
+import NewProject from "./pages/new-project";
+import MatrixPage from "./pages/matrix";
+import EmotionalCorePage from "./pages/emotional-core";
+import CharactersPage from "./pages/characters";
+import RelationshipsPage from "./pages/relationships";
+import WorldPage from "./pages/world";
+import ResearchPage from "./pages/research";
+import HpsaPage from "./pages/hpsa";
+import BookPage from "./pages/book";
+import ScreenplayPage from "./pages/screenplay";
+import SeriesPage from "./pages/series";
+import PitchPage from "./pages/pitch";
+import ExportsPage from "./pages/exports";
+import NotFound from "./pages/not-found";
 
-function Home() {
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Replit Agent is building...</h1>
-        <p className="mt-2 text-sm text-gray-600">Your app will appear here once it's ready.</p>
-      </div>
-    </div>
-  );
-}
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30_000,
+    },
+  },
+});
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/projects/new" component={NewProject} />
+      <Route path="/projects/:id/matrix" component={MatrixPage} />
+      <Route path="/projects/:id/emotional-core" component={EmotionalCorePage} />
+      <Route path="/projects/:id/characters" component={CharactersPage} />
+      <Route path="/projects/:id/relationships" component={RelationshipsPage} />
+      <Route path="/projects/:id/world" component={WorldPage} />
+      <Route path="/projects/:id/research" component={ResearchPage} />
+      <Route path="/projects/:id/hpsa" component={HpsaPage} />
+      <Route path="/projects/:id/book" component={BookPage} />
+      <Route path="/projects/:id/screenplay" component={ScreenplayPage} />
+      <Route path="/projects/:id/series" component={SeriesPage} />
+      <Route path="/projects/:id/pitch" component={PitchPage} />
+      <Route path="/projects/:id/exports" component={ExportsPage} />
       <Route component={NotFound} />
     </Switch>
   );
