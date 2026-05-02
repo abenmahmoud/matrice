@@ -122,7 +122,7 @@ router.post("/projects/:id/generate-matrix", async (req, res) => {
   try {
     const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
     if (!project) return res.status(404).json({ error: "Not found" });
-    const matrixData = generateNarrativeMatrix(project);
+    const matrixData = await generateNarrativeMatrix(project);
     const existing = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
     let matrix;
     if (existing.length > 0) {
@@ -183,7 +183,7 @@ router.post("/projects/:id/generate-emotional-core", async (req, res) => {
     const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
     const coreData = generateEmotionalCore(project, matrixData);
     const existing = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
     let core;
@@ -233,9 +233,9 @@ router.post("/projects/:id/generate-emotional-path", async (req, res) => {
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
     const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
     if (!project) return res.status(404).json({ error: "Not found" });
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
-    const coreData = core ?? generateEmotionalCore(project, matrixData);
-    const stages = generateEmotionalPath(project, matrixData, coreData);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
+    const coreData = core ?? await generateEmotionalCore(project, matrixData);
+    const stages = await generateEmotionalPath(project, matrixData, coreData);
     const existing = await db.select().from(emotionalPathsTable).where(eq(emotionalPathsTable.projectId, req.params.id));
     let path;
     if (existing.length > 0) {
@@ -258,11 +258,12 @@ router.post("/projects/:id/generate-characters", async (req, res) => {
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
     const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
-    const coreData = core ?? generateEmotionalCore(project, matrixData);
-    const charsData = generateCharacters(project, matrixData, coreData);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
+    const coreData = core ?? await generateEmotionalCore(project, matrixData);
+    const charsData = await generateCharacters(project, matrixData, coreData);
     await db.delete(charactersTable).where(eq(charactersTable.projectId, req.params.id));
-    const chars = await db.insert(charactersTable).values(charsData.map(c => ({ projectId: req.params.id, ...c }))).returning();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chars = await db.insert(charactersTable).values(charsData.map(c => ({ projectId: req.params.id, ...c })) as any[]).returning();
     await db.update(projectsTable).set({ progression: Math.max(project.progression, 50), updatedAt: new Date() }).where(eq(projectsTable.id, req.params.id));
     res.json(chars);
   } catch (err) {
@@ -348,8 +349,8 @@ router.post("/projects/:id/generate-world", async (req, res) => {
     const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
-    const worldData = generateWorldAndTimeline(project, matrixData);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
+    const worldData = await generateWorldAndTimeline(project, matrixData);
     const existing = await db.select().from(worldDataTable).where(eq(worldDataTable.projectId, req.params.id));
     let world;
     if (existing.length > 0) {
@@ -396,8 +397,8 @@ router.post("/projects/:id/generate-research-notes", async (req, res) => {
     const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
-    const researchData = generateResearchNotes(project, matrixData);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
+    const researchData = await generateResearchNotes(project, matrixData);
     const existing = await db.select().from(researchDataTable).where(eq(researchDataTable.projectId, req.params.id));
     let research;
     if (existing.length > 0) {
@@ -445,9 +446,9 @@ router.post("/projects/:id/generate-hpsa-score", async (req, res) => {
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
     const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
-    const coreData = core ?? generateEmotionalCore(project, matrixData);
-    const scores = generateHpsaScore(project, matrixData, coreData);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
+    const coreData = core ?? await generateEmotionalCore(project, matrixData);
+    const scores = await generateHpsaScore(project, matrixData, coreData);
     const existing = await db.select().from(hpsaScoresTable).where(eq(hpsaScoresTable.projectId, req.params.id));
     let hpsa;
     if (existing.length > 0) {
@@ -482,9 +483,9 @@ router.post("/projects/:id/generate-book-outline", async (req, res) => {
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
     const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
-    const coreData = core ?? generateEmotionalCore(project, matrixData);
-    const bookData = generateBookOutline(project, matrixData, coreData);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
+    const coreData = core ?? await generateEmotionalCore(project, matrixData);
+    const bookData = await generateBookOutline(project, matrixData, coreData);
     const existing = await db.select().from(bookOutlinesTable).where(eq(bookOutlinesTable.projectId, req.params.id));
     let book;
     if (existing.length > 0) {
@@ -532,9 +533,9 @@ router.post("/projects/:id/generate-screenplay", async (req, res) => {
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
     const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
-    const coreData = core ?? generateEmotionalCore(project, matrixData);
-    const spData = generateScreenplay(project, matrixData, coreData);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
+    const coreData = core ?? await generateEmotionalCore(project, matrixData);
+    const spData = await generateScreenplay(project, matrixData, coreData);
     const existing = await db.select().from(screenplaysTable).where(eq(screenplaysTable.projectId, req.params.id));
     let sp;
     if (existing.length > 0) {
@@ -582,9 +583,9 @@ router.post("/projects/:id/generate-series", async (req, res) => {
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
     const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
-    const coreData = core ?? generateEmotionalCore(project, matrixData);
-    const seriesData = generateSeries(project, matrixData, coreData);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
+    const coreData = core ?? await generateEmotionalCore(project, matrixData);
+    const seriesData = await generateSeries(project, matrixData, coreData);
     const existing = await db.select().from(seriesTable).where(eq(seriesTable.projectId, req.params.id));
     let series;
     if (existing.length > 0) {
@@ -632,9 +633,9 @@ router.post("/projects/:id/generate-pitch", async (req, res) => {
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
     const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
-    const matrixData = matrix ?? generateNarrativeMatrix(project);
-    const coreData = core ?? generateEmotionalCore(project, matrixData);
-    const pitchData = generatePitch(project, matrixData, coreData);
+    const matrixData = matrix ?? await generateNarrativeMatrix(project);
+    const coreData = core ?? await generateEmotionalCore(project, matrixData);
+    const pitchData = await generatePitch(project, matrixData, coreData);
     const existing = await db.select().from(pitchDocumentsTable).where(eq(pitchDocumentsTable.projectId, req.params.id));
     let pitch;
     if (existing.length > 0) {
