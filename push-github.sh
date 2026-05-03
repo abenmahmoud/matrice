@@ -19,8 +19,8 @@ echo "🔧 Configuration du remote GitHub..."
 git remote remove github 2>/dev/null || true
 git remote add github "$GITHUB_URL"
 
-echo "📦 Vérification des commits..."
-git log --oneline -5
+echo "📦 Commits à pousser :"
+git log --oneline -6
 
 echo ""
 echo "🚀 Push vers github.com/abenmahmoud/matrice..."

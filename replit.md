@@ -91,7 +91,7 @@ pnpm monorepo
 
 ---
 
-## Base de données — 18 tables
+## Base de données — 20 tables
 
 ```
 projects                  — Projets et métadonnées
