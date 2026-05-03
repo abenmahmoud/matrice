@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useGetProject, getGetProjectQueryKey } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Loader2, Sparkles, FileText, Printer, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Sparkles, FileText, Printer, Copy, Check, ChevronDown, ChevronUp, Award } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
@@ -67,6 +67,15 @@ function Section({ label, sublabel, content, index }: {
         )}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+function CncBadge() {
+  return (
+    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25">
+      <Award className="w-3 h-3 text-amber-400 shrink-0" />
+      <span className="text-[10px] font-semibold text-amber-400 uppercase tracking-wider">CNC · SACD · Festivals</span>
+    </div>
   );
 }
 
@@ -152,13 +161,15 @@ export default function NoteIntentionPage() {
         <div className="max-w-lg">
           <h1 className="text-3xl font-serif font-bold mb-4">Note d'Intention</h1>
           <p className="text-muted-foreground text-sm leading-relaxed mb-2">
-            Le document qui dit <em>qui vous êtes en tant que cinéaste</em> — pas seulement ce que raconte le film, 
+            Le document qui dit <em>qui vous êtes en tant que cinéaste</em> — pas seulement ce que raconte le film,
             mais <em>pourquoi vous</em>, <em>comment vous le voyez</em>, et <em>ce qu'il apporte au monde aujourd'hui</em>.
           </p>
-          <p className="text-muted-foreground/50 text-xs leading-relaxed">
-            C'est ce que vous envoyez au CNC, aux producteurs, aux festivals. L'IA le génère depuis toute votre matrice créative 
-            et parle en votre nom avec votre vision.
+          <p className="text-muted-foreground/50 text-xs leading-relaxed mb-3">
+            Envoyé au CNC, aux producteurs, aux festivals. Généré depuis toute votre matrice créative.
           </p>
+          <div className="flex justify-center mb-4">
+            <CncBadge />
+          </div>
         </div>
         <Button onClick={() => generate.mutate()} disabled={generate.isPending} size="lg"
           className="bg-primary hover:bg-primary/90 text-white rounded-full px-8">
@@ -183,13 +194,16 @@ export default function NoteIntentionPage() {
         <div className="border-b border-white/[0.05] bg-[#0d0b14]">
           <div className="max-w-3xl mx-auto px-8 py-5 flex items-start justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-0.5">
+              <div className="flex items-center gap-2 mb-1">
                 <FileText className="w-4 h-4 text-violet-400" />
                 <span className="text-[10px] uppercase tracking-widest text-violet-400/60 font-semibold">
                   Document de Présentation
                 </span>
               </div>
               <h1 className="text-xl font-serif font-bold">Note d'Intention</h1>
+              <div className="mt-1.5">
+                <CncBadge />
+              </div>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
               <Button variant="outline" size="sm" onClick={handleCopy}
@@ -208,6 +222,16 @@ export default function NoteIntentionPage() {
                 Régénérer
               </Button>
             </div>
+          </div>
+        </div>
+
+        {/* CNC info banner */}
+        <div className="border-b border-amber-500/10 bg-amber-500/[0.03]">
+          <div className="max-w-3xl mx-auto px-8 py-3 flex items-center gap-3">
+            <Award className="w-3.5 h-3.5 text-amber-400/60 shrink-0" />
+            <p className="text-[11px] text-amber-400/60 leading-relaxed">
+              Ce document est généré selon les standards du CNC (Avance sur recettes), de la SACD, et des conventions des festivals Cannes · César · Angoulême · Berlinale.
+            </p>
           </div>
         </div>
 

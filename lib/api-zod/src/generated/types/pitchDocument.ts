@@ -5,6 +5,8 @@
  * Matrice Narrative API
  * OpenAPI spec version: 0.1.0
  */
+import type { PitchDocumentComparableReferencesItem } from "./pitchDocumentComparableReferencesItem";
+import type { PitchDocumentSellingPointsItem } from "./pitchDocumentSellingPointsItem";
 
 export interface PitchDocument {
   id?: string;
@@ -12,8 +14,10 @@ export interface PitchDocument {
   title: string;
   format: string;
   genre: string;
+  logline?: string;
+  tagline?: string;
   targetAudience?: string;
-  comparableReferences?: string[];
+  comparableReferences?: PitchDocumentComparableReferencesItem[];
   visualDirection?: string;
   authorNote?: string;
   intentionNote?: string;
@@ -21,6 +25,8 @@ export interface PitchDocument {
   characters?: string;
   world?: string;
   filmSeasonArc?: string;
-  sellingPoints?: string[];
+  sellingPoints?: PitchDocumentSellingPointsItem[];
+  budgetCategory?: string;
+  submissionStrategy?: string;
   updatedAt?: string;
 }

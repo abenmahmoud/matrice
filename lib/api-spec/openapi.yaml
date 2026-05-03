@@ -2032,12 +2032,32 @@ components:
           type: string
         genre:
           type: string
+        logline:
+          type: string
+        tagline:
+          type: string
         targetAudience:
           type: string
         comparableReferences:
           type: array
           items:
-            type: string
+            oneOf:
+              - type: string
+              - type: object
+                properties:
+                  title:
+                    type: string
+                  author:
+                    type: string
+                  year:
+                    type: string
+                  publisher:
+                    type: string
+                  commercialResult:
+                    type: string
+                  why:
+                    type: string
+                required: [title]
         visualDirection:
           type: string
         authorNote:
@@ -2055,7 +2075,19 @@ components:
         sellingPoints:
           type: array
           items:
-            type: string
+            oneOf:
+              - type: string
+              - type: object
+                properties:
+                  point:
+                    type: string
+                  argument:
+                    type: string
+                required: [point]
+        budgetCategory:
+          type: string
+        submissionStrategy:
+          type: string
         updatedAt:
           type: string
       required:

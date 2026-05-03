@@ -1817,8 +1817,24 @@ export const GeneratePitchResponse = zod.object({
   title: zod.string(),
   format: zod.string(),
   genre: zod.string(),
+  logline: zod.string().optional(),
+  tagline: zod.string().optional(),
   targetAudience: zod.string().optional(),
-  comparableReferences: zod.array(zod.string()).optional(),
+  comparableReferences: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          title: zod.string(),
+          author: zod.string().optional(),
+          year: zod.string().optional(),
+          publisher: zod.string().optional(),
+          commercialResult: zod.string().optional(),
+          why: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   visualDirection: zod.string().optional(),
   authorNote: zod.string().optional(),
   intentionNote: zod.string().optional(),
@@ -1826,7 +1842,19 @@ export const GeneratePitchResponse = zod.object({
   characters: zod.string().optional(),
   world: zod.string().optional(),
   filmSeasonArc: zod.string().optional(),
-  sellingPoints: zod.array(zod.string()).optional(),
+  sellingPoints: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          point: zod.string(),
+          argument: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
+  budgetCategory: zod.string().optional(),
+  submissionStrategy: zod.string().optional(),
   updatedAt: zod.string().optional(),
 });
 
@@ -1843,8 +1871,24 @@ export const GetPitchResponse = zod.object({
   title: zod.string(),
   format: zod.string(),
   genre: zod.string(),
+  logline: zod.string().optional(),
+  tagline: zod.string().optional(),
   targetAudience: zod.string().optional(),
-  comparableReferences: zod.array(zod.string()).optional(),
+  comparableReferences: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          title: zod.string(),
+          author: zod.string().optional(),
+          year: zod.string().optional(),
+          publisher: zod.string().optional(),
+          commercialResult: zod.string().optional(),
+          why: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   visualDirection: zod.string().optional(),
   authorNote: zod.string().optional(),
   intentionNote: zod.string().optional(),
@@ -1852,7 +1896,19 @@ export const GetPitchResponse = zod.object({
   characters: zod.string().optional(),
   world: zod.string().optional(),
   filmSeasonArc: zod.string().optional(),
-  sellingPoints: zod.array(zod.string()).optional(),
+  sellingPoints: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          point: zod.string(),
+          argument: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
+  budgetCategory: zod.string().optional(),
+  submissionStrategy: zod.string().optional(),
   updatedAt: zod.string().optional(),
 });
 
@@ -1869,8 +1925,24 @@ export const UpdatePitchBody = zod.object({
   title: zod.string(),
   format: zod.string(),
   genre: zod.string(),
+  logline: zod.string().optional(),
+  tagline: zod.string().optional(),
   targetAudience: zod.string().optional(),
-  comparableReferences: zod.array(zod.string()).optional(),
+  comparableReferences: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          title: zod.string(),
+          author: zod.string().optional(),
+          year: zod.string().optional(),
+          publisher: zod.string().optional(),
+          commercialResult: zod.string().optional(),
+          why: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   visualDirection: zod.string().optional(),
   authorNote: zod.string().optional(),
   intentionNote: zod.string().optional(),
@@ -1878,7 +1950,19 @@ export const UpdatePitchBody = zod.object({
   characters: zod.string().optional(),
   world: zod.string().optional(),
   filmSeasonArc: zod.string().optional(),
-  sellingPoints: zod.array(zod.string()).optional(),
+  sellingPoints: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          point: zod.string(),
+          argument: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
+  budgetCategory: zod.string().optional(),
+  submissionStrategy: zod.string().optional(),
   updatedAt: zod.string().optional(),
 });
 
@@ -1888,8 +1972,24 @@ export const UpdatePitchResponse = zod.object({
   title: zod.string(),
   format: zod.string(),
   genre: zod.string(),
+  logline: zod.string().optional(),
+  tagline: zod.string().optional(),
   targetAudience: zod.string().optional(),
-  comparableReferences: zod.array(zod.string()).optional(),
+  comparableReferences: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          title: zod.string(),
+          author: zod.string().optional(),
+          year: zod.string().optional(),
+          publisher: zod.string().optional(),
+          commercialResult: zod.string().optional(),
+          why: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   visualDirection: zod.string().optional(),
   authorNote: zod.string().optional(),
   intentionNote: zod.string().optional(),
@@ -1897,7 +1997,19 @@ export const UpdatePitchResponse = zod.object({
   characters: zod.string().optional(),
   world: zod.string().optional(),
   filmSeasonArc: zod.string().optional(),
-  sellingPoints: zod.array(zod.string()).optional(),
+  sellingPoints: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          point: zod.string(),
+          argument: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
+  budgetCategory: zod.string().optional(),
+  submissionStrategy: zod.string().optional(),
   updatedAt: zod.string().optional(),
 });
 

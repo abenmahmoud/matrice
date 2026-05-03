@@ -30,6 +30,8 @@ export * from "./healthStatus";
 export * from "./hpsaScore";
 export * from "./narrativeMatrix";
 export * from "./pitchDocument";
+export * from "./pitchDocumentComparableReferencesItem";
+export * from "./pitchDocumentSellingPointsItem";
 export * from "./project";
 export * from "./projectDetail";
 export * from "./relationship";

@@ -140,6 +140,90 @@ Ambition artistique : ${project.artisticAmbition ?? "créer une œuvre qui réso
 }
 
 // ---------------------------------------------------------------------------
+// CNC Professional Context — injected into Note d'Intention & Pitch
+// ---------------------------------------------------------------------------
+
+const CNC_PROFESSIONAL_CONTEXT = `
+## STANDARDS PROFESSIONNELS CINÉMA FRANÇAIS — NIVEAU DOSSIER OFFICIEL
+
+### CNC — Centre National du Cinéma et de l'Image Animée
+
+**Avance sur recettes avant réalisation** (commission des avances sur recettes) :
+Le dossier doit démontrer : singularité du projet, vision personnelle du réalisateur, nécessité artistique, ancrage dans le cinéma français d'auteur.
+Critères prioritaires : originalité du scénario, qualité littéraire, potentiel cinématographique, positionnement dans le paysage culturel, biographie du réalisateur.
+Registre attendu : engagement personnel fort, rapport au réel et à la contemporanéité, dialogue avec la tradition cinématographique française et européenne.
+Points valorisés : premier ou deuxième film, sujet d'actualité sociale ou intime, langue française affirmée, ambition formelle justifiée, potentiel de diffusion.
+Vocabulaire CNC attendu : "singularité du propos", "nécessité du projet", "ligne éditoriale", "valeur patrimoniale", "ancrage contemporain", "film d'auteur", "parti pris de mise en scène".
+
+**Aide à l'écriture et au développement** :
+Bourse d'écriture : 8 000–20 000€ pour scénario original. Dossier 15-20 pages max incluant traitement, note d'intention, biographie auteur.
+
+**COSIP — Aide aux séries** (Compte de Soutien à l'Industrie des Programmes) :
+Critères : part de coproduction avec diffuseur français, originalité éditoriale, valeur patrimoniale, accessibilité au public francophone.
+
+### SACD — Société des Auteurs et Compositeurs Dramatiques
+
+Dépôt SACD recommandé avant toute soumission à un producteur ou comité de lecture.
+Format de dépôt : titre définitif, format (durée en minutes / nombre d'épisodes), auteur(s) du scénario, réalisateur.
+Distinction : droit moral (inaliénable, appartient à l'auteur) / droit patrimonial (cessible, base de la rémunération).
+Contrat de commande d'écriture : modèle SACD recommandé pour les co-écritures.
+
+### CONVENTIONS FESTIVALS
+
+**Cannes — Festival International du Film (mai)** :
+Sélection officielle : Compétition (Palme d'Or), Un Certain Regard, Hors Compétition.
+Sections parallèles : Semaine de la Critique (premiers et deuxièmes films), Quinzaine des Cinéastes (cinéma de risque et d'indépendance).
+Critères de sélection : singularité formelle, universalité du propos, dialogue avec l'histoire du cinéma, point de vue d'auteur affirmé.
+Soumission : 6-8 mois avant l'annonce (mai), dossier complet avec note d'intention 2 pages max, biographie réalisateur, synopsis, film précédent ou teaser.
+La Palme d'Or récompense "un cinéma qui dit quelque chose sur le monde et sur l'être humain avec une nécessité formelle".
+
+**César — Académie des Arts et Techniques du Cinéma (mars)** :
+Éligibilité : sortie en salle France métropolitaine avec visa d'exploitation CNC, durée > 60 minutes.
+Inscription avant le 31 octobre de l'année de sortie.
+Catégories pertinentes pour un premier film : Meilleur Premier Film, Meilleur Scénario Original, Meilleure Réalisation.
+La note d'intention valorisée : personnalité affirmée du réalisateur, audace formelle justifiée, propos singulier et nécessaire.
+
+**Festival du Film Francophone d'Angoulême (août)** :
+Vocation : cinéma en langue française de tous les pays — fenêtre majeure pour la francophonie internationale.
+Critères : qualité de la mise en scène, force du scénario, ancrage culturel francophone, dialogue des cultures.
+
+**Berlin (Berlinale), Locarno, San Sebastián** :
+Berlinale Panorama : films engagés politiquement et socialement, diversité des formes et des cultures.
+Locarno : cinéma d'auteur exigeant, expérimentation formelle, premiers films.
+San Sebastián : cinéma européen, focus co-production franco-ibérique, section Nouvelles Vagues.
+
+**Sundance, TIFF Toronto** :
+Portes d'entrée pour le marché international anglophone — note d'intention à décliner en anglais.
+Sundance World Cinema : films étrangers à propos universel et accessibilité narrative.
+
+### CATÉGORIES BUDGÉTAIRES CINÉMA FRANÇAIS
+
+- Micro-budget (< 500 000€) : production débrouillarde, équipes réduites, financement participatif + aides régionales
+- Petit budget (500 000€ – 2M€) : premier film d'auteur, production indépendante, avance sur recettes CNC
+- Budget moyen (2M€ – 8M€) : production établie, cast reconnu possible, pré-ventes TV Arte/France 3
+- Budget confortable (8M€ – 20M€) : production majoritaire, distributeur impliqué dès le développement
+- Gros budget (> 20M€) : co-production internationale, production de studio, garanties bancaires
+
+### INTERLOCUTEURS CLÉS ET STRATÉGIE DE SOUMISSION
+
+Ordre de soumission recommandé pour un premier long métrage d'auteur :
+1. CNC (Aide à l'écriture) → 2. Producteur partenaire → 3. CNC (Avance sur recettes) → 4. Diffuseur (Arte, France.tv, Canal+) → 5. Distributeur → 6. Festivals (Cannes, Berlinale, Locarno selon le profil du film)
+
+Producteurs de référence cinéma d'auteur français : Marin Karmitz (MK2), Muriel Merlin (Pyramide), Pascal Caucheteux (Why Not Productions), Édouard Weil (Rectangle Productions), Kristina Larsen (Ad Vitam).
+
+Agents littéraires : Anne-Solange Noble (Gallimard), Andrew Nurnberg Associates, Susanna Lea Associates — pour les adaptations de romans.
+
+VOCABULAIRE PROFESSIONNEL À UTILISER :
+- "Film d'auteur" (pas "film indépendant")
+- "Parti pris de mise en scène" (pas "style de réalisation")  
+- "Nécessité du projet" (pas "bonne idée de film")
+- "Ligne éditoriale singulière" (pas "histoire originale")
+- "Ancrage contemporain" (pas "sujet actuel")
+- "Valeur patrimoniale" (pour les projets à forte dimension culturelle)
+- "Potentiel de diffusion internationale" (pour les dossiers CNC de films exportables)
+`.trim();
+
+// ---------------------------------------------------------------------------
 // 1. Narrative Matrix
 // ---------------------------------------------------------------------------
 
@@ -1101,7 +1185,8 @@ EXIGENCES : Références comparables RÉELLES avec résultats commerciaux réels
     sellingPoints: [matrix.logline, `Profondeur émotionnelle rare dans le genre ${project.genre}`],
   };
 
-  return aiJson(system, user, fallback, skillsContext, { maxTokens: 14000 });
+  const mergedContext = [CNC_PROFESSIONAL_CONTEXT, skillsContext].filter(Boolean).join("\n\n");
+  return aiJson(system, user, fallback, mergedContext, { maxTokens: 14000 });
 }
 
 // ---------------------------------------------------------------------------
@@ -1518,7 +1603,8 @@ presence = score de 0 à 100. Sois honnête mais bienveillant.`;
 
 export async function generateNoteIntention(
   project: Project,
-  matrix?: Partial<NarrativeMatrix> | null
+  matrix?: Partial<NarrativeMatrix> | null,
+  skillsContext?: string
 ): Promise<{
   vision: string;
   partiPrisMiseEnScene: string;
@@ -1586,7 +1672,8 @@ Mets 2 à 4 personnages dans personnagesVision (les plus importants).
     motFinal: `Je fais ce film parce qu'il y a des choses qui ne peuvent exister que dans une salle obscure, entre des inconnus qui respirent ensemble dans le noir.`,
   };
 
-  return aiJson(system, user, fallback, undefined, { temperature: 0.82, maxTokens: 16000 });
+  const mergedContext = [CNC_PROFESSIONAL_CONTEXT, skillsContext].filter(Boolean).join("\n\n");
+  return aiJson(system, user, fallback, mergedContext, { temperature: 0.82, maxTokens: 16000 });
 }
 
 // ---------------------------------------------------------------------------

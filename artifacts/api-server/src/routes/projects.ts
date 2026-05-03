@@ -1284,7 +1284,8 @@ router.post("/projects/:id/generate-note-intention", async (req, res) => {
     const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
     if (!project) return res.status(404).json({ error: "Not found" });
     const [matrixRow] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
-    const data = await generateNoteIntention(project, matrixRow ?? null);
+    const skills = await getSkillsContext(req.params.id);
+    const data = await generateNoteIntention(project, matrixRow ?? null, skills);
     const existing = await db.select().from(noteIntentionTable).where(eq(noteIntentionTable.projectId, req.params.id));
     let row;
     if (existing.length > 0) {

@@ -415,14 +415,34 @@ export interface Series {
   updatedAt?: string;
 }
 
+export type PitchDocumentComparableReferencesItem =
+  | string
+  | {
+      title: string;
+      author?: string;
+      year?: string;
+      publisher?: string;
+      commercialResult?: string;
+      why?: string;
+    };
+
+export type PitchDocumentSellingPointsItem =
+  | string
+  | {
+      point: string;
+      argument?: string;
+    };
+
 export interface PitchDocument {
   id?: string;
   projectId: string;
   title: string;
   format: string;
   genre: string;
+  logline?: string;
+  tagline?: string;
   targetAudience?: string;
-  comparableReferences?: string[];
+  comparableReferences?: PitchDocumentComparableReferencesItem[];
   visualDirection?: string;
   authorNote?: string;
   intentionNote?: string;
@@ -430,7 +450,9 @@ export interface PitchDocument {
   characters?: string;
   world?: string;
   filmSeasonArc?: string;
-  sellingPoints?: string[];
+  sellingPoints?: PitchDocumentSellingPointsItem[];
+  budgetCategory?: string;
+  submissionStrategy?: string;
   updatedAt?: string;
 }
 

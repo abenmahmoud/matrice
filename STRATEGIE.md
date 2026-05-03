@@ -219,9 +219,9 @@ Monorepo     pnpm workspace (structure actuelle conservée)
 ## Prochaines actions immédiates
 
 ### Semaine 1–2
-- [ ] Éditeur de prose dans l'Atelier Roman (chapitre par chapitre)
-- [ ] Génération IA depuis le plan de chapitre (POV + arc → prose)
-- [ ] Skill CNC injecté dans Note d'Intention et Pitch
+- [x] Éditeur de prose dans l'Atelier Roman (chapitre par chapitre)
+- [x] Génération IA depuis le plan de chapitre (POV + arc → prose)
+- [x] Skill CNC injecté dans Note d'Intention et Pitch
 
 ### Semaine 3–4
 - [ ] Génération de dialogue depuis les profils psychologiques des personnages
