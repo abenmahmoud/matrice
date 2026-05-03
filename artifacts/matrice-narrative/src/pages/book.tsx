@@ -5,8 +5,10 @@ import {
   useGenerateBookOutline,
   useUpdateBookOutline,
   useGenerateChapterProse,
+  useSaveContentVersion,
   getGetBookOutlineQueryKey,
   type BookOutline,
+  type SaveVersionInput,
 } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -18,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { SectionCard } from "@/components/SectionCard";
 import { GenerateEmptyState } from "@/components/GenerateEmptyState";
+import { VersionHistoryDrawer } from "@/components/VersionHistoryDrawer";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -82,6 +85,7 @@ function ProseEditor({
 
   const generateProse = useGenerateChapterProse();
   const updateBook = useUpdateBookOutline();
+  const saveVersion = useSaveContentVersion();
 
   const saveNow = useCallback(
     (value: string) => {
@@ -110,7 +114,22 @@ function ProseEditor({
 
   useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); }, []);
 
-  const handleGenerate = () => {
+  const snapshotThenGenerate = () => {
+    if (text.trim().length > 50) {
+      const snapBody: SaveVersionInput = {
+        contentType: "chapter-prose",
+        contentKey: String(ch.number),
+        label: `Avant génération — Ch.${ch.number} ${ch.title}`,
+        data: { prose: text } as unknown as Record<string, unknown>,
+        wordCount: wordCount(text),
+      };
+      saveVersion.mutate({ id: projectId, data: snapBody }, { onSettled: () => doGenerate() });
+    } else {
+      doGenerate();
+    }
+  };
+
+  const doGenerate = () => {
     generateProse.mutate(
       {
         id: projectId,
@@ -141,6 +160,14 @@ function ProseEditor({
     );
   };
 
+  const handleRestore = (data: Record<string, unknown>) => {
+    const prose = (data.prose as string) ?? "";
+    setText(prose);
+    setSaved(false);
+    saveNow(prose);
+    toast({ title: "Version restaurée", description: `${wordCount(prose)} mots rechargés` });
+  };
+
   const wc = wordCount(text);
 
   return (
@@ -167,15 +194,25 @@ function ProseEditor({
           <span className={`text-xs ${saved ? "text-green-400" : "text-amber-400"}`}>
             {updateBook.isPending ? "Sauvegarde…" : saved ? "Sauvegardé" : "Non sauvegardé"}
           </span>
+          {/* Version history */}
+          <VersionHistoryDrawer
+            projectId={projectId}
+            contentType="chapter-prose"
+            contentKey={String(ch.number)}
+            onRestore={handleRestore}
+            triggerLabel="Historique"
+          />
           {/* Generate */}
           <Button
             size="sm"
-            onClick={handleGenerate}
-            disabled={generateProse.isPending}
+            onClick={snapshotThenGenerate}
+            disabled={generateProse.isPending || saveVersion.isPending}
             className="bg-primary/90 hover:bg-primary text-white text-xs gap-1.5"
           >
             {generateProse.isPending
               ? <><Loader2 className="w-3 h-3 animate-spin" />Rédaction en cours…</>
+              : saveVersion.isPending
+              ? <><Loader2 className="w-3 h-3 animate-spin" />Sauvegarde…</>
               : <><Sparkles className="w-3 h-3" />Générer avec l'IA</>}
           </Button>
           {/* Save now */}

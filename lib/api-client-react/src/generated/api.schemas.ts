@@ -534,6 +534,39 @@ export interface ExportResult {
   filename: string;
 }
 
+export type SaveVersionInputData = { [key: string]: unknown };
+
+export interface SaveVersionInput {
+  contentType: string;
+  contentKey: string;
+  label: string;
+  data: SaveVersionInputData;
+  wordCount?: number;
+}
+
+export interface ContentVersionMeta {
+  id: string;
+  projectId: string;
+  contentType: string;
+  contentKey: string;
+  label: string;
+  wordCount?: number;
+  createdAt: string;
+}
+
+export type ContentVersionFullData = { [key: string]: unknown };
+
+export interface ContentVersionFull {
+  id: string;
+  projectId: string;
+  contentType: string;
+  contentKey: string;
+  label: string;
+  wordCount?: number;
+  createdAt: string;
+  data: ContentVersionFullData;
+}
+
 export interface GenerateBeatFountainInput {
   beatNumber: number;
   beatLabel?: string;

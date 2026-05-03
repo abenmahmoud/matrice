@@ -22,6 +22,8 @@ import type {
   Character,
   CheckSceneHpsaInput,
   CoherenceCheck,
+  ContentVersionFull,
+  ContentVersionMeta,
   CreateCharacterInput,
   CreateProjectInput,
   DashboardSummary,
@@ -43,6 +45,7 @@ import type {
   ProjectDetail,
   Relationship,
   ResearchData,
+  SaveVersionInput,
   SceneHpsaResult,
   Screenplay,
   Series,
@@ -3204,6 +3207,303 @@ export const useUpdateScreenplay = <
 > => {
   return useMutation(getUpdateScreenplayMutationOptions(options));
 };
+
+/**
+ * @summary Save a content version snapshot
+ */
+export const getSaveContentVersionUrl = (id: string) => {
+  return `/api/projects/${id}/versions`;
+};
+
+export const saveContentVersion = async (
+  id: string,
+  saveVersionInput: SaveVersionInput,
+  options?: RequestInit,
+): Promise<ContentVersionMeta> => {
+  return customFetch<ContentVersionMeta>(getSaveContentVersionUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(saveVersionInput),
+  });
+};
+
+export const getSaveContentVersionMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof saveContentVersion>>,
+    TError,
+    { id: string; data: BodyType<SaveVersionInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof saveContentVersion>>,
+  TError,
+  { id: string; data: BodyType<SaveVersionInput> },
+  TContext
+> => {
+  const mutationKey = ["saveContentVersion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof saveContentVersion>>,
+    { id: string; data: BodyType<SaveVersionInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return saveContentVersion(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SaveContentVersionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof saveContentVersion>>
+>;
+export type SaveContentVersionMutationBody = BodyType<SaveVersionInput>;
+export type SaveContentVersionMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Save a content version snapshot
+ */
+export const useSaveContentVersion = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof saveContentVersion>>,
+    TError,
+    { id: string; data: BodyType<SaveVersionInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof saveContentVersion>>,
+  TError,
+  { id: string; data: BodyType<SaveVersionInput> },
+  TContext
+> => {
+  return useMutation(getSaveContentVersionMutationOptions(options));
+};
+
+/**
+ * @summary List versions for a specific content type and key
+ */
+export const getListContentVersionsByKeyUrl = (
+  id: string,
+  contentType: string,
+  contentKey: string,
+) => {
+  return `/api/projects/${id}/versions/${contentType}/${contentKey}`;
+};
+
+export const listContentVersionsByKey = async (
+  id: string,
+  contentType: string,
+  contentKey: string,
+  options?: RequestInit,
+): Promise<ContentVersionMeta[]> => {
+  return customFetch<ContentVersionMeta[]>(
+    getListContentVersionsByKeyUrl(id, contentType, contentKey),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getListContentVersionsByKeyQueryKey = (
+  id: string,
+  contentType: string,
+  contentKey: string,
+) => {
+  return [`/api/projects/${id}/versions/${contentType}/${contentKey}`] as const;
+};
+
+export const getListContentVersionsByKeyQueryOptions = <
+  TData = Awaited<ReturnType<typeof listContentVersionsByKey>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  contentType: string,
+  contentKey: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listContentVersionsByKey>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getListContentVersionsByKeyQueryKey(id, contentType, contentKey);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listContentVersionsByKey>>
+  > = ({ signal }) =>
+    listContentVersionsByKey(id, contentType, contentKey, {
+      signal,
+      ...requestOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(id && contentType && contentKey),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listContentVersionsByKey>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListContentVersionsByKeyQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listContentVersionsByKey>>
+>;
+export type ListContentVersionsByKeyQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List versions for a specific content type and key
+ */
+
+export function useListContentVersionsByKey<
+  TData = Awaited<ReturnType<typeof listContentVersionsByKey>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  contentType: string,
+  contentKey: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listContentVersionsByKey>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListContentVersionsByKeyQueryOptions(
+    id,
+    contentType,
+    contentKey,
+    options,
+  );
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Get a version with full data
+ */
+export const getGetContentVersionUrl = (id: string, versionId: string) => {
+  return `/api/projects/${id}/versions/single/${versionId}`;
+};
+
+export const getContentVersion = async (
+  id: string,
+  versionId: string,
+  options?: RequestInit,
+): Promise<ContentVersionFull> => {
+  return customFetch<ContentVersionFull>(
+    getGetContentVersionUrl(id, versionId),
+    {
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetContentVersionQueryKey = (id: string, versionId: string) => {
+  return [`/api/projects/${id}/versions/single/${versionId}`] as const;
+};
+
+export const getGetContentVersionQueryOptions = <
+  TData = Awaited<ReturnType<typeof getContentVersion>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  versionId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getContentVersion>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetContentVersionQueryKey(id, versionId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getContentVersion>>
+  > = ({ signal }) =>
+    getContentVersion(id, versionId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(id && versionId),
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getContentVersion>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetContentVersionQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getContentVersion>>
+>;
+export type GetContentVersionQueryError = ErrorType<void>;
+
+/**
+ * @summary Get a version with full data
+ */
+
+export function useGetContentVersion<
+  TData = Awaited<ReturnType<typeof getContentVersion>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  versionId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getContentVersion>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetContentVersionQueryOptions(id, versionId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Generate Fountain prose for a specific beat

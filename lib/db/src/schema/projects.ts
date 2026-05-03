@@ -475,3 +475,20 @@ export const filmScenesTable = pgTable("film_scenes", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 export type FilmScene = typeof filmScenesTable.$inferSelect;
+
+// ---------------------------------------------------------------------------
+// Content Versions — historique de versions pour chapitres, scénario, etc.
+// ---------------------------------------------------------------------------
+
+export const contentVersionsTable = pgTable("content_versions", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  contentType: text("content_type").notNull(), // 'chapter' | 'screenplay' | 'pitch' | 'matrix' | 'note-intention'
+  contentKey: text("content_key").notNull().default("full"), // chapter index as string or 'full'
+  label: text("label").notNull(),
+  data: jsonb("data").notNull(),
+  wordCount: integer("word_count"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type ContentVersion = typeof contentVersionsTable.$inferSelect;

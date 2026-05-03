@@ -1524,6 +1524,72 @@ export const UpdateScreenplayResponse = zod.object({
 });
 
 /**
+ * @summary Save a content version snapshot
+ */
+export const SaveContentVersionParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const SaveContentVersionBody = zod.object({
+  contentType: zod.string(),
+  contentKey: zod.string(),
+  label: zod.string(),
+  data: zod.record(zod.string(), zod.unknown()),
+  wordCount: zod.number().optional(),
+});
+
+export const SaveContentVersionResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  contentType: zod.string(),
+  contentKey: zod.string(),
+  label: zod.string(),
+  wordCount: zod.number().optional(),
+  createdAt: zod.string(),
+});
+
+/**
+ * @summary List versions for a specific content type and key
+ */
+export const ListContentVersionsByKeyParams = zod.object({
+  id: zod.coerce.string(),
+  contentType: zod.coerce.string(),
+  contentKey: zod.coerce.string(),
+});
+
+export const ListContentVersionsByKeyResponseItem = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  contentType: zod.string(),
+  contentKey: zod.string(),
+  label: zod.string(),
+  wordCount: zod.number().optional(),
+  createdAt: zod.string(),
+});
+export const ListContentVersionsByKeyResponse = zod.array(
+  ListContentVersionsByKeyResponseItem,
+);
+
+/**
+ * @summary Get a version with full data
+ */
+export const GetContentVersionParams = zod.object({
+  id: zod.coerce.string(),
+  versionId: zod.coerce.string(),
+});
+
+export const GetContentVersionResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  contentType: zod.string(),
+  contentKey: zod.string(),
+  label: zod.string(),
+  wordCount: zod.number().optional(),
+  createdAt: zod.string(),
+  data: zod.record(zod.string(), zod.unknown()),
+});
+
+/**
  * @summary Generate Fountain prose for a specific beat
  */
 export const GenerateBeatFountainParams = zod.object({

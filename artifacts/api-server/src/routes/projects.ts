@@ -18,7 +18,7 @@ import {
   generateFilmData, generatePlayableScenes, checkSceneHpsa, generateChapterProse,
   generateBeatFountain, generateFountainDialogue
 } from "../services/generationService.js";
-import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistiqueTable, cinqPiliersTable, sequencierTable, noteIntentionTable } from "@workspace/db";
+import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistiqueTable, cinqPiliersTable, sequencierTable, noteIntentionTable, contentVersionsTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -833,6 +833,74 @@ router.put("/projects/:id/screenplay", async (req, res) => {
       .where(eq(screenplaysTable.projectId, req.params.id)).returning();
     if (!sp) return res.status(404).json({ error: "Not found" });
     res.json(sp);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Content Versions — historique de versions
+// ---------------------------------------------------------------------------
+
+router.post("/projects/:id/versions", async (req, res) => {
+  try {
+    const { contentType, contentKey = "full", label, data, wordCount } = req.body as {
+      contentType: string; contentKey?: string; label: string; data: Record<string, unknown>; wordCount?: number;
+    };
+    if (!contentType || !label || !data) return res.status(400).json({ error: "contentType, label et data requis" });
+    const [row] = await db.insert(contentVersionsTable).values({
+      projectId: req.params.id, contentType, contentKey, label, data, wordCount
+    }).returning();
+    // Keep only last 20 versions per type+key
+    const all = await db.select({ id: contentVersionsTable.id, createdAt: contentVersionsTable.createdAt })
+      .from(contentVersionsTable)
+      .where(and(
+        eq(contentVersionsTable.projectId, req.params.id),
+        eq(contentVersionsTable.contentType, contentType),
+        eq(contentVersionsTable.contentKey, contentKey)
+      ));
+    if (all.length > 20) {
+      const sorted = all.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      const toDelete = sorted.slice(0, all.length - 20);
+      for (const old of toDelete) {
+        await db.delete(contentVersionsTable).where(eq(contentVersionsTable.id, old.id));
+      }
+    }
+    res.json(row);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/projects/:id/versions/:contentType/:contentKey", async (req, res) => {
+  try {
+    const rows = await db.select({
+      id: contentVersionsTable.id,
+      projectId: contentVersionsTable.projectId,
+      contentType: contentVersionsTable.contentType,
+      contentKey: contentVersionsTable.contentKey,
+      label: contentVersionsTable.label,
+      wordCount: contentVersionsTable.wordCount,
+      createdAt: contentVersionsTable.createdAt,
+    }).from(contentVersionsTable).where(and(
+      eq(contentVersionsTable.projectId, req.params.id),
+      eq(contentVersionsTable.contentType, req.params.contentType),
+      eq(contentVersionsTable.contentKey, req.params.contentKey)
+    ));
+    res.json(rows.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/projects/:id/versions/single/:versionId", async (req, res) => {
+  try {
+    const [row] = await db.select().from(contentVersionsTable).where(eq(contentVersionsTable.id, req.params.versionId));
+    if (!row) return res.status(404).json({ error: "Version introuvable" });
+    res.json(row);
   } catch (err) {
     req.log.error({ err });
     res.status(500).json({ error: "Internal server error" });
