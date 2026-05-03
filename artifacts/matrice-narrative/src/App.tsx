@@ -40,7 +40,7 @@ import PrismePage from "./pages/prisme";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
+  defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
 });
 
 function Router() {
@@ -52,6 +52,7 @@ function Router() {
       <Route path="/projects/new" component={NewProject} />
       <Route path="/projects/:id/matrix" component={MatrixPage} />
       <Route path="/projects/:id" component={ProjectOverview} />
+      <Route path="/projects/:id/overview" component={ProjectOverview} />
       <Route path="/projects/:id/tension-arc" component={TensionArcPage} />
       <Route path="/projects/:id/atmosphere" component={AtmospherePage} />
       <Route path="/projects/:id/constellation" component={ConstellationPage} />
