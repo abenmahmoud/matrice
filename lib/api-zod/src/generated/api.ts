@@ -1352,6 +1352,33 @@ export const UpdateBookOutlineResponse = zod.object({
 });
 
 /**
+ * @summary Generate prose for a specific chapter
+ */
+export const GenerateChapterProseParams = zod.object({
+  id: zod.coerce.string(),
+  index: zod.coerce.number(),
+});
+
+export const GenerateChapterProseBody = zod.object({
+  chapterNumber: zod.number(),
+  chapterTitle: zod.string(),
+  pov: zod.string().optional(),
+  location: zod.string().optional(),
+  timeframe: zod.string().optional(),
+  summary: zod.string(),
+  emotionalArc: zod.string().optional(),
+  keyScene: zod.string().optional(),
+  closingHook: zod.string().optional(),
+  narrativeVoice: zod.string().optional(),
+  tone: zod.string().optional(),
+});
+
+export const GenerateChapterProseResponse = zod.object({
+  prose: zod.string(),
+  wordCount: zod.number(),
+});
+
+/**
  * @summary Generate screenplay
  */
 export const GenerateScreenplayParams = zod.object({

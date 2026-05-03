@@ -701,6 +701,36 @@ paths:
               schema:
                 $ref: "#/components/schemas/BookOutline"
 
+  /projects/{id}/book/chapters/{index}/generate-prose:
+    post:
+      operationId: generateChapterProse
+      tags: [book]
+      summary: Generate prose for a specific chapter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: index
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateChapterProseInput"
+      responses:
+        "200":
+          description: Generated prose
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChapterProseResult"
+
   /projects/{id}/generate-screenplay:
     post:
       operationId: generateScreenplay
@@ -2192,3 +2222,39 @@ components:
         - format
         - content
         - filename
+
+    GenerateChapterProseInput:
+      type: object
+      properties:
+        chapterNumber:
+          type: integer
+        chapterTitle:
+          type: string
+        pov:
+          type: string
+        location:
+          type: string
+        timeframe:
+          type: string
+        summary:
+          type: string
+        emotionalArc:
+          type: string
+        keyScene:
+          type: string
+        closingHook:
+          type: string
+        narrativeVoice:
+          type: string
+        tone:
+          type: string
+      required: [chapterNumber, chapterTitle, summary]
+
+    ChapterProseResult:
+      type: object
+      properties:
+        prose:
+          type: string
+        wordCount:
+          type: integer
+      required: [prose, wordCount]

@@ -9,6 +9,7 @@
 export * from "./bookOutline";
 export * from "./bookOutlineChaptersItem";
 export * from "./bookOutlineTitleIdeasItem";
+export * from "./chapterProseResult";
 export * from "./character";
 export * from "./checkSceneHpsaInput";
 export * from "./coherenceCheck";
@@ -24,6 +25,7 @@ export * from "./exportResult";
 export * from "./filmData";
 export * from "./filmScene";
 export * from "./filmSceneHpsaCheck";
+export * from "./generateChapterProseInput";
 export * from "./healthStatus";
 export * from "./hpsaScore";
 export * from "./narrativeMatrix";

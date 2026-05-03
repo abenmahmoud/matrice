@@ -511,3 +511,22 @@ export interface ExportResult {
   content: string;
   filename: string;
 }
+
+export interface GenerateChapterProseInput {
+  chapterNumber: number;
+  chapterTitle: string;
+  pov?: string;
+  location?: string;
+  timeframe?: string;
+  summary: string;
+  emotionalArc?: string;
+  keyScene?: string;
+  closingHook?: string;
+  narrativeVoice?: string;
+  tone?: string;
+}
+
+export interface ChapterProseResult {
+  prose: string;
+  wordCount: number;
+}

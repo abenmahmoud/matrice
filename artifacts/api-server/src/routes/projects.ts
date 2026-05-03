@@ -15,7 +15,7 @@ import {
   generateBookOutline, generateScreenplay, generateSeries, generatePitch,
   autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue, generateDirectorMode,
   generateEchoDuTemps, generateMiroirArtistique, generateCinqPiliers, generateSequencier, generateNoteIntention,
-  generateFilmData, generatePlayableScenes, checkSceneHpsa
+  generateFilmData, generatePlayableScenes, checkSceneHpsa, generateChapterProse
 } from "../services/generationService.js";
 import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistiqueTable, cinqPiliersTable, sequencierTable, noteIntentionTable } from "@workspace/db";
 
@@ -68,7 +68,7 @@ async function getSkillsContext(projectId: string): Promise<string> {
 async function sseRun(
   req: Request,
   res: Response,
-  steps: [string, string, string],
+  steps: string[],
   work: () => Promise<unknown>
 ): Promise<void> {
   const isSSE = (req.headers["accept"] ?? "").includes("text/event-stream");
@@ -752,6 +752,24 @@ router.put("/projects/:id/book", async (req, res) => {
       .where(eq(bookOutlinesTable.projectId, req.params.id)).returning();
     if (!book) return res.status(404).json({ error: "Not found" });
     res.json(book);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/projects/:id/book/chapters/:index/generate-prose
+router.post("/projects/:id/book/chapters/:index/generate-prose", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Project not found" });
+
+    const [matrixRow] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+    if (!matrixRow) return res.status(404).json({ error: "Matrix not found — generate matrix first" });
+
+    const skills = await getSkillsContext(req.params.id);
+    const result = await generateChapterProse(project, matrixRow, req.body, skills);
+    res.json(result);
   } catch (err) {
     req.log.error({ err });
     res.status(500).json({ error: "Internal server error" });

@@ -1901,6 +1901,71 @@ Les 10 scènes doivent couvrir l'arc complet : ouverture, déclencheur, montée,
 }
 
 // ---------------------------------------------------------------------------
+// Generate Chapter Prose — rédaction IA d'un chapitre depuis son plan
+// ---------------------------------------------------------------------------
+
+export async function generateChapterProse(
+  project: Project,
+  matrix: NarrativeMatrix,
+  chapter: {
+    chapterNumber: number;
+    chapterTitle: string;
+    pov?: string;
+    location?: string;
+    timeframe?: string;
+    summary: string;
+    emotionalArc?: string;
+    keyScene?: string;
+    closingHook?: string;
+    narrativeVoice?: string;
+    tone?: string;
+  },
+  skillsContext?: string
+): Promise<{ prose: string; wordCount: number }> {
+  const system = `Tu es un écrivain de haut niveau — formé aux ateliers de la Fémis et aux résidences Gallimard. Tu rédiges des chapitres de roman en français avec une précision stylistique irréprochable. Ta prose est vivante, concrète, ancrée dans les sensations et les émotions des personnages. Tu respectes scrupuleusement le point de vue narratif indiqué et l'arc émotionnel du chapitre. Tu ne résumes jamais — tu incarnes. Réponds UNIQUEMENT en JSON valide.`;
+
+  const user = `Rédige le chapitre complet "${chapter.chapterTitle}" (chapitre ${chapter.chapterNumber}) du roman "${project.title}".
+
+CONTEXTE DU PROJET :
+Genre : ${project.genre} | Ton : ${project.tone} | Format : ${project.targetFormat}
+Logline : ${matrix.logline}
+Conflit central : ${matrix.centralConflict}
+Thèmes : ${matrix.themes?.join(", ") ?? ""}
+
+DONNÉES DU CHAPITRE :
+Point de vue narratif : ${chapter.pov ?? chapter.narrativeVoice ?? "non précisé — choisis le plus adapté"}
+Lieu : ${chapter.location ?? "non précisé"}
+Moment dans le récit : ${chapter.timeframe ?? "non précisé"}
+Résumé dramatique : ${chapter.summary}
+Arc émotionnel : ${chapter.emotionalArc ?? "non précisé"} 
+Scène clé à incarner : ${chapter.keyScene ?? "non précisé"}
+Accroche de fin de chapitre : ${chapter.closingHook ?? "non précisé"}
+Voix narrative souhaitée : ${chapter.narrativeVoice ?? "à définir selon le genre et le ton"}
+${chapter.tone ? `Ton particulier de ce chapitre : ${chapter.tone}` : ""}
+
+DIRECTIVES D'ÉCRITURE :
+- Rédige entre 900 et 1 200 mots de prose narrative réelle (pas un résumé, pas des bullet points)
+- Commence IN MEDIAS RES — plonge directement dans la scène, sans introduction
+- La scène clé doit être le moment le plus fort du chapitre — prolonge-la, ne la survole pas
+- Respecte l'arc émotionnel : l'état émotionnel du personnage doit changer entre le début et la fin
+- Termine par l'accroche indiquée — la dernière phrase doit créer un effet de suspension ou de bascule
+- Prose en français : phrases courtes et longues alternées, dialogues en français standard
+
+Réponds en JSON :
+{
+  "prose": "le texte complet du chapitre — entre 900 et 1200 mots",
+  "wordCount": <nombre de mots>
+}`;
+
+  const fallback = {
+    prose: `${chapter.chapterTitle}\n\n[La génération IA est temporairement indisponible. Le résumé de ce chapitre est : ${chapter.summary}]\n\n${chapter.keyScene ? `Scène clé : ${chapter.keyScene}` : ""}\n\n${chapter.closingHook ? `Fin du chapitre : ${chapter.closingHook}` : ""}`,
+    wordCount: 50,
+  };
+
+  return aiJson(system, user, fallback, skillsContext, { temperature: 0.88, maxTokens: 3000 });
+}
+
+// ---------------------------------------------------------------------------
 // Check Scene HPSA — analyse H.P.S.A. d'une scène précise
 // ---------------------------------------------------------------------------
 

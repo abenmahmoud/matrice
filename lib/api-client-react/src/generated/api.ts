@@ -18,6 +18,7 @@ import type {
 
 import type {
   BookOutline,
+  ChapterProseResult,
   Character,
   CheckSceneHpsaInput,
   CoherenceCheck,
@@ -29,6 +30,7 @@ import type {
   ExportResult,
   FilmData,
   FilmScene,
+  GenerateChapterProseInput,
   HealthStatus,
   HpsaScore,
   NarrativeMatrix,
@@ -2847,6 +2849,98 @@ export const useUpdateBookOutline = <
   TContext
 > => {
   return useMutation(getUpdateBookOutlineMutationOptions(options));
+};
+
+/**
+ * @summary Generate prose for a specific chapter
+ */
+export const getGenerateChapterProseUrl = (id: string, index: number) => {
+  return `/api/projects/${id}/book/chapters/${index}/generate-prose`;
+};
+
+export const generateChapterProse = async (
+  id: string,
+  index: number,
+  generateChapterProseInput: GenerateChapterProseInput,
+  options?: RequestInit,
+): Promise<ChapterProseResult> => {
+  return customFetch<ChapterProseResult>(
+    getGenerateChapterProseUrl(id, index),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(generateChapterProseInput),
+    },
+  );
+};
+
+export const getGenerateChapterProseMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateChapterProse>>,
+    TError,
+    { id: string; index: number; data: BodyType<GenerateChapterProseInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateChapterProse>>,
+  TError,
+  { id: string; index: number; data: BodyType<GenerateChapterProseInput> },
+  TContext
+> => {
+  const mutationKey = ["generateChapterProse"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateChapterProse>>,
+    { id: string; index: number; data: BodyType<GenerateChapterProseInput> }
+  > = (props) => {
+    const { id, index, data } = props ?? {};
+
+    return generateChapterProse(id, index, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateChapterProseMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateChapterProse>>
+>;
+export type GenerateChapterProseMutationBody =
+  BodyType<GenerateChapterProseInput>;
+export type GenerateChapterProseMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate prose for a specific chapter
+ */
+export const useGenerateChapterProse = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateChapterProse>>,
+    TError,
+    { id: string; index: number; data: BodyType<GenerateChapterProseInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateChapterProse>>,
+  TError,
+  { id: string; index: number; data: BodyType<GenerateChapterProseInput> },
+  TContext
+> => {
+  return useMutation(getGenerateChapterProseMutationOptions(options));
 };
 
 /**
