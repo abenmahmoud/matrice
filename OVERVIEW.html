@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matrice Narrative — Résumé de fonctionnement</title>
+<style>
+  :root {
+    --violet: #7c3aed;
+    --indigo: #4f46e5;
+    --violet-light: #a78bfa;
+    --bg: #09090e;
+    --card: #111118;
+    --border: rgba(255,255,255,0.07);
+    --text: #e2e8f0;
+    --muted: rgba(255,255,255,0.4);
+    --muted2: rgba(255,255,255,0.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 48px 24px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  /* Header */
+  .hero {
+    text-align: center;
+    margin-bottom: 64px;
+    padding: 48px 32px;
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(79,70,229,0.04) 100%);
+  }
+  .hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: 0.3em;
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 560px;
+    margin: 0 auto 24px;
+  }
+  .badge-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(124,58,237,0.4);
+    background: rgba(124,58,237,0.1);
+    color: var(--violet-light);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Section title */
+  .section-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Stack */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 56px;
+  }
+  .stack-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .stack-card .label {
+    font-size: 0.65rem;
+    color: var(--muted2);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 6px;
+  }
+  .stack-card .value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .stack-card .sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* Pipeline */
+  .pipeline {
+    margin-bottom: 56px;
+  }
+  .phase {
+    margin-bottom: 24px;
+  }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .phase-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--violet), var(--indigo));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: white;
+    flex-shrink: 0;
+  }
+  .phase-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--violet-light);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .modules-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-left: 40px;
+  }
+  .module-chip {
+    font-size: 0.75rem;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .module-chip .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-violet { background: var(--violet-light); }
+  .dot-blue   { background: #60a5fa; }
+  .dot-amber  { background: #fbbf24; }
+  .dot-teal   { background: #34d399; }
+  .dot-rose   { background: #fb7185; }
+  .dot-orange { background: #fb923c; }
+
+  /* Flow diagram */
+  .flow {
+    margin-bottom: 56px;
+  }
+  .flow-chart {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding: 24px 0;
+  }
+  .flow-box {
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    text-align: center;
+    min-width: 120px;
+  }
+  .flow-box.highlight {
+    border-color: rgba(124,58,237,0.5);
+    background: rgba(124,58,237,0.07);
+  }
+  .flow-box .fb-label {
+    font-size: 0.6rem;
+    color: var(--muted2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .flow-box .fb-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .flow-box .fb-sub {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+  .flow-arrow {
+    flex-shrink: 0;
+    color: var(--muted2);
+    font-size: 1.2rem;
+    padding: 0 8px;
+  }
+
+  /* DB */
+  .db-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    margin-bottom: 56px;
+  }
+  .db-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.75rem;
+  }
+  .db-row .db-icon {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+  .db-row .db-name {
+    font-family: monospace;
+    color: var(--violet-light);
+    font-weight: 600;
+    font-size: 0.72rem;
+  }
+  .db-row .db-desc {
+    color: var(--muted);
+    font-size: 0.68rem;
+    margin-top: 2px;
+  }
+  .db-tag {
+    margin-left: auto;
+    font-size: 0.6rem;
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .db-tag.new { border-color: rgba(52,211,153,0.3); color: #34d399; background: rgba(52,211,153,0.05); }
+
+  /* Exports */
+  .export-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 56px;
+  }
+  .export-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .export-card .cat {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .cat-universel { color: #a78bfa; }
+  .cat-roman     { color: #fbbf24; }
+  .cat-cinema    { color: #60a5fa; }
+  .cat-serie     { color: #34d399; }
+  .export-card .ename {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .export-card .eformat {
+    font-family: monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+  .export-card .edesc {
+    font-size: 0.68rem;
+    color: var(--muted2);
+    margin-top: 5px;
+    line-height: 1.4;
+  }
+
+  /* IA notes */
+  .ia-box {
+    background: var(--card);
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 56px;
+  }
+  .ia-box h3 { font-size: 0.85rem; font-weight: 700; color: var(--violet-light); margin-bottom: 16px; }
+  .ia-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .ia-row::before {
+    content: "→";
+    color: var(--violet);
+    font-weight: 800;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .ia-row strong { color: var(--text); }
+
+  /* Notes techniques */
+  .notes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 56px;
+  }
+  @media (max-width: 640px) { .notes-grid { grid-template-columns: 1fr; } }
+  .note-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    font-size: 0.78rem;
+  }
+  .note-card h4 { font-size: 0.72rem; font-weight: 700; color: var(--violet-light); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .note-card p, .note-card li { color: var(--muted); line-height: 1.5; margin-bottom: 4px; }
+  .note-card code { font-family: monospace; font-size: 0.7rem; background: rgba(255,255,255,0.05); padding: 1px 5px; border-radius: 4px; color: var(--violet-light); }
+  .note-card ul { padding-left: 14px; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    color: var(--muted2);
+    font-size: 0.72rem;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-top: 32px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>MATRICE</h1>
+    <p>OS créatif premium pour auteurs et cinéastes francophones — transforme une idée brute en œuvre structurée via IA.</p>
+    <div class="badge-row">
+      <span class="badge">22 tables DB</span>
+      <span class="badge">29 modules</span>
+      <span class="badge">11 outils Immersion</span>
+      <span class="badge">9 formats d'export</span>
+      <span class="badge">100% français</span>
+    </div>
+  </div>
+
+  <!-- Stack -->
+  <div class="pipeline">
+    <p class="section-title">Stack technique</p>
+    <div class="stack-grid">
+      <div class="stack-card">
+        <div class="label">Frontend</div>
+        <div class="value">React + Vite</div>
+        <div class="sub">Tailwind · Wouter · React Query · Framer Motion</div>
+      </div>
+      <div class="stack-card">
+        <div class="label">API</div>
+        <div class="value">Express 5</div>
+        <div class="sub">TypeScript · Pino · Drizzle ORM · Zod</div>
+      </div>
+      <div class="stack-card">
+        <div class="label">Base de données</div>
+        <div class="value">PostgreSQL</div>
+        <div class="sub">22 tables · Drizzle schema · JSONB pour données riches</div>
+      </div>
+      <div class="stack-card">
+        <div class="label">IA</div>
+        <div class="value">GPT-5.4</div>
+        <div class="sub">Replit AI proxy · JSON mode · SSE streaming</div>
+      </div>
+      <div class="stack-card">
+        <div class="label">Contrats API</div>
+        <div class="value">OpenAPI + Orval</div>
+        <div class="sub">Codegen → React Query hooks + Zod schemas</div>
+      </div>
+      <div class="stack-card">
+        <div class="label">Monorepo</div>
+        <div class="value">pnpm workspace</div>
+        <div class="sub">lib/db · lib/api-spec · lib/api-zod · lib/api-client-react</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flux de données -->
+  <div class="flow">
+    <p class="section-title">Flux de données</p>
+    <div class="flow-chart">
+      <div class="flow-box">
+        <div class="fb-label">Utilisateur</div>
+        <div class="fb-name">Frontend</div>
+        <div class="fb-sub">React + Vite</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight">
+        <div class="fb-label">React Query Hook</div>
+        <div class="fb-name">api-client-react</div>
+        <div class="fb-sub">Généré par Orval</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="fb-label">Proxy Replit</div>
+        <div class="fb-name">/api/*</div>
+        <div class="fb-sub">Port 8080</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight">
+        <div class="fb-label">Express Router</div>
+        <div class="fb-name">API Server</div>
+        <div class="fb-sub">Zod validation</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">
+        <div class="fb-label">Génération IA</div>
+        <div class="fb-name">GPT-5.4</div>
+        <div class="fb-sub">aiJson() + SSE</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box highlight">
+        <div class="fb-label">Persistance</div>
+        <div class="fb-name">PostgreSQL</div>
+        <div class="fb-sub">Drizzle ORM</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pipeline narratif -->
+  <div class="pipeline">
+    <p class="section-title">Pipeline narratif — 5 phases</p>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num">1</div>
+        <div class="phase-name">Comprendre</div>
+      </div>
+      <div class="modules-row">
+        <div class="module-chip"><span class="dot dot-violet"></span>Matrice Narrative</div>
+        <div class="module-chip"><span class="dot dot-violet"></span>Noyau Émotionnel + Pipeline Correction (9 étapes)</div>
+        <div class="module-chip"><span class="dot dot-violet"></span>Notes de Recherche</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num">2</div>
+        <div class="phase-name">Construire</div>
+      </div>
+      <div class="modules-row">
+        <div class="module-chip"><span class="dot dot-blue"></span>Personnages (5 archétypes)</div>
+        <div class="module-chip"><span class="dot dot-blue"></span>Relations (graphe IA)</div>
+        <div class="module-chip"><span class="dot dot-blue"></span>Monde & Temps</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num">3</div>
+        <div class="phase-name">Écrire</div>
+      </div>
+      <div class="modules-row">
+        <div class="module-chip"><span class="dot dot-amber"></span>Atelier Roman (chapitres 10 champs)</div>
+        <div class="module-chip"><span class="dot dot-amber"></span>Atelier Scénario + Atelier Film</div>
+        <div class="module-chip"><span class="dot dot-amber"></span>Scènes Jouables (10 scènes complètes)</div>
+        <div class="module-chip"><span class="dot dot-amber"></span>Atelier Série (épisodes 16 champs)</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num">4</div>
+        <div class="phase-name">Corriger</div>
+      </div>
+      <div class="modules-row">
+        <div class="module-chip"><span class="dot dot-rose"></span>Scores H.P.S.A. (4 axes + globalScore + priorityFixes)</div>
+        <div class="module-chip"><span class="dot dot-rose"></span>Analyse IA contextuelle (par type : scène / chapitre / épisode / pitch)</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-header">
+        <div class="phase-num">5</div>
+        <div class="phase-name">Présenter</div>
+      </div>
+      <div class="modules-row">
+        <div class="module-chip"><span class="dot dot-teal"></span>Dossier de Pitch</div>
+        <div class="module-chip"><span class="dot dot-teal"></span>Note d'Intention (CNC / Festivals)</div>
+        <div class="module-chip"><span class="dot dot-teal"></span>Exports (9 formats)</div>
+      </div>
+    </div>
+
+    <div class="phase" style="margin-top:20px;">
+      <div class="phase-header">
+        <div class="phase-num" style="background: rgba(255,255,255,0.1);">✦</div>
+        <div class="phase-name" style="color: var(--muted);">Studio — Outils Immersion</div>
+      </div>
+      <div class="modules-row">
+        <div class="module-chip"><span class="dot dot-orange"></span>Arc de Tension</div>
+        <div class="module-chip"><span class="dot dot-orange"></span>Atmosphères</div>
+        <div class="module-chip"><span class="dot dot-orange"></span>Constellation</div>
+        <div class="module-chip"><span class="dot dot-orange"></span>Dialogue Personnages</div>
+        <div class="module-chip"><span class="dot dot-orange"></span>Mode Réalisateur</div>
+        <div class="module-chip"><span class="dot dot-orange"></span>Carnet de Tournage</div>
+        <div class="module-chip"><span class="dot dot-orange"></span>Écho du Temps</div>
+        <div class="module-chip"><span class="dot dot-orange"></span>Miroir Artistique</div>
+        <div class="module-chip"><span class="dot dot-orange"></span>Les 5 Piliers</div>
+        <div class="module-chip"><span class="dot dot-orange"></span>Séquencier</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Génération IA -->
+  <div class="ia-box">
+    <h3>Génération IA — fonctionnement</h3>
+    <div class="ia-row"><strong>Modèle :</strong>&nbsp; GPT-5.4 via proxy Replit AI Integrations (→ gpt-4o sur VPS)</div>
+    <div class="ia-row"><strong>Format :</strong>&nbsp; <code>response_format: json_object</code> — toutes les réponses sont du JSON structuré parsé et validé</div>
+    <div class="ia-row"><strong>Fallback :</strong>&nbsp; si l'API IA échoue, chaque module retourne un contenu déterministe de haute qualité</div>
+    <div class="ia-row"><strong>Streaming :</strong>&nbsp; l'analyse manuscrit utilise SSE (Server-Sent Events) pour afficher la progression en temps réel</div>
+    <div class="ia-row"><strong>Contexte injecté :</strong>&nbsp; <code>skillsContext</code> ajoute les techniques du Laboratoire Narratif dans chaque prompt système</div>
+    <div class="ia-row"><strong>Température :</strong>&nbsp; modulée par type — créatif (0.85–0.88) · narratif (0.82) · analytique (non défini)</div>
+    <div class="ia-row"><strong>Analyse par type :</strong>&nbsp; paramètre <code>analyseType</code> injecte un focus différent — script doctor (scène) · éditeur littéraire (chapitre) · showrunner (épisode) · comité de lecture (pitch)</div>
+    <div class="ia-row"><strong>H.P.S.A. :</strong>&nbsp; 4 axes purs — Humour · Pleur · Suspense · Attractivité — + score global + liste de corrections prioritaires</div>
+  </div>
+
+  <!-- Base de données -->
+  <div class="pipeline">
+    <p class="section-title">Base de données — 22 tables</p>
+    <div class="db-grid">
+      <div class="db-row"><span class="db-icon">📋</span><div><div class="db-name">projects</div><div class="db-desc">Projets et métadonnées</div></div><span class="db-tag">core</span></div>
+      <div class="db-row"><span class="db-icon">🧭</span><div><div class="db-name">narrative_matrices</div><div class="db-desc">Logline, synopsis, thèmes, conflits</div></div></div>
+      <div class="db-row"><span class="db-icon">❤️</span><div><div class="db-name">emotional_cores</div><div class="db-desc">Blessure, masque, peurs, besoin</div></div></div>
+      <div class="db-row"><span class="db-icon">🔗</span><div><div class="db-name">emotional_paths</div><div class="db-desc">Arc émotionnel généré par IA</div></div></div>
+      <div class="db-row"><span class="db-icon">👥</span><div><div class="db-name">characters</div><div class="db-desc">5 archétypes, psychologie jungienne</div></div></div>
+      <div class="db-row"><span class="db-icon">🕸️</span><div><div class="db-name">relationships</div><div class="db-desc">Relations croisées (IA)</div></div></div>
+      <div class="db-row"><span class="db-icon">🌍</span><div><div class="db-name">world_data</div><div class="db-desc">Worldbuilding, chronologie</div></div></div>
+      <div class="db-row"><span class="db-icon">🔍</span><div><div class="db-name">research_data</div><div class="db-desc">Notes de recherche IA</div></div></div>
+      <div class="db-row"><span class="db-icon">📊</span><div><div class="db-name">hpsa_scores</div><div class="db-desc">4 axes + globalScore + priorityFixes</div></div><span class="db-tag new">v2</span></div>
+      <div class="db-row"><span class="db-icon">📖</span><div><div class="db-name">book_outlines</div><div class="db-desc">Chapitres enrichis (10 champs)</div></div><span class="db-tag new">v2</span></div>
+      <div class="db-row"><span class="db-icon">🎬</span><div><div class="db-name">screenplays</div><div class="db-desc">Beats labellisés, scènes, Fountain</div></div><span class="db-tag new">v2</span></div>
+      <div class="db-row"><span class="db-icon">📺</span><div><div class="db-name">series_data</div><div class="db-desc">Épisodes enrichis (16 champs)</div></div><span class="db-tag new">v2</span></div>
+      <div class="db-row"><span class="db-icon">🎞️</span><div><div class="db-name">film_data</div><div class="db-desc">Concept film, promesses visuelles</div></div><span class="db-tag new">nouveau</span></div>
+      <div class="db-row"><span class="db-icon">🎭</span><div><div class="db-name">film_scenes</div><div class="db-desc">10 scènes jouables complètes</div></div><span class="db-tag new">nouveau</span></div>
+      <div class="db-row"><span class="db-icon">🚀</span><div><div class="db-name">pitch_documents</div><div class="db-desc">Dossier de pitch producteurs</div></div></div>
+      <div class="db-row"><span class="db-icon">📈</span><div><div class="db-name">tension_arcs</div><div class="db-desc">Courbe émotionnelle dramatique</div></div></div>
+      <div class="db-row"><span class="db-icon">🎨</span><div><div class="db-name">atmosphere_data</div><div class="db-desc">Palette, musique, textures</div></div></div>
+      <div class="db-row"><span class="db-icon">⏳</span><div><div class="db-name">echo_temps</div><div class="db-desc">Résonances mythiques/historiques</div></div></div>
+      <div class="db-row"><span class="db-icon">🪞</span><div><div class="db-name">miroir_artistique</div><div class="db-desc">Réflexion poétique de l'œuvre</div></div></div>
+      <div class="db-row"><span class="db-icon">🏛️</span><div><div class="db-name">cinq_piliers</div><div class="db-desc">5 piliers dramatiques</div></div></div>
+      <div class="db-row"><span class="db-icon">🎞️</span><div><div class="db-name">sequencier</div><div class="db-desc">Découpage professionnel</div></div></div>
+      <div class="db-row"><span class="db-icon">📜</span><div><div class="db-name">note_intention</div><div class="db-desc">Document CNC/festivals</div></div></div>
+    </div>
+  </div>
+
+  <!-- Exports -->
+  <div class="pipeline">
+    <p class="section-title">Exports — 9 formats</p>
+    <div class="export-grid">
+      <div class="export-card">
+        <div class="cat cat-universel">Universel</div>
+        <div class="ename">Matrice Narrative</div>
+        <div class="eformat">JSON</div>
+        <div class="edesc">Source de vérité complète</div>
+      </div>
+      <div class="export-card">
+        <div class="cat cat-universel">Universel</div>
+        <div class="ename">Noyau Émotionnel</div>
+        <div class="eformat">JSON</div>
+        <div class="edesc">Arc émotionnel du protagoniste</div>
+      </div>
+      <div class="export-card">
+        <div class="cat cat-universel">Universel</div>
+        <div class="ename">Scores H.P.S.A.</div>
+        <div class="eformat">JSON</div>
+        <div class="edesc">4 axes + globalScore + corrections</div>
+      </div>
+      <div class="export-card">
+        <div class="cat cat-universel">Universel</div>
+        <div class="ename">Dossier Pitch</div>
+        <div class="eformat">Markdown</div>
+        <div class="edesc">Document de présentation producteurs</div>
+      </div>
+      <div class="export-card">
+        <div class="cat cat-universel">Universel</div>
+        <div class="ename">Projet complet</div>
+        <div class="eformat">JSON</div>
+        <div class="edesc">Toutes les données du projet</div>
+      </div>
+      <div class="export-card">
+        <div class="cat cat-roman">Roman</div>
+        <div class="ename">Plan du livre</div>
+        <div class="eformat">Markdown</div>
+        <div class="edesc">Chapitres enrichis + synopsis</div>
+      </div>
+      <div class="export-card">
+        <div class="cat cat-cinema">Cinéma</div>
+        <div class="ename">Scénario Fountain</div>
+        <div class="eformat">.fountain</div>
+        <div class="edesc">Format standard professionnel</div>
+      </div>
+      <div class="export-card">
+        <div class="cat cat-serie">Série</div>
+        <div class="ename">Bible Série</div>
+        <div class="eformat">Markdown</div>
+        <div class="edesc">Concept + arcs + tous les épisodes</div>
+      </div>
+      <div class="export-card">
+        <div class="cat cat-serie">Série</div>
+        <div class="ename">Arc Saison JSON</div>
+        <div class="eformat">JSON</div>
+        <div class="edesc">Arcs émotionnels structurés par épisode</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notes techniques -->
+  <div class="pipeline">
+    <p class="section-title">Notes techniques clés</p>
+    <div class="notes-grid">
+      <div class="note-card">
+        <h4>Codegen Orval</h4>
+        <p>L'index <code>lib/api-zod/src/index.ts</code> est <strong>régénéré</strong> à chaque <code>codegen</code>. Pour éviter les conflits <code>TS2308</code>, tout <code>requestBody</code> inline doit être converti en <code>$ref</code> vers un named schema dans <code>openapi.yaml</code>.</p>
+      </div>
+      <div class="note-card">
+        <h4>Migration DB</h4>
+        <p><code>drizzle push</code> échoue en mode interactif sur Replit. Utiliser <code>executeSql()</code> via le sandbox code_execution pour les migrations directes (ALTER TABLE, CREATE TABLE).</p>
+      </div>
+      <div class="note-card">
+        <h4>Logging serveur</h4>
+        <p>Jamais <code>console.log</code> côté API. Utiliser <code>req.log</code> dans les route handlers et le singleton <code>logger</code> hors contexte de requête (Pino).</p>
+      </div>
+      <div class="note-card">
+        <h4>React Query hooks</h4>
+        <p>Les hooks générés par Orval nécessitent un <code>queryKey</code> explicite dans les options <code>query: {}</code>. Utiliser les helpers <code>getGet…QueryKey(id)</code> fournis.</p>
+      </div>
+      <div class="note-card">
+        <h4>Routing proxy Replit</h4>
+        <p>Tout le trafic passe par le proxy Replit (port 80 → 8080 pour l'API). Ne jamais appeler les ports directs. Utiliser les URLs relatives dans le code frontend.</p>
+      </div>
+      <div class="note-card">
+        <h4>VPS / Production</h4>
+        <p>Changer <code>gpt-5.4</code> → <code>gpt-4o</code> dans <code>generationService.ts</code>. Le modèle <code>gpt-5.4</code> est Replit-only. Utiliser <code>docker compose up -d --build</code> avec <code>.env</code> configuré.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Matrice Narrative — pnpm monorepo · Express 5 · React + Vite · PostgreSQL · GPT-5.4<br>
+    <span style="opacity:0.4">Généré automatiquement — mai 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>
