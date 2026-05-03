@@ -1988,6 +1988,143 @@ Les 10 scènes doivent couvrir l'arc complet : ouverture, déclencheur, montée,
 }
 
 // ---------------------------------------------------------------------------
+// Generate Beat Fountain — prose scène Fountain depuis un beat
+// ---------------------------------------------------------------------------
+
+export async function generateBeatFountain(
+  project: Project,
+  matrix: NarrativeMatrix,
+  beat: { beatNumber: number; beatLabel?: string; beatDescription: string; previousBeat?: string; nextBeat?: string; tone?: string },
+  skillsContext?: string
+): Promise<{ heading: string; fountain: string; dramaticNote: string; estimatedDuration: string }> {
+  const system = `Tu es scénariste professionnel formé à La Fémis, expert du format Fountain et de la dramaturgie française. Tu génères des scènes au format Fountain professionnel strict : en-têtes INT./EXT. en majuscules, noms de personnages centrés en MAJUSCULES, parenthétiques entre parenthèses, actions au présent de narration, transitions en majuscules. Chaque scène doit avoir une véritable tension dramatique, un début, un milieu, une fin. Réponds UNIQUEMENT en JSON valide.`;
+
+  const user = `Génère la scène Fountain complète pour ce beat du scénario "${project.title}".
+
+CONTEXTE DU PROJET :
+Genre : ${project.genre} | Ton : ${project.tone} | Format : ${project.targetFormat}
+Logline : ${matrix.logline}
+Protagoniste : ${matrix.protagonist}
+Antagoniste : ${matrix.antagonist}
+Conflit central : ${matrix.centralConflict}
+Enjeux émotionnels : ${matrix.emotionalStakes}
+
+BEAT À DÉVELOPPER :
+Numéro : ${beat.beatNumber}/15
+Label : ${beat.beatLabel ?? "Beat " + beat.beatNumber}
+Description dramaturgique : ${beat.beatDescription}
+${beat.previousBeat ? `Beat précédent : ${beat.previousBeat}` : ""}
+${beat.nextBeat ? `Beat suivant : ${beat.nextBeat}` : ""}
+${beat.tone ? `Ton particulier de cette scène : ${beat.tone}` : ""}
+
+DIRECTIVES :
+- Rédige une scène Fountain complète de 1 à 3 pages (environ 200-450 mots de script)
+- Commence par l'en-tête de scène (INT./EXT. LIEU - MOMENT)
+- Inclus des actions vivantes, des dialogues réels (2-6 échanges minimum), des parenthétiques si nécessaire
+- Le dialogue doit révéler le sous-texte — ce que les personnages NE disent pas est aussi important que ce qu'ils disent
+- Termine par une fin de scène claire — action physique, silence, coupe
+- La scène doit accomplir exactement la fonction dramatique du beat
+
+Réponds en JSON :
+{
+  "heading": "INT./EXT. LIEU PRÉCIS - MOMENT",
+  "fountain": "La scène complète au format Fountain — avec en-tête, actions, dialogues, parenthétiques",
+  "dramaticNote": "Note du scénariste : ce que la scène accomplit dramatiquement, le sous-texte principal, le choix formel clé",
+  "estimatedDuration": "Durée estimée à l'écran (ex: '2 min 30', '1 min 45')"
+}`;
+
+  const fallback = {
+    heading: `INT. LIEU — MOMENT`,
+    fountain: `INT. LIEU — JOUR\n\n${beat.beatDescription}\n\nPersonnage regarde autour de lui. Le silence dit tout ce que les mots ne peuvent pas.\n\nFIN DE SCÈNE`,
+    dramaticNote: `Beat ${beat.beatNumber} : ${beat.beatLabel ?? beat.beatDescription.slice(0, 80)}`,
+    estimatedDuration: "2 min",
+  };
+
+  return aiJson(system, user, fallback, skillsContext, { temperature: 0.85, maxTokens: 2500 });
+}
+
+// ---------------------------------------------------------------------------
+// Generate Fountain Dialogue — scène Fountain depuis profils psychologiques
+// ---------------------------------------------------------------------------
+
+type CharProfile = {
+  name: string;
+  role: string;
+  wound?: string | null;
+  fear?: string | null;
+  secret?: string | null;
+  voiceStyle?: string | null;
+  contradiction?: string | null;
+  innerNeed?: string | null;
+  psychologicalProfile?: string | null;
+};
+
+export async function generateFountainDialogue(
+  project: Project,
+  matrix: NarrativeMatrix,
+  char1: CharProfile,
+  char2: CharProfile,
+  input: { sceneContext: string; emotionalObjective?: string; conflictType?: string; tone?: string },
+  skillsContext?: string
+): Promise<{ heading: string; fountain: string; subtext: string; dramaticNote: string }> {
+  const system = `Tu es dramaturge et scénariste de premier rang — formé au Conservatoire d'art dramatique et à La Fémis. Tu écris des scènes de dialogue d'une précision psychologique rare, où chaque réplique révèle et dissimule à la fois. Tu maîtrises le sous-texte, la dramaturgie des silences, les masques sociaux. Format Fountain strict. Réponds UNIQUEMENT en JSON valide.`;
+
+  const user = `Écris une scène de dialogue Fountain entre deux personnages de "${project.title}", construite depuis leurs profils psychologiques complets.
+
+CONTEXTE DU PROJET :
+Genre : ${project.genre} | Ton : ${project.tone}
+Logline : ${matrix.logline}
+Conflit central : ${matrix.centralConflict}
+
+PERSONNAGE 1 — ${char1.name} (${char1.role})
+${char1.wound ? `Blessure : ${char1.wound}` : ""}
+${char1.fear ? `Peur : ${char1.fear}` : ""}
+${char1.secret ? `Secret : ${char1.secret}` : ""}
+${char1.contradiction ? `Contradiction interne : ${char1.contradiction}` : ""}
+${char1.innerNeed ? `Besoin profond : ${char1.innerNeed}` : ""}
+${char1.voiceStyle ? `Manière de parler : ${char1.voiceStyle}` : ""}
+
+PERSONNAGE 2 — ${char2.name} (${char2.role})
+${char2.wound ? `Blessure : ${char2.wound}` : ""}
+${char2.fear ? `Peur : ${char2.fear}` : ""}
+${char2.secret ? `Secret : ${char2.secret}` : ""}
+${char2.contradiction ? `Contradiction interne : ${char2.contradiction}` : ""}
+${char2.innerNeed ? `Besoin profond : ${char2.innerNeed}` : ""}
+${char2.voiceStyle ? `Manière de parler : ${char2.voiceStyle}` : ""}
+
+DEMANDE :
+Contexte de la scène : ${input.sceneContext}
+${input.emotionalObjective ? `Objectif émotionnel : ${input.emotionalObjective}` : ""}
+${input.conflictType ? `Type de conflit : ${input.conflictType}` : ""}
+${input.tone ? `Ton de la scène : ${input.tone}` : ""}
+
+DIRECTIVES :
+- 8 à 15 échanges de dialogue
+- Chaque personnage parle avec SA voix propre, ses tics, ses défenses, ses silences
+- Le sous-texte doit être palpable : ce qu'ils veulent vraiment dire n'est pas dit
+- Aucun dialogue "d'exposition" — tout est conflit, désir, blessure
+- Actions physiques précises entre les répliques (gestes révélateurs, regards, pauses)
+- La scène doit changer quelque chose — ni l'un ni l'autre ne ressort identique
+
+Réponds en JSON :
+{
+  "heading": "INT./EXT. LIEU PRÉCIS - MOMENT",
+  "fountain": "La scène Fountain complète — en-tête, actions, dialogues, parenthétiques",
+  "subtext": "Analyse du sous-texte : ce que chacun veut vraiment, ce qui se joue vraiment sous les mots",
+  "dramaticNote": "Note du scénariste : choix clés de la scène, ce qui fait que ce dialogue est unique à CES deux personnages"
+}`;
+
+  const fallback = {
+    heading: `INT. LIEU — JOUR`,
+    fountain: `INT. LIEU — JOUR\n\n${char1.name.toUpperCase()} et ${char2.name.toUpperCase()} se font face.\n\n${char1.name.toUpperCase()}\nNous devons parler.\n\n${char2.name.toUpperCase()}\n(sans le regarder)\nJe sais.\n\nLe silence s'installe. Lourd. Nécessaire.`,
+    subtext: `${char1.name} cherche ${input.emotionalObjective ?? "une reconnaissance"} que ${char2.name} ne peut pas donner.`,
+    dramaticNote: `Scène construite depuis les profils psychologiques de ${char1.name} et ${char2.name}.`,
+  };
+
+  return aiJson(system, user, fallback, skillsContext, { temperature: 0.88, maxTokens: 3000 });
+}
+
+// ---------------------------------------------------------------------------
 // Generate Chapter Prose — rédaction IA d'un chapitre depuis son plan
 // ---------------------------------------------------------------------------
 

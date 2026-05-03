@@ -224,8 +224,8 @@ Monorepo     pnpm workspace (structure actuelle conservée)
 - [x] Skill CNC injecté dans Note d'Intention et Pitch
 
 ### Semaine 3–4
-- [ ] Génération de dialogue depuis les profils psychologiques des personnages
-- [ ] Génération prose scène Fountain depuis les beats
+- [x] Génération de dialogue depuis les profils psychologiques des personnages
+- [x] Génération prose scène Fountain depuis les beats
 - [ ] Sauvegarde auto + historique de versions
 
 ### Mois 2

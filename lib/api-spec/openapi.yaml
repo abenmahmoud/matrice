@@ -794,6 +794,61 @@ paths:
               schema:
                 $ref: "#/components/schemas/Screenplay"
 
+  /projects/{id}/screenplay/beats/{beatIndex}/generate-fountain:
+    post:
+      operationId: generateBeatFountain
+      tags: [screenplay]
+      summary: Generate Fountain prose for a specific beat
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: beatIndex
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateBeatFountainInput"
+      responses:
+        "200":
+          description: Fountain scene
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FountainSceneResult"
+
+  /projects/{id}/generate-fountain-dialogue:
+    post:
+      operationId: generateFountainDialogue
+      tags: [screenplay]
+      summary: Generate a Fountain dialogue scene from character profiles
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FountainDialogueInput"
+      responses:
+        "200":
+          description: Fountain dialogue scene
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FountainDialogueResult"
+
   /projects/{id}/generate-series:
     post:
       operationId: generateSeries
@@ -2254,6 +2309,66 @@ components:
         - format
         - content
         - filename
+
+    GenerateBeatFountainInput:
+      type: object
+      properties:
+        beatNumber:
+          type: integer
+        beatLabel:
+          type: string
+        beatDescription:
+          type: string
+        previousBeat:
+          type: string
+        nextBeat:
+          type: string
+        tone:
+          type: string
+      required: [beatNumber, beatDescription]
+
+    FountainSceneResult:
+      type: object
+      properties:
+        heading:
+          type: string
+        fountain:
+          type: string
+        dramaticNote:
+          type: string
+        estimatedDuration:
+          type: string
+      required: [fountain]
+
+    FountainDialogueInput:
+      type: object
+      properties:
+        char1Id:
+          type: string
+        char2Id:
+          type: string
+        sceneContext:
+          type: string
+        emotionalObjective:
+          type: string
+        conflictType:
+          type: string
+        tone:
+          type: string
+      required: [char1Id, char2Id, sceneContext]
+
+    FountainDialogueResult:
+      type: object
+      properties:
+        heading:
+          type: string
+        fountain:
+          type: string
+        subtext:
+          type: string
+        dramaticNote:
+          type: string
+      required: [fountain]
 
     GenerateChapterProseInput:
       type: object

@@ -1,30 +1,39 @@
+import { useState } from "react";
 import { useParams } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { useGetScreenplay, useGenerateScreenplay, getGetScreenplayQueryKey } from "@workspace/api-client-react";
+import { useGetScreenplay, useGenerateScreenplay, useGenerateBeatFountain, getGetScreenplayQueryKey } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, RefreshCw, Film, Wand2, ExternalLink } from "lucide-react";
+import { Loader2, RefreshCw, Film, Wand2, ExternalLink, Clapperboard, Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SectionCard } from "@/components/SectionCard";
 import { GenerateEmptyState } from "@/components/GenerateEmptyState";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 type Beat = { number: number; label?: string; description: string; pageRange?: string };
 type SceneItem = { number: number; heading: string; description: string; dialogueDraft?: string; emotionalTone?: string; dramaticFunction?: string };
+type FountainResult = { heading: string; fountain: string; dramaticNote: string; estimatedDuration: string };
 
 export default function ScreenplayPage() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
   const { toast } = useToast();
 
+  const [expandedBeat, setExpandedBeat] = useState<number | null>(null);
+  const [fountainResults, setFountainResults] = useState<Record<number, FountainResult>>({});
+  const [generatingBeat, setGeneratingBeat] = useState<number | null>(null);
+  const [copiedBeat, setCopiedBeat] = useState<number | null>(null);
+
   const { data: sp, isLoading } = useGetScreenplay(id!, {
     query: { enabled: !!id, queryKey: getGetScreenplayQueryKey(id!) }
   });
   const generate = useGenerateScreenplay();
+  const generateBeatFountainMutation = useGenerateBeatFountain();
 
   const handleGenerate = () => {
     generate.mutate({ id: id! }, {
@@ -34,6 +43,40 @@ export default function ScreenplayPage() {
       },
       onError: () => toast({ variant: "destructive", title: "Erreur" })
     });
+  };
+
+  const handleGenerateBeatFountain = async (beat: Beat, beats: Beat[]) => {
+    const idx = beat.number;
+    setGeneratingBeat(idx);
+    const prevBeat = beats.find(b => b.number === beat.number - 1);
+    const nextBeat = beats.find(b => b.number === beat.number + 1);
+    try {
+      const result = await generateBeatFountainMutation.mutateAsync({
+        id: id!,
+        beatIndex: idx,
+        data: {
+          beatNumber: beat.number,
+          beatLabel: beat.label,
+          beatDescription: beat.description,
+          previousBeat: prevBeat?.description,
+          nextBeat: nextBeat?.description,
+        }
+      });
+      setFountainResults(prev => ({ ...prev, [idx]: result as FountainResult }));
+      setExpandedBeat(idx);
+    } catch {
+      toast({ variant: "destructive", title: "Erreur de génération", description: "Impossible de générer la scène Fountain." });
+    } finally {
+      setGeneratingBeat(null);
+    }
+  };
+
+  const copyFountain = (beatIdx: number) => {
+    const r = fountainResults[beatIdx];
+    if (!r) return;
+    void navigator.clipboard.writeText(r.fountain);
+    setCopiedBeat(beatIdx);
+    setTimeout(() => setCopiedBeat(null), 2000);
   };
 
   if (isLoading) return <AppLayout><div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div></AppLayout>;
@@ -103,27 +146,108 @@ export default function ScreenplayPage() {
 
           {/* 15 Beats */}
           <TabsContent value="beats" className="mt-4">
+            <div className="mb-3 flex items-center gap-2">
+              <Clapperboard className="w-4 h-4 text-primary/60" />
+              <p className="text-xs text-muted-foreground">Cliquez sur <span className="text-primary font-semibold">Écrire la scène</span> pour générer la prose Fountain de chaque beat.</p>
+            </div>
             <div className="space-y-2">
-              {beats.map((beat, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}>
-                  <div className="flex gap-4 p-4 rounded-lg border border-border/40 bg-card/30 hover:bg-card/40 transition-colors">
-                    <div className="shrink-0">
-                      <span className="text-xs font-bold text-primary w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        {beat.number}
-                      </span>
+              {beats.map((beat) => {
+                const isExpanded = expandedBeat === beat.number;
+                const result = fountainResults[beat.number];
+                const isGenerating = generatingBeat === beat.number;
+
+                return (
+                  <motion.div key={beat.number} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: beat.number * 0.03 }}>
+                    <div className={cn(
+                      "rounded-lg border transition-all",
+                      isExpanded ? "border-primary/40 bg-card/50" : "border-border/40 bg-card/30 hover:bg-card/40"
+                    )}>
+                      {/* Beat header */}
+                      <div className="flex gap-4 p-4">
+                        <div className="shrink-0">
+                          <span className="text-xs font-bold text-primary w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            {beat.number}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {beat.label && (
+                            <p className="text-[11px] font-bold text-primary/70 uppercase tracking-widest mb-1">{beat.label}</p>
+                          )}
+                          <p className="text-sm text-foreground/80 leading-relaxed">{beat.description}</p>
+                          {beat.pageRange && (
+                            <p className="text-[10px] text-muted-foreground/50 mt-1 font-mono">{beat.pageRange}</p>
+                          )}
+                        </div>
+                        <div className="flex items-start gap-2 shrink-0">
+                          {result && (
+                            <Button size="sm" variant="ghost"
+                              className="h-7 px-2 text-[10px] text-muted-foreground"
+                              onClick={() => setExpandedBeat(isExpanded ? null : beat.number)}>
+                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            </Button>
+                          )}
+                          <Button size="sm" variant={result ? "outline" : "default"}
+                            className={cn("h-7 text-[11px] px-3 gap-1.5", !result && "bg-primary/80 hover:bg-primary text-white border-0")}
+                            disabled={isGenerating}
+                            onClick={() => void handleGenerateBeatFountain(beat, beats)}>
+                            {isGenerating ? (
+                              <><Loader2 className="w-3 h-3 animate-spin" /> Écriture…</>
+                            ) : result ? (
+                              <><RefreshCw className="w-3 h-3" /> Réécrire</>
+                            ) : (
+                              <><Clapperboard className="w-3 h-3" /> Écrire la scène</>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Fountain result */}
+                      <AnimatePresence>
+                        {isExpanded && result && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden">
+                            <div className="border-t border-primary/10 px-4 pb-4 pt-3">
+                              {/* Meta */}
+                              <div className="flex items-center justify-between mb-3 gap-3">
+                                <div className="flex items-center gap-3 flex-wrap">
+                                  <span className="text-[10px] font-mono text-primary/70 bg-primary/5 px-2 py-0.5 rounded border border-primary/10">
+                                    {result.heading}
+                                  </span>
+                                  {result.estimatedDuration && (
+                                    <span className="text-[10px] text-muted-foreground/60 font-mono">⏱ {result.estimatedDuration}</span>
+                                  )}
+                                </div>
+                                <Button size="sm" variant="ghost" className="h-7 px-2 text-[10px] gap-1"
+                                  onClick={() => copyFountain(beat.number)}>
+                                  {copiedBeat === beat.number ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                                  {copiedBeat === beat.number ? "Copié" : "Copier"}
+                                </Button>
+                              </div>
+
+                              {/* Fountain script */}
+                              <pre className="font-mono text-xs text-foreground/85 bg-background/40 rounded-lg p-4 whitespace-pre-wrap leading-relaxed border border-border/20 max-h-96 overflow-y-auto">
+                                {result.fountain}
+                              </pre>
+
+                              {/* Dramatic note */}
+                              {result.dramaticNote && (
+                                <div className="mt-3 px-3 py-2 rounded-lg bg-violet-500/5 border border-violet-500/15">
+                                  <p className="text-[10px] font-bold text-violet-400/70 uppercase tracking-wider mb-1">Note du scénariste</p>
+                                  <p className="text-xs text-foreground/60 leading-relaxed italic">{result.dramaticNote}</p>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      {beat.label && (
-                        <p className="text-[11px] font-bold text-primary/70 uppercase tracking-widest mb-1">{beat.label}</p>
-                      )}
-                      <p className="text-sm text-foreground/80 leading-relaxed">{beat.description}</p>
-                      {beat.pageRange && (
-                        <p className="text-[10px] text-muted-foreground/50 mt-1 font-mono">{beat.pageRange}</p>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </TabsContent>
 

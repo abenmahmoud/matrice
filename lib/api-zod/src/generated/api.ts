@@ -1524,6 +1524,53 @@ export const UpdateScreenplayResponse = zod.object({
 });
 
 /**
+ * @summary Generate Fountain prose for a specific beat
+ */
+export const GenerateBeatFountainParams = zod.object({
+  id: zod.coerce.string(),
+  beatIndex: zod.coerce.number(),
+});
+
+export const GenerateBeatFountainBody = zod.object({
+  beatNumber: zod.number(),
+  beatLabel: zod.string().optional(),
+  beatDescription: zod.string(),
+  previousBeat: zod.string().optional(),
+  nextBeat: zod.string().optional(),
+  tone: zod.string().optional(),
+});
+
+export const GenerateBeatFountainResponse = zod.object({
+  heading: zod.string().optional(),
+  fountain: zod.string(),
+  dramaticNote: zod.string().optional(),
+  estimatedDuration: zod.string().optional(),
+});
+
+/**
+ * @summary Generate a Fountain dialogue scene from character profiles
+ */
+export const GenerateFountainDialogueParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GenerateFountainDialogueBody = zod.object({
+  char1Id: zod.string(),
+  char2Id: zod.string(),
+  sceneContext: zod.string(),
+  emotionalObjective: zod.string().optional(),
+  conflictType: zod.string().optional(),
+  tone: zod.string().optional(),
+});
+
+export const GenerateFountainDialogueResponse = zod.object({
+  heading: zod.string().optional(),
+  fountain: zod.string(),
+  subtext: zod.string().optional(),
+  dramaticNote: zod.string().optional(),
+});
+
+/**
  * @summary Generate series structure
  */
 export const GenerateSeriesParams = zod.object({

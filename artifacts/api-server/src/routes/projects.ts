@@ -15,7 +15,8 @@ import {
   generateBookOutline, generateScreenplay, generateSeries, generatePitch,
   autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue, generateDirectorMode,
   generateEchoDuTemps, generateMiroirArtistique, generateCinqPiliers, generateSequencier, generateNoteIntention,
-  generateFilmData, generatePlayableScenes, checkSceneHpsa, generateChapterProse
+  generateFilmData, generatePlayableScenes, checkSceneHpsa, generateChapterProse,
+  generateBeatFountain, generateFountainDialogue
 } from "../services/generationService.js";
 import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistiqueTable, cinqPiliersTable, sequencierTable, noteIntentionTable } from "@workspace/db";
 
@@ -832,6 +833,54 @@ router.put("/projects/:id/screenplay", async (req, res) => {
       .where(eq(screenplaysTable.projectId, req.params.id)).returning();
     if (!sp) return res.status(404).json({ error: "Not found" });
     res.json(sp);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Beat Fountain — prose scène depuis un beat
+// ---------------------------------------------------------------------------
+
+router.post("/projects/:id/screenplay/beats/:beatIndex/generate-fountain", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+    if (!matrix) return res.status(400).json({ error: "Matrice narrative requise" });
+    const body = req.body as {
+      beatNumber: number; beatLabel?: string; beatDescription: string;
+      previousBeat?: string; nextBeat?: string; tone?: string;
+    };
+    const result = await generateBeatFountain(project, matrix, body);
+    res.json(result);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Fountain Dialogue — scène de dialogue depuis profils psychologiques
+// ---------------------------------------------------------------------------
+
+router.post("/projects/:id/generate-fountain-dialogue", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+    const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+    if (!matrix) return res.status(400).json({ error: "Matrice narrative requise" });
+    const { char1Id, char2Id, sceneContext, emotionalObjective, conflictType, tone } = req.body as {
+      char1Id: string; char2Id: string; sceneContext: string;
+      emotionalObjective?: string; conflictType?: string; tone?: string;
+    };
+    if (!char1Id || !char2Id || !sceneContext) return res.status(400).json({ error: "char1Id, char2Id et sceneContext sont requis" });
+    const [char1] = await db.select().from(charactersTable).where(eq(charactersTable.id, char1Id));
+    const [char2] = await db.select().from(charactersTable).where(eq(charactersTable.id, char2Id));
+    if (!char1 || !char2) return res.status(404).json({ error: "Personnage introuvable" });
+    const result = await generateFountainDialogue(project, matrix, char1, char2, { sceneContext, emotionalObjective, conflictType, tone });
+    res.json(result);
   } catch (err) {
     req.log.error({ err });
     res.status(500).json({ error: "Internal server error" });

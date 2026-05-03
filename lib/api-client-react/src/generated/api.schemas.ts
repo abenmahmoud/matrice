@@ -534,6 +534,38 @@ export interface ExportResult {
   filename: string;
 }
 
+export interface GenerateBeatFountainInput {
+  beatNumber: number;
+  beatLabel?: string;
+  beatDescription: string;
+  previousBeat?: string;
+  nextBeat?: string;
+  tone?: string;
+}
+
+export interface FountainSceneResult {
+  heading?: string;
+  fountain: string;
+  dramaticNote?: string;
+  estimatedDuration?: string;
+}
+
+export interface FountainDialogueInput {
+  char1Id: string;
+  char2Id: string;
+  sceneContext: string;
+  emotionalObjective?: string;
+  conflictType?: string;
+  tone?: string;
+}
+
+export interface FountainDialogueResult {
+  heading?: string;
+  fountain: string;
+  subtext?: string;
+  dramaticNote?: string;
+}
+
 export interface GenerateChapterProseInput {
   chapterNumber: number;
   chapterTitle: string;

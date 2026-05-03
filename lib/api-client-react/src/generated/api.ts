@@ -30,6 +30,10 @@ import type {
   ExportResult,
   FilmData,
   FilmScene,
+  FountainDialogueInput,
+  FountainDialogueResult,
+  FountainSceneResult,
+  GenerateBeatFountainInput,
   GenerateChapterProseInput,
   HealthStatus,
   HpsaScore,
@@ -3199,6 +3203,197 @@ export const useUpdateScreenplay = <
   TContext
 > => {
   return useMutation(getUpdateScreenplayMutationOptions(options));
+};
+
+/**
+ * @summary Generate Fountain prose for a specific beat
+ */
+export const getGenerateBeatFountainUrl = (id: string, beatIndex: number) => {
+  return `/api/projects/${id}/screenplay/beats/${beatIndex}/generate-fountain`;
+};
+
+export const generateBeatFountain = async (
+  id: string,
+  beatIndex: number,
+  generateBeatFountainInput: GenerateBeatFountainInput,
+  options?: RequestInit,
+): Promise<FountainSceneResult> => {
+  return customFetch<FountainSceneResult>(
+    getGenerateBeatFountainUrl(id, beatIndex),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(generateBeatFountainInput),
+    },
+  );
+};
+
+export const getGenerateBeatFountainMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateBeatFountain>>,
+    TError,
+    {
+      id: string;
+      beatIndex: number;
+      data: BodyType<GenerateBeatFountainInput>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateBeatFountain>>,
+  TError,
+  { id: string; beatIndex: number; data: BodyType<GenerateBeatFountainInput> },
+  TContext
+> => {
+  const mutationKey = ["generateBeatFountain"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateBeatFountain>>,
+    { id: string; beatIndex: number; data: BodyType<GenerateBeatFountainInput> }
+  > = (props) => {
+    const { id, beatIndex, data } = props ?? {};
+
+    return generateBeatFountain(id, beatIndex, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateBeatFountainMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateBeatFountain>>
+>;
+export type GenerateBeatFountainMutationBody =
+  BodyType<GenerateBeatFountainInput>;
+export type GenerateBeatFountainMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate Fountain prose for a specific beat
+ */
+export const useGenerateBeatFountain = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateBeatFountain>>,
+    TError,
+    {
+      id: string;
+      beatIndex: number;
+      data: BodyType<GenerateBeatFountainInput>;
+    },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateBeatFountain>>,
+  TError,
+  { id: string; beatIndex: number; data: BodyType<GenerateBeatFountainInput> },
+  TContext
+> => {
+  return useMutation(getGenerateBeatFountainMutationOptions(options));
+};
+
+/**
+ * @summary Generate a Fountain dialogue scene from character profiles
+ */
+export const getGenerateFountainDialogueUrl = (id: string) => {
+  return `/api/projects/${id}/generate-fountain-dialogue`;
+};
+
+export const generateFountainDialogue = async (
+  id: string,
+  fountainDialogueInput: FountainDialogueInput,
+  options?: RequestInit,
+): Promise<FountainDialogueResult> => {
+  return customFetch<FountainDialogueResult>(
+    getGenerateFountainDialogueUrl(id),
+    {
+      ...options,
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...options?.headers },
+      body: JSON.stringify(fountainDialogueInput),
+    },
+  );
+};
+
+export const getGenerateFountainDialogueMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateFountainDialogue>>,
+    TError,
+    { id: string; data: BodyType<FountainDialogueInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateFountainDialogue>>,
+  TError,
+  { id: string; data: BodyType<FountainDialogueInput> },
+  TContext
+> => {
+  const mutationKey = ["generateFountainDialogue"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateFountainDialogue>>,
+    { id: string; data: BodyType<FountainDialogueInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return generateFountainDialogue(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateFountainDialogueMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateFountainDialogue>>
+>;
+export type GenerateFountainDialogueMutationBody =
+  BodyType<FountainDialogueInput>;
+export type GenerateFountainDialogueMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate a Fountain dialogue scene from character profiles
+ */
+export const useGenerateFountainDialogue = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateFountainDialogue>>,
+    TError,
+    { id: string; data: BodyType<FountainDialogueInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateFountainDialogue>>,
+  TError,
+  { id: string; data: BodyType<FountainDialogueInput> },
+  TContext
+> => {
+  return useMutation(getGenerateFountainDialogueMutationOptions(options));
 };
 
 /**
