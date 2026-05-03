@@ -567,6 +567,30 @@ export interface ContentVersionFull {
   data: ContentVersionFullData;
 }
 
+export type SruScoreTraditionsItem = {
+  name: string;
+  match: number;
+  justification: string;
+};
+
+export interface SruScore {
+  id: string;
+  projectId: string;
+  etincelle: number;
+  etincelleComment: string;
+  vibration: number;
+  vibrationComment: string;
+  profondeur: number;
+  profondeurComment: string;
+  maitrise: number;
+  maitriseComment: string;
+  sru: number;
+  traditions: SruScoreTraditionsItem[];
+  syntheseGlobale: string;
+  niveauResonance: string;
+  updatedAt: string;
+}
+
 export interface GenerateBeatFountainInput {
   beatNumber: number;
   beatLabel?: string;

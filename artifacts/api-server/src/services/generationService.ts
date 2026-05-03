@@ -2221,3 +2221,103 @@ Génère un objet JSON :
 
   return aiJson(system, user, { humour: 30, pleur: 50, suspense: 60, attractivite: 55, feedback: "Analyse en cours" }, undefined, { maxTokens: 1000 });
 }
+
+// ---------------------------------------------------------------------------
+// SRU — Score de Résonance Universelle (Prisme des Quatre Publics)
+// ---------------------------------------------------------------------------
+
+type SruScoresResult = {
+  etincelle: number;
+  etincelleComment: string;
+  vibration: number;
+  vibrationComment: string;
+  profondeur: number;
+  profondeurComment: string;
+  maitrise: number;
+  maitriseComment: string;
+  sru: number;
+  traditions: { name: string; match: number; justification: string }[];
+  syntheseGlobale: string;
+  niveauResonance: string;
+};
+
+export async function generateSRUScores(
+  project: Project,
+  matrix: NarrativeMatrix | null,
+  cinemaContext: string,
+  skillsContext?: string
+): Promise<SruScoresResult> {
+  const systemPrompt = `Tu es un analyste narratif de réputation mondiale, formé aux traditions cinématographiques de tous les continents et à toutes les formes narratives (roman, cinéma, série, théâtre, poésie).
+
+Tu analyses les projets créatifs selon le Prisme des Quatre Publics — un modèle arithmétique universel qui évalue la résonance d'une œuvre narrative sur 4 axes fondamentaux.
+
+AXES D'ÉVALUATION (chacun noté de 0 à 100) :
+
+• ÉTINCELLE (public enfant · 4-12 ans) : Émerveillement, magie narrative, peur salvatrice, joie pure. L'histoire crée-t-elle des images que l'enfant peut habiter ? Évalue : clarté émotionnelle, force iconique, rythme accessible, absence de cynisme.
+
+• VIBRATION (public jeune · 13-25 ans) : Authenticité, quête d'identité, rébellion juste, découverte du monde, refus du faux. Le projet parle-t-il à celui qu'on est en train de devenir ? Évalue : vérité émotionnelle, représentation, enjeux de liberté, énergie.
+
+• PROFONDEUR (public adulte · 26-60 ans) : Complexité psychologique, nuance morale, portée sociale, résonance intime, ambiguïté fondée. Le projet pense-t-il autant qu'il ressent ? Évalue : densité thématique, justesse psychologique, portée culturelle.
+
+• MAÎTRISE (spécialistes · professionnels · programmateurs) : Innovation formelle, conscience des traditions, économie du langage, précision des choix, dialogue avec l'histoire du cinéma ou de la littérature. Le projet sait-il ce qu'il est ? Évalue : cohérence formelle, originalité structurelle, érudition narrative.
+
+SCORE SRU = (Étincelle + Vibration + Profondeur + Maîtrise) / 4 — arrondi à 1 décimale.
+
+NIVEAUX DE RÉSONANCE :
+- 0-49 : FRAGILE
+- 50-64 : EN DEVENIR
+- 65-74 : SOLIDE
+- 75-84 : REMARQUABLE
+- 85-100 : EXCEPTIONNEL
+
+TRADITIONS : Pour chaque tradition de la liste fournie, évalue la correspondance réelle (0-100). Retiens uniquement celles avec un score ≥ 65. Maximum 5 traditions. Justifie précisément chaque lien.
+
+RÈGLE ABSOLUE : Sois exigeant et honnête. Un score de 90+ se mérite. Les commentaires doivent être analytiques et précis, pas encourageants. La synthèse doit nommer les forces ET les faiblesses réelles.`;
+
+  const matrixBlock = matrix
+    ? `\n\nMATRICE NARRATIVE COMPLÈTE :
+Concept central : ${matrix.centralConcept}
+Logline : ${matrix.logline}
+Synopsis : ${matrix.longSynopsis?.slice(0, 1000)}
+Thèmes : ${matrix.themes?.join(", ")}
+Conflit central : ${matrix.centralConflict}
+Enjeux émotionnels : ${matrix.emotionalStakes}
+Lois de l'univers : ${matrix.universeLaws?.join(", ")}`
+    : "";
+
+  const userPrompt = `PROJET À ANALYSER :
+${projectContext(project)}${matrixBlock}
+
+TRADITIONS CINÉMATOGRAPHIQUES ET LITTÉRAIRES DISPONIBLES POUR COMPARAISON :
+${cinemaContext}
+
+Retourne uniquement ce JSON (aucun autre texte) :
+{
+  "etincelle": <nombre 0-100>,
+  "etincelleComment": <analyse précise de 2-3 phrases sur la résonance enfant de ce projet spécifique>,
+  "vibration": <nombre 0-100>,
+  "vibrationComment": <analyse précise de 2-3 phrases sur la résonance jeune de ce projet spécifique>,
+  "profondeur": <nombre 0-100>,
+  "profondeurComment": <analyse précise de 2-3 phrases sur la résonance adulte de ce projet spécifique>,
+  "maitrise": <nombre 0-100>,
+  "maitriseComment": <analyse précise de 2-3 phrases sur la maîtrise formelle et l'ancrage cinématographique de ce projet>,
+  "sru": <moyenne arithmétique arrondie à 1 décimale>,
+  "traditions": [
+    { "name": <nom exact du mouvement ou pays de la liste>, "match": <0-100>, "justification": <1-2 phrases de lien précis avec ce projet> }
+  ],
+  "syntheseGlobale": <paragraphe de 5-7 phrases : forces majeures, limites identifiées, positionnement dans le paysage narratif, potentiel de public>,
+  "niveauResonance": <"FRAGILE" | "EN DEVENIR" | "SOLIDE" | "REMARQUABLE" | "EXCEPTIONNEL">
+}`;
+
+  const fallback: SruScoresResult = {
+    etincelle: 0, etincelleComment: "Analyse non disponible.",
+    vibration: 0, vibrationComment: "Analyse non disponible.",
+    profondeur: 0, profondeurComment: "Analyse non disponible.",
+    maitrise: 0, maitriseComment: "Analyse non disponible.",
+    sru: 0, traditions: [],
+    syntheseGlobale: "L'analyse n'a pas pu être générée.",
+    niveauResonance: "EN DEVENIR",
+  };
+
+  return aiJson<SruScoresResult>(systemPrompt, userPrompt, fallback, skillsContext, { maxTokens: 4096 });
+}

@@ -4,7 +4,7 @@ import {
   Home, LayoutDashboard, Plus, BookOpen, Brain, Users, Network, Globe2,
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
-  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2
+  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -76,6 +76,7 @@ const PHASES = [
       { name: "Miroir Artistique", href: "miroir", icon: Telescope },
       { name: "Séquencier", href: "sequencier", icon: Clapperboard },
       { name: "Scènes Jouables", href: "film-scenes", icon: Wand2 },
+      { name: "Prisme Universel", href: "prisme", icon: Aperture },
     ],
   },
 ];

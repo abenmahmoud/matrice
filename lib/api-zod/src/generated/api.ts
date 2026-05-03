@@ -969,6 +969,68 @@ export const UpdateResearchResponse = zod.object({
 });
 
 /**
+ * @summary Générer le Score de Résonance Universelle (Prisme des Quatre Publics)
+ */
+export const GenerateSruScoreParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GenerateSruScoreResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  etincelle: zod.number(),
+  etincelleComment: zod.string(),
+  vibration: zod.number(),
+  vibrationComment: zod.string(),
+  profondeur: zod.number(),
+  profondeurComment: zod.string(),
+  maitrise: zod.number(),
+  maitriseComment: zod.string(),
+  sru: zod.number(),
+  traditions: zod.array(
+    zod.object({
+      name: zod.string(),
+      match: zod.number(),
+      justification: zod.string(),
+    }),
+  ),
+  syntheseGlobale: zod.string(),
+  niveauResonance: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
+ * @summary Récupérer le Score de Résonance Universelle
+ */
+export const GetSruScoreParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetSruScoreResponse = zod.object({
+  id: zod.string(),
+  projectId: zod.string(),
+  etincelle: zod.number(),
+  etincelleComment: zod.string(),
+  vibration: zod.number(),
+  vibrationComment: zod.string(),
+  profondeur: zod.number(),
+  profondeurComment: zod.string(),
+  maitrise: zod.number(),
+  maitriseComment: zod.string(),
+  sru: zod.number(),
+  traditions: zod.array(
+    zod.object({
+      name: zod.string(),
+      match: zod.number(),
+      justification: zod.string(),
+    }),
+  ),
+  syntheseGlobale: zod.string(),
+  niveauResonance: zod.string(),
+  updatedAt: zod.string(),
+});
+
+/**
  * @summary Generate HPSA score
  */
 export const GenerateHpsaScoreParams = zod.object({

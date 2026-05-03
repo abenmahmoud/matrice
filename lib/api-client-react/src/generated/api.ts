@@ -49,6 +49,7 @@ import type {
   SceneHpsaResult,
   Screenplay,
   Series,
+  SruScore,
   UpdateProjectInput,
   WorldData,
 } from "./api.schemas";
@@ -2428,6 +2429,177 @@ export const useUpdateResearch = <
 > => {
   return useMutation(getUpdateResearchMutationOptions(options));
 };
+
+/**
+ * @summary Générer le Score de Résonance Universelle (Prisme des Quatre Publics)
+ */
+export const getGenerateSruScoreUrl = (id: string) => {
+  return `/api/projects/${id}/generate-sru`;
+};
+
+export const generateSruScore = async (
+  id: string,
+  options?: RequestInit,
+): Promise<SruScore> => {
+  return customFetch<SruScore>(getGenerateSruScoreUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getGenerateSruScoreMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateSruScore>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateSruScore>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["generateSruScore"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateSruScore>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return generateSruScore(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateSruScoreMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateSruScore>>
+>;
+
+export type GenerateSruScoreMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Générer le Score de Résonance Universelle (Prisme des Quatre Publics)
+ */
+export const useGenerateSruScore = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateSruScore>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateSruScore>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getGenerateSruScoreMutationOptions(options));
+};
+
+/**
+ * @summary Récupérer le Score de Résonance Universelle
+ */
+export const getGetSruScoreUrl = (id: string) => {
+  return `/api/projects/${id}/sru`;
+};
+
+export const getSruScore = async (
+  id: string,
+  options?: RequestInit,
+): Promise<SruScore> => {
+  return customFetch<SruScore>(getGetSruScoreUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSruScoreQueryKey = (id: string) => {
+  return [`/api/projects/${id}/sru`] as const;
+};
+
+export const getGetSruScoreQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSruScore>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSruScore>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSruScoreQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSruScore>>> = ({
+    signal,
+  }) => getSruScore(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSruScore>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSruScoreQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSruScore>>
+>;
+export type GetSruScoreQueryError = ErrorType<void>;
+
+/**
+ * @summary Récupérer le Score de Résonance Universelle
+ */
+
+export function useGetSruScore<
+  TData = Awaited<ReturnType<typeof getSruScore>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getSruScore>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSruScoreQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Generate HPSA score

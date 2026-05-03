@@ -56,6 +56,8 @@ export * from "./seriesEpisodesItem";
 export * from "./seriesLongArcsItem";
 export * from "./seriesProgressiveRevelationsItem";
 export * from "./seriesSecondaryCharactersItem";
+export * from "./sruScore";
+export * from "./sruScoreTraditionsItem";
 export * from "./updateProjectInput";
 export * from "./worldData";
 export * from "./worldDataLocationsItem";

@@ -5,7 +5,8 @@ import {
   charactersTable, relationshipsTable, worldDataTable, researchDataTable,
   hpsaScoresTable, bookOutlinesTable, screenplaysTable, seriesTable, pitchDocumentsTable,
   narrativeSkillsTable, projectSkillsTable,
-  filmDataTable, filmScenesTable
+  filmDataTable, filmScenesTable,
+  sruScoresTable, cinemaKnowledgeTable
 } from "@workspace/db";
 import { getSkillsContextString } from "../services/skillsInjectionService.js";
 import { eq, and, asc } from "drizzle-orm";
@@ -17,7 +18,7 @@ import {
   autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue, generateDirectorMode,
   generateEchoDuTemps, generateMiroirArtistique, generateCinqPiliers, generateSequencier, generateNoteIntention,
   generateFilmData, generatePlayableScenes, checkSceneHpsa, generateChapterProse,
-  generateBeatFountain, generateFountainDialogue
+  generateBeatFountain, generateFountainDialogue, generateSRUScores
 } from "../services/generationService.js";
 import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistiqueTable, cinqPiliersTable, sequencierTable, noteIntentionTable, contentVersionsTable } from "@workspace/db";
 
@@ -695,6 +696,56 @@ router.post("/projects/:id/generate-hpsa-score", (req, res) => {
       if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
     }
   })();
+});
+
+// ---------------------------------------------------------------------------
+// SRU — Score de Résonance Universelle (Prisme des Quatre Publics)
+// ---------------------------------------------------------------------------
+
+// POST /api/projects/:id/generate-sru
+router.post("/projects/:id/generate-sru", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id, { cinemaReferences: project.cinematicReferences });
+      await sseRun(req, res,
+        ["Lecture du projet...", "Analyse du Prisme des Quatre Publics en cours...", "Calcul du Score de Résonance Universelle..."],
+        async () => {
+          const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const cinemaEntries = await db.select().from(cinemaKnowledgeTable).where(eq(cinemaKnowledgeTable.isActive, true)).limit(36);
+          const cinemaContext = cinemaEntries.map(e =>
+            `${e.movement ?? e.country} (${e.era ?? ""}): ${e.culturalContext ?? ""}`
+          ).join("\n");
+          const scores = await generateSRUScores(project, matrix ?? null, cinemaContext, skills);
+          const existing = await db.select().from(sruScoresTable).where(eq(sruScoresTable.projectId, req.params.id));
+          let sru;
+          if (existing.length > 0) {
+            [sru] = await db.update(sruScoresTable).set({ ...scores, updatedAt: new Date() })
+              .where(eq(sruScoresTable.projectId, req.params.id)).returning();
+          } else {
+            [sru] = await db.insert(sruScoresTable).values({ projectId: req.params.id, ...scores }).returning();
+          }
+          return sru;
+        }
+      );
+    } catch (err) {
+      req.log.error({ err });
+      if (!res.headersSent) res.status(500).json({ error: "Internal server error" });
+    }
+  })();
+});
+
+// GET /api/projects/:id/sru
+router.get("/projects/:id/sru", async (req, res) => {
+  try {
+    const [sru] = await db.select().from(sruScoresTable).where(eq(sruScoresTable.projectId, req.params.id));
+    if (!sru) return res.status(404).json({ error: "Not found" });
+    res.json(sru);
+  } catch (err) {
+    req.log.error({ err });
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // GET /api/projects/:id/hpsa

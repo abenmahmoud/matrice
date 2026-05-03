@@ -492,3 +492,33 @@ export const contentVersionsTable = pgTable("content_versions", {
 });
 
 export type ContentVersion = typeof contentVersionsTable.$inferSelect;
+
+// ---------------------------------------------------------------------------
+// SRU Scores — Score de Résonance Universelle (Prisme des Quatre Publics)
+// ---------------------------------------------------------------------------
+
+export type TraditionMatch = {
+  name: string;
+  match: number;
+  justification: string;
+};
+
+export const sruScoresTable = pgTable("sru_scores", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  etincelle: real("etincelle").notNull().default(0),
+  etincelleComment: text("etincelle_comment").notNull().default(""),
+  vibration: real("vibration").notNull().default(0),
+  vibrationComment: text("vibration_comment").notNull().default(""),
+  profondeur: real("profondeur").notNull().default(0),
+  profondeurComment: text("profondeur_comment").notNull().default(""),
+  maitrise: real("maitrise").notNull().default(0),
+  maitriseComment: text("maitrise_comment").notNull().default(""),
+  sru: real("sru").notNull().default(0),
+  traditions: jsonb("traditions").$type<TraditionMatch[]>().notNull().default([]),
+  syntheseGlobale: text("synthese_globale").notNull().default(""),
+  niveauResonance: text("niveau_resonance").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type SruScore = typeof sruScoresTable.$inferSelect;

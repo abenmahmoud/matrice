@@ -36,6 +36,7 @@ import PiliersPage from "./pages/piliers";
 import SequencierPage from "./pages/sequencier";
 import NoteIntentionPage from "./pages/note-intention";
 import FilmScenesPage from "./pages/film-scenes";
+import PrismePage from "./pages/prisme";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
@@ -63,6 +64,7 @@ function Router() {
       <Route path="/projects/:id/sequencier" component={SequencierPage} />
       <Route path="/projects/:id/note-intention" component={NoteIntentionPage} />
       <Route path="/projects/:id/film-scenes" component={FilmScenesPage} />
+      <Route path="/projects/:id/prisme" component={PrismePage} />
       <Route path="/projects/:id/emotional-core" component={EmotionalCorePage} />
       <Route path="/projects/:id/characters" component={CharactersPage} />
       <Route path="/projects/:id/relationships" component={RelationshipsPage} />

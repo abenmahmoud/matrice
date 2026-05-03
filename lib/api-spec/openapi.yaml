@@ -36,6 +36,8 @@ tags:
     description: Export management
   - name: dashboard
     description: Dashboard summaries
+  - name: sru
+    description: Score de Résonance Universelle — Prisme des Quatre Publics
 
 paths:
   /healthz:
@@ -597,6 +599,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ResearchData"
+
+  /projects/{id}/generate-sru:
+    post:
+      operationId: generateSruScore
+      tags: [sru]
+      summary: Générer le Score de Résonance Universelle (Prisme des Quatre Publics)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: SRU score generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SruScore"
+
+  /projects/{id}/sru:
+    get:
+      operationId: getSruScore
+      tags: [sru]
+      summary: Récupérer le Score de Résonance Universelle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: SRU score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SruScore"
+        "404":
+          description: Not found
 
   /projects/{id}/generate-hpsa-score:
     post:
@@ -2448,6 +2490,51 @@ components:
           type: object
           additionalProperties: true
       required: [id, projectId, contentType, contentKey, label, createdAt, data]
+
+    SruScore:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        etincelle:
+          type: number
+        etincelleComment:
+          type: string
+        vibration:
+          type: number
+        vibrationComment:
+          type: string
+        profondeur:
+          type: number
+        profondeurComment:
+          type: string
+        maitrise:
+          type: number
+        maitriseComment:
+          type: string
+        sru:
+          type: number
+        traditions:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              match:
+                type: number
+              justification:
+                type: string
+            required: [name, match, justification]
+        syntheseGlobale:
+          type: string
+        niveauResonance:
+          type: string
+        updatedAt:
+          type: string
+      required: [id, projectId, etincelle, etincelleComment, vibration, vibrationComment, profondeur, profondeurComment, maitrise, maitriseComment, sru, traditions, syntheseGlobale, niveauResonance, updatedAt]
 
     GenerateBeatFountainInput:
       type: object
