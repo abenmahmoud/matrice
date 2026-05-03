@@ -1,0 +1,958 @@
+Tu es un architecte produit senior, un scénariste professionnel, un script-doctor, un réalisateur, un architecte SaaS full-stack et un expert UX premium.
+
+CONTEXTE ACTUEL DU PROJET
+Nous avons une application appelée “Matrice Narrative”.
+
+Elle est déjà décrite comme un OS créatif premium pour auteurs et cinéastes francophones, avec :
+- React 18 + Vite + TypeScript
+- Express 5 + TypeScript
+- PostgreSQL + Drizzle ORM
+- IA via OpenAI / Replit proxy
+- 20+ tables
+- ~80 endpoints
+- 33 pages frontend
+- modules narratifs : Matrice Narrative, Noyau Émotionnel, Personnages, Relations, Monde & Temps, Recherche, H.P.S.A., Ateliers Roman/Scénario/Série/Pitch
+- modules immersion : Arc de Tension, Atmosphères, Constellation, Dialogue, Mode Réalisateur, Carnet de Tournage, Écho du Temps, Miroir Artistique, 5 Piliers, Séquencier, Note d’Intention
+- admin secret, laboratoire narratif, skills narratifs, analyse IA contextualisée
+
+PROBLÈME À CORRIGER
+Le projet est techniquement riche, mais il est encore trop orienté “analyse narrative générale”.
+Il ressemble davantage à une plateforme d’analyse qu’à une vraie machine de création de film, roman et série.
+
+Je veux que l’application ne soit pas seulement un outil qui analyse une histoire.
+Je veux qu’elle devienne un OS vivant capable de transformer une idée, une émotion ou une scène brute en œuvre professionnelle :
+- roman
+- film
+- série
+- dossier producteur
+- scénario
+- pitch
+- séquencier
+- scènes jouables
+- découpage technique
+- storyboard textuel
+- plan de tournage
+
+OBJECTIF PRINCIPAL
+Réorganiser et améliorer le projet pour que le cœur devienne :
+
+IDÉE BRUTE
+→ MATRICE NARRATIVE
+→ NOYAU ÉMOTIONNEL
+→ RECHERCHE VIVANTE
+→ CHOIX DE FORMAT : ROMAN / FILM / SÉRIE
+→ ATELIER DE FABRICATION
+→ HUMOUR / PLEUR / SUSPENSE / ATTRACTIVITÉ
+→ EXPORT PROFESSIONNEL
+
+IMPORTANT
+L’application doit être entièrement en français côté utilisateur.
+Tous les textes visibles par l’utilisateur doivent être en français :
+- menus
+- boutons
+- pages
+- labels
+- placeholders
+- messages d’erreur
+- contenus générés
+- exports
+- documents
+- dashboard
+- README produit si possible
+
+Le code interne peut rester en anglais si c’est plus clair pour les développeurs, mais l’expérience produit doit être 100% française.
+
+TERMINOLOGIE FRANÇAISE À RESPECTER
+- Narrative Matrix = Matrice Narrative
+- Emotional Core = Noyau Émotionnel
+- Emotional Narrative Engine = Moteur Narratif Émotionnel
+- Living Research Engine = Moteur de Recherche Vivant
+- Book Studio = Atelier Roman
+- Screen Studio = Atelier Scénario
+- Film Studio = Atelier Film
+- Series Studio = Atelier Série
+- Pitch Studio = Atelier Pitch
+- World & Timeline = Monde & Temporalité
+- Characters = Personnages
+- Relationships = Relations
+- Exports = Exports
+- H.P.S.A. = Humour, Pleur, Suspense, Attractivité
+
+TRÈS IMPORTANT : CORRIGER LE SENS DE H.P.S.A.
+Actuellement H.P.S.A. semble défini comme Heroes / Plausibilité / Stakes / Arc.
+Je veux changer complètement cela.
+
+H.P.S.A. doit devenir :
+- H = Humour
+- P = Pleur / Puissance émotionnelle
+- S = Suspense
+- A = Attractivité
+
+Ce score doit mesurer la capacité d’une histoire à :
+1. faire rire sans casser l’émotion ;
+2. faire pleurer ou toucher profondément ;
+3. créer attente, mystère, tension et envie de continuer ;
+4. donner envie immédiatement par son concept, son image, son personnage et sa promesse.
+
+L’humour doit être organique, jamais parachuté.
+Il doit venir :
+- de la blessure du personnage ;
+- de son masque social ;
+- de sa contradiction ;
+- de la situation ;
+- du contraste entre quotidien et étrange ;
+- d’un mécanisme de défense ;
+- de l’enfant intérieur.
+
+Le pleur doit venir :
+- d’une vérité enfin dite ;
+- d’une reconnaissance de la blessure ;
+- d’une perte acceptée ;
+- d’un pardon impossible ou tardif ;
+- d’une phrase simple après beaucoup de silence ;
+- d’un enfant intérieur enfin vu.
+
+Le suspense doit venir :
+- d’un secret ;
+- d’un danger émotionnel ;
+- d’une menace visible ou invisible ;
+- d’une information retenue ;
+- d’une question dramatique forte ;
+- d’un retournement ;
+- d’un conflit entre ce que le personnage veut et ce dont il a besoin.
+
+L’attractivité doit venir :
+- d’un concept clair ;
+- d’une image forte ;
+- d’un titre puissant ;
+- d’un personnage mémorable ;
+- d’un monde intrigant ;
+- d’une promesse émotionnelle ;
+- d’une originalité immédiatement perceptible.
+
+PHILOSOPHIE DU PRODUIT
+L’IA ne doit pas écrire à la place de l’auteur.
+Elle doit :
+- analyser ;
+- confronter ;
+- révéler ;
+- proposer ;
+- structurer ;
+- transformer ;
+- corriger ;
+- enrichir ;
+- donner des chemins créatifs.
+
+L’auteur reste le créateur.
+L’IA est un studio de réflexion, un script-doctor, un assistant réalisateur, un éditeur narratif et un moteur de recherche vivant.
+
+L’application doit comprendre que toutes les histoires parlent soit :
+- aux vrais enfants ;
+- soit à l’enfant intérieur des adultes.
+
+Toutes les histoires importantes contiennent :
+- une blessure ;
+- une peur ;
+- un masque ;
+- un désir apparent ;
+- un besoin profond ;
+- une contradiction ;
+- un symbole ;
+- une épreuve ;
+- une correction émotionnelle ;
+- une transformation.
+
+NOUVELLE STRUCTURE PRODUIT À PRIVILÉGIER
+Réduire l’impression de dispersion.
+Même si les routes/pages existantes peuvent rester, l’expérience doit être recentrée autour de grands espaces puissants :
+
+1. Tableau de bord
+2. Créer un univers
+3. Matrice Narrative
+4. Noyau Émotionnel
+5. Moteur de Recherche Vivant
+6. Personnages & Relations
+7. Monde & Temporalité
+8. Atelier Roman
+9. Atelier Film
+10. Atelier Série
+11. Atelier Pitch
+12. Analyse H.P.S.A.
+13. Exports
+14. Administration / Laboratoire
+
+L’application ne doit pas donner l’impression d’avoir 33 pages dispersées.
+Elle doit donner l’impression d’avoir un vrai pipeline créatif fluide.
+
+RESTRUCTURATION MAJEURE : AJOUTER UN VRAI ATELIER FILM
+Le film ne doit plus être un petit module secondaire.
+Créer ou renforcer fortement une page centrale :
+
+ATELIER FILM
+
+L’Atelier Film doit avoir un pipeline complet :
+
+1. Concept film
+2. Logline film
+3. Synopsis court
+4. Synopsis long
+5. Traitement
+6. Beat sheet
+7. Séquencier
+8. Scènes jouables
+9. Scénario dialogué format Fountain
+10. Découpage technique scène par scène
+11. Storyboard textuel
+12. Plan de tournage simplifié
+13. Dossier producteur
+
+IMPORTANT :
+Le film ne doit pas être traité comme un roman découpé.
+Le moteur doit convertir l’intérieur du personnage en cinéma visible.
+
+Créer une fonction centrale :
+CONVERTIR UNE ÉMOTION INTERNE EN SCÈNE FILMABLE
+
+Exemple :
+Entrée :
+“Elle a peur de ne pas être entendue.”
+
+Sortie :
+- action visible : elle parle mais personne ne réagit ;
+- objet symbolique : un verre d’eau qui vibre ;
+- silence : le son disparaît au moment où elle essaie de dire la vérité ;
+- conflit : son interlocuteur croit qu’elle exagère ;
+- image forte : son reflet dans le miroir arrive avec une seconde de retard ;
+- dialogue minimal :
+  “Tu m’entends ?”
+  “Tu n’as rien dit.”
+- fin de scène : elle comprend que le problème n’est pas qu’on ne l’écoute pas, mais qu’elle-même ne sait plus reconnaître sa propre voix.
+
+CHAQUE SCÈNE FILM DOIT CONTENIR
+Créer une structure de scène professionnelle avec les champs suivants :
+
+- id
+- projectId
+- sceneNumber
+- title
+- intExt : INT. / EXT.
+- location
+- timeOfDay
+- charactersPresent[]
+- protagonistObjective
+- obstacle
+- visibleConflict
+- emotionalSubtext
+- sceneStart
+- dramaticTurn
+- sceneEnd
+- emotionBefore
+- emotionAfter
+- strongImage
+- soundOrSilence
+- symbolicObject
+- actionDescription
+- dialogue
+- narrativeFunction
+- suspenseLevel
+- organicHumorLevel
+- emotionalPowerLevel
+- attractivenessLevel
+- linkToEmotionalCore
+- linkToNarrativeMatrix
+- directorNote
+- cameraSuggestion
+- lightSuggestion
+- editingRhythm
+- riskOfCliche
+- originalAlternative
+
+Créer des cartes de scène visuelles dans l’Atelier Film.
+
+Chaque scène doit pouvoir être :
+- éditée ;
+- réordonnée ;
+- régénérée ;
+- enrichie ;
+- transformée en Fountain ;
+- envoyée au Mode Réalisateur ;
+- analysée avec H.P.S.A. ;
+- reliée au Noyau Émotionnel.
+
+STRUCTURE ATELIER FILM — UI
+L’Atelier Film doit avoir des onglets ou sections :
+
+1. Vision Film
+- concept
+- logline
+- genre
+- ton
+- durée visée
+- format : court-métrage / long-métrage / film TV / film plateforme / film expérimental
+- public cible
+- promesse émotionnelle
+- image centrale
+- question dramatique
+
+2. Traitement
+- synopsis court
+- synopsis long
+- traitement scène par scène
+- intention narrative
+- arcs principaux
+
+3. Beat Sheet
+- ouverture
+- incident déclencheur
+- refus / réaction
+- premier basculement
+- montée du conflit
+- midpoint
+- fausse victoire / fausse défaite
+- crise
+- révélation
+- climax
+- résolution
+- image finale
+
+4. Séquencier
+- séquences numérotées
+- fonction dramatique
+- lieux
+- personnages
+- durée estimée
+- tension
+- émotion dominante
+
+5. Scènes Jouables
+- cartes de scènes
+- objectifs
+- conflits
+- sous-texte
+- actions visibles
+- dialogues
+- images fortes
+- sons/silences
+- humour organique
+- suspense
+- émotion
+
+6. Scénario
+- export Fountain
+- aperçu format scénario
+- dialogues
+- actions
+- scènes INT./EXT.
+- génération depuis les scènes jouables
+
+7. Découpage Technique
+- plan
+- caméra
+- focale
+- mouvement
+- lumière
+- son
+- montage
+- intention de réalisation
+
+8. Storyboard Textuel
+- image clé de chaque scène
+- cadrage
+- couleur
+- mouvement
+- ambiance
+- symbole visuel
+
+9. Plan de Tournage Simplifié
+- regroupement par lieu
+- personnages nécessaires
+- contraintes
+- décors
+- accessoires
+- estimation complexité
+- ordre de tournage suggéré
+
+10. Dossier Producteur
+- pitch
+- note d’intention
+- résumé
+- personnages
+- univers visuel
+- références
+- public cible
+- pourquoi maintenant
+- potentiel marché/festival
+- forces du projet
+- risques à corriger
+
+ATELIER SÉRIE À RENFORCER
+Créer un vrai pipeline série :
+
+1. Concept série
+2. Format : mini-série / série 6 épisodes / 8 épisodes / 10 épisodes / série verticale
+3. Moteur d’épisode
+4. Arc saison
+5. Arc personnage par saison
+6. Cliffhangers
+7. Mystère long
+8. Révélations progressives
+9. Épisodes détaillés
+10. Bible de série, mais utiliser plutôt le terme “Dossier Série” ou “Matrice Série” côté utilisateur pour éviter le mot bible.
+
+Chaque épisode doit contenir :
+- titre
+- logline épisode
+- émotion dominante
+- question dramatique
+- intrigue A
+- intrigue B
+- scène d’ouverture
+- midpoint
+- climax
+- cliffhanger
+- évolution du protagoniste
+- humour organique
+- moment de pleur
+- suspense
+- révélation
+- lien avec l’arc saison
+
+ATELIER ROMAN À RENFORCER
+L’Atelier Roman doit être distinct du film.
+Le roman permet l’intérieur, la voix, les pensées, les sensations, les souvenirs.
+
+Ajouter :
+- voix narrative
+- point de vue
+- style littéraire
+- rythme de phrase
+- intériorité
+- monologues
+- mémoire
+- métaphores
+- scènes silencieuses
+- tension psychologique
+- chapitre émotionnel
+- promesse de chapitre
+- fin de chapitre qui donne envie de continuer
+
+Chaque chapitre doit contenir :
+- numéro
+- titre
+- objectif dramatique
+- émotion dominante
+- conflit
+- révélation
+- image littéraire forte
+- voix intérieure
+- évolution du personnage
+- fin de chapitre
+- lien avec H.P.S.A.
+
+MOTEUR DE RECHERCHE VIVANT À RENFORCER
+L’application ne doit pas rester statique.
+Elle doit pouvoir intégrer une logique de recherche vivante.
+
+Créer ou renforcer un module :
+Moteur de Recherche Vivant
+
+Son rôle :
+- chercher ou stocker des références ;
+- analyser des œuvres comparables ;
+- analyser des critiques ;
+- analyser des tendances ;
+- analyser des mécanismes de succès ;
+- extraire des motifs narratifs sans copier ;
+- aider l’auteur à situer son projet ;
+- proposer des corrections créatives actuelles.
+
+IMPORTANT :
+L’application ne doit jamais copier les œuvres existantes.
+Elle doit extraire des mécanismes abstraits :
+- structure émotionnelle ;
+- contraste ;
+- type de personnage ;
+- objet symbolique ;
+- dispositif de suspense ;
+- source d’humour ;
+- déclencheur de larmes ;
+- type de révélation ;
+- type de transformation ;
+- dynamique de succès.
+
+Créer une base interne de références ou permettre d’en ajouter :
+- titre
+- format : livre / film / série / court-métrage
+- genre
+- année
+- pays
+- thèmes
+- arc émotionnel
+- type d’humour
+- type de suspense
+- déclencheur émotionnel
+- élément d’attractivité
+- critiques positives
+- critiques négatives
+- mécanismes narratifs utiles
+- risques de cliché
+- leçons créatives
+
+Ajouter un module :
+Notes de Création
+
+Avant d’écrire, l’app doit produire une note de création :
+- analyse du concept ;
+- références proches ;
+- opportunités ;
+- risques ;
+- originalité possible ;
+- axe émotionnel ;
+- axe humour ;
+- axe suspense ;
+- axe pleur ;
+- axe attractivité ;
+- recommandations concrètes.
+
+Exemple de sortie attendue :
+“Le concept est fort car il mélange un objet quotidien avec une menace invisible. Le risque est de tomber dans le cliché de l’hallucination. L’opportunité est de créer un contraste entre humour quotidien et mystère métaphysique. L’humour doit venir du déni du personnage, le suspense de ce que la voix sait, le pleur du besoin d’être enfin entendue.”
+
+MOTEUR NARRATIF ÉMOTIONNEL À RENFORCER
+Créer une couche profonde :
+
+Noyau Émotionnel
+- émotion dominante
+- blessure cachée
+- manque émotionnel
+- signal de l’enfant intérieur
+- masque de protection
+- désir apparent
+- besoin profond
+- peur centrale
+- honte
+- culpabilité
+- contradiction émotionnelle
+- antagoniste émotionnel
+- objet symbolique
+- lieu symbolique
+- chemin de correction
+- transformation finale
+
+Créer un “Chemin de Correction Émotionnelle” :
+Blessure initiale
+→ masque
+→ désir apparent
+→ conflit
+→ répétition de la blessure
+→ confrontation symbolique
+→ chute du masque
+→ vérité
+→ choix
+→ correction
+→ transformation
+
+Chaque œuvre doit pouvoir être analysée par ce chemin.
+
+MOTEUR HUMOUR ORGANIQUE
+Créer un sous-module :
+Humour Organique
+
+L’humour ne doit pas être ajouté au hasard.
+Pour chaque scène, proposer des sources d’humour possibles :
+- humour de défense ;
+- humour de gêne ;
+- humour de contraste ;
+- humour relationnel ;
+- humour de blessure ;
+- humour enfant intérieur ;
+- humour absurde mais cohérent ;
+- humour de quotidien face au cosmique ;
+- humour de personnage qui nie l’évidence.
+
+Le système doit vérifier :
+- l’humour vient-il du personnage ?
+- révèle-t-il une vérité ?
+- casse-t-il le suspense ?
+- augmente-t-il l’attachement ?
+- arrive-t-il au bon moment ?
+- respecte-t-il le ton ?
+
+MOTEUR PLEUR / ÉMOTION PROFONDE
+Créer un sous-module :
+Moment de Pleur
+
+Identifier pour chaque œuvre :
+- quelle scène peut faire pleurer ;
+- pourquoi ;
+- si l’émotion est méritée ;
+- ce qui doit être construit avant ;
+- quel silence ou geste peut porter l’émotion ;
+- quelle phrase simple peut révéler la vérité ;
+- quelle perte ou reconnaissance provoque la catharsis.
+
+MOTEUR SUSPENSE
+Créer un sous-module :
+Suspense Narratif
+
+Pour chaque histoire, détecter :
+- question dramatique principale ;
+- secret ;
+- menace ;
+- information cachée ;
+- fausse piste ;
+- point de non-retour ;
+- révélation ;
+- danger émotionnel ;
+- danger externe ;
+- cliffhanger ;
+- promesse de scène suivante.
+
+MOTEUR ATTRACTIVITÉ
+Créer un sous-module :
+Attractivité
+
+Analyser :
+- force du concept ;
+- clarté de la logline ;
+- image centrale ;
+- titre ;
+- personnage principal ;
+- monde ;
+- promesse émotionnelle ;
+- originalité ;
+- potentiel pitch ;
+- potentiel affiche ;
+- potentiel bande-annonce ;
+- potentiel viral court.
+
+NOUVEL H.P.S.A.
+Créer ou modifier les tables/schémas/endpoints pour remplacer l’ancien HPSA.
+
+Table suggérée : hpsa_scores
+Champs :
+- id
+- projectId
+- humorScore
+- humorDiagnosis
+- humorCorrections[]
+- tearsScore
+- tearsDiagnosis
+- tearsCorrections[]
+- suspenseScore
+- suspenseDiagnosis
+- suspenseCorrections[]
+- attractivenessScore
+- attractivenessDiagnosis
+- attractivenessCorrections[]
+- globalScore
+- priorityFixes[]
+- createdAt
+- updatedAt
+
+Ajouter endpoint :
+POST /api/projects/:id/generate-hpsa-score
+GET /api/projects/:id/hpsa
+PUT /api/projects/:id/hpsa
+POST /api/projects/:id/check-scene-hpsa
+POST /api/projects/:id/check-chapter-hpsa
+
+Les recommandations doivent être concrètes.
+Pas seulement :
+“ajouter plus de suspense”.
+Mais :
+“retarder la révélation de la voix jusqu’à la scène 7 ; ajouter une fausse explication médicale à la scène 4 ; faire en sorte que la voix connaisse un souvenir que seule l’héroïne a oublié.”
+
+CORRECTION DE L’ANALYSE IA
+L’analyse IA doit pouvoir analyser :
+- un extrait de roman ;
+- une scène de film ;
+- un dialogue ;
+- un synopsis ;
+- un traitement ;
+- un séquencier ;
+- une note d’intention ;
+- un pitch.
+
+Pour chaque type, adapter les critères.
+
+Pour une scène film :
+- est-ce filmable ?
+- y a-t-il une action visible ?
+- y a-t-il un objectif ?
+- y a-t-il un obstacle ?
+- y a-t-il un conflit ?
+- y a-t-il un sous-texte ?
+- y a-t-il un renversement ?
+- y a-t-il une image forte ?
+- le dialogue est-il trop explicatif ?
+- l’émotion est-elle montrée au lieu d’être expliquée ?
+
+Pour un chapitre roman :
+- voix ;
+- intériorité ;
+- rythme ;
+- tension de page ;
+- style ;
+- image littéraire ;
+- fin de chapitre ;
+- cohérence émotionnelle.
+
+Pour une série :
+- moteur d’épisode ;
+- cliffhanger ;
+- arc long ;
+- promesse d’épisode suivant ;
+- dynamique des personnages.
+
+NOUVELLE PRIORITÉ UX
+L’interface doit être premium, moderne, futuriste, mais surtout claire.
+
+Ne pas afficher trop de modules sans hiérarchie.
+Créer une navigation par pipeline :
+
+1. Comprendre
+- Matrice Narrative
+- Noyau Émotionnel
+- Recherche Vivante
+
+2. Construire
+- Personnages
+- Relations
+- Monde & Temporalité
+
+3. Écrire / Fabriquer
+- Atelier Roman
+- Atelier Film
+- Atelier Série
+
+4. Corriger
+- Analyse H.P.S.A.
+- Analyse IA
+- Cohérence
+
+5. Présenter
+- Atelier Pitch
+- Exports
+- Dossier Producteur
+
+AJOUTER UN MODE “PARCOURS GUIDÉ”
+L’utilisateur doit pouvoir suivre un parcours clair :
+- Étape 1 : Entrer l’idée
+- Étape 2 : Générer la Matrice Narrative
+- Étape 3 : Trouver le Noyau Émotionnel
+- Étape 4 : Explorer les références
+- Étape 5 : Choisir le format
+- Étape 6 : Construire Roman / Film / Série
+- Étape 7 : Corriger H.P.S.A.
+- Étape 8 : Exporter
+
+Ajouter une barre de progression lisible.
+
+EXPORTS À AJOUTER OU RENFORCER
+Pour le film :
+- .fountain
+- Markdown traitement
+- Markdown dossier producteur
+- PDF dossier producteur
+- PDF note d’intention
+- Markdown plan de tournage
+- JSON complet
+- TXT scénario lisible
+
+Pour le roman :
+- Markdown plan
+- Markdown manuscrit
+- DOCX plus tard
+- EPUB plus tard
+- PDF manuscrit plus tard
+
+Pour la série :
+- Markdown dossier série
+- Markdown épisodes
+- JSON arc saison
+- PDF pitch série plus tard
+
+DÉPLOIEMENT VPS
+Préparer le projet pour un futur déploiement VPS durable.
+Garder :
+- Docker Compose
+- Nginx
+- PostgreSQL
+- .env.example
+- DEPLOY.md
+- logs Pino
+- healthcheck
+- migrations Drizzle
+
+Mais ne pas surcomplexifier avant que le pipeline créatif soit bon.
+
+SÉCURITÉ ET FIABILITÉ
+- Pas de console.log en production, utiliser Pino.
+- Ne jamais exposer ADMIN_PASSWORD.
+- Garder ADMIN via HMAC ou préparer une vraie auth plus tard.
+- Valider toutes les entrées via Zod.
+- Prévoir fallback IA de qualité.
+- Pas de contenu vide si l’IA échoue.
+- Messages d’erreur utilisateur en français.
+
+IMPORTANT SUR LES PROMPTS IA
+Centraliser tous les prompts dans un dossier clair :
+/server/prompts ou /server/services/prompts
+
+Créer des prompts séparés :
+- generateNarrativeMatrixPrompt
+- generateEmotionalCorePrompt
+- generateLivingResearchPrompt
+- generateHpsaPrompt
+- generateFilmConceptPrompt
+- generateFilmTreatmentPrompt
+- generatePlayableScenesPrompt
+- generateFountainScreenplayPrompt
+- generateDirectorBreakdownPrompt
+- generateTextualStoryboardPrompt
+- generateShootingPlanPrompt
+- generateProducerDossierPrompt
+- generateNovelOutlinePrompt
+- generateSeriesStructurePrompt
+- analyzeFilmScenePrompt
+- analyzeNovelChapterPrompt
+
+Chaque prompt doit rappeler :
+- ne pas copier d’œuvres existantes ;
+- rester en français ;
+- respecter la Matrice Narrative ;
+- respecter le Noyau Émotionnel ;
+- chercher humour / pleur / suspense / attractivité ;
+- proposer des corrections concrètes ;
+- éviter les clichés ;
+- donner des alternatives originales.
+
+NOUVELLES TABLES POSSIBLES À AJOUTER SI NÉCESSAIRE
+Ne pas ajouter inutilement si les tables existantes suffisent.
+Mais si nécessaire, ajouter :
+
+film_projects ou film_data :
+- projectId
+- concept
+- logline
+- shortSynopsis
+- longSynopsis
+- treatment
+- beatSheet
+- targetDuration
+- filmFormat
+- visualPromise
+- emotionalPromise
+
+film_scenes :
+- tous les champs de scène jouable listés plus haut
+
+director_breakdowns :
+- projectId
+- sceneId
+- shotType
+- cameraMovement
+- lens
+- lighting
+- sound
+- editing
+- directorNote
+
+storyboards_text :
+- projectId
+- sceneId
+- keyImage
+- framing
+- color
+- movement
+- symbol
+- visualNote
+
+shooting_plans :
+- projectId
+- groupedByLocation
+- requiredCharacters
+- props
+- constraints
+- complexity
+- suggestedOrder
+
+reference_works :
+- title
+- format
+- genre
+- year
+- country
+- themes
+- emotionalArc
+- humorType
+- suspenseType
+- tearTrigger
+- attractivenessSignal
+- lessons
+- risks
+
+creation_notes :
+- projectId
+- conceptAnalysis
+- references
+- opportunities
+- risks
+- originalityPaths
+- hpsaRecommendations
+
+LIVRABLES ATTENDUS
+Je veux que tu fasses un audit et une amélioration du projet.
+
+Livrables :
+1. Diagnostic précis de ce qui existe.
+2. Liste des problèmes actuels.
+3. Proposition de nouvelle architecture produit.
+4. Implémentation des changements prioritaires.
+5. Ajout ou renforcement de l’Atelier Film.
+6. Correction H.P.S.A. vers Humour / Pleur / Suspense / Attractivité.
+7. Ajout de scènes jouables.
+8. Ajout de la conversion émotion interne → scène filmable.
+9. Ajout de l’analyse filmable des scènes.
+10. Renforcement des exports film.
+11. Harmonisation de toute l’interface en français.
+12. Mise à jour du README et de la documentation.
+13. Vérification que l’app tourne sans casser l’existant.
+
+PRIORITÉ D’IMPLÉMENTATION
+Ne fais pas tout au hasard.
+Priorité 1 :
+- H.P.S.A. corrigé
+- Atelier Film
+- Scènes jouables
+- Pipeline film
+- interface française
+
+Priorité 2 :
+- conversion émotion → scène filmable
+- scénario Fountain
+- découpage technique
+- storyboard textuel
+
+Priorité 3 :
+- recherche vivante
+- références
+- notes de création
+- plan de tournage
+- dossier producteur
+
+Priorité 4 :
+- PDF avancés
+- collaboration
+- multi-utilisateurs
+- intégrations externes
+
+RÈGLE FINALE
+Ne transforme pas l’application en usine technique dispersée.
+Transforme-la en studio créatif fluide.
+
+Le produit final doit donner cette impression :
+
+“J’entre une idée ou une émotion. L’application comprend la blessure cachée, cherche des mécanismes narratifs utiles, construit une Matrice Narrative, propose un chemin de correction émotionnelle, fabrique un roman, un film ou une série, puis vérifie que l’histoire peut faire rire, pleurer, attendre et désirer.”
+
+C’est cette direction qui doit guider toute l’amélioration.
