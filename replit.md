@@ -120,7 +120,18 @@ note_intention            — Note d'intention cinématographique (document CNC/
 
 ## Génération IA
 
-Tous les modules utilisent `gpt-5.4` (Replit AI proxy) avec `response_format: json_object` et fallback déterministe si l'API échoue. Les appels prennent **30–90 secondes** selon la complexité.
+Tous les modules utilisent `gpt-5.4` (Replit AI proxy) via la fonction centrale `aiJson()` dans `generationService.ts`, avec `response_format: json_object` et fallback déterministe si l'API échoue.
+
+**Paramètres `aiJson` :**
+- `skillsContext` — injecte les skills du Laboratoire narratif dans le system prompt (tous les modules l'utilisent désormais)
+- `opts.temperature` — modulé par type de module : créatif (0.85–0.88), narratif (0.82), analytique (non défini)
+- `opts.maxTokens` — augmenté pour les modules longs : Séquencier (14 000), Note d'Intention (12 000), défaut (8 192)
+
+**Logging des erreurs :** `aiJson` loggue désormais les erreurs via `process.stderr` (JSON parse errors vs API errors) au lieu de les avaler silencieusement.
+
+**`generateRelationships`** : fonction désormais `async` et entièrement pilotée par IA — génère toutes les paires de personnages (jusqu'à 5) avec analyse psychologique des blessures, peurs, secrets et contradictions. Auparavant : relations codées en dur.
+
+**Personnages** : génération passée de 3 à 5 personnages (Protagoniste, Antagoniste, Allié/Témoin, Catalyseur, Secondaire), avec instructions renforcées sur la psychologie jungienne, la théorie de l'attachement, et les archétypes irremplaçables.
 
 **Sur Replit** : variables auto-provisionnées (`AI_INTEGRATIONS_OPENAI_BASE_URL`, `AI_INTEGRATIONS_OPENAI_API_KEY`).
 
@@ -159,6 +170,9 @@ pnpm --filter @workspace/api-spec run codegen
 
 - **Génération IA** : les endpoints `/generate-*` font des appels OpenAI réels — timeout nginx configuré à 120s
 - **Fallback déterministe** : si OpenAI échoue, chaque module retourne un contenu de haute qualité pré-écrit
+- **skillsContext** : injecté dans tous les 24 modules de génération (correction v2.1 — auparavant manquant dans 7 modules)
+- **generateRelationships** : async, pilotée par IA, génère des paires basées sur les blessures/peurs/secrets réels des personnages
+- **Analyse manuscrit** : `buildProjectContext` inclut universeLaws, coherenceRules, secrets, possibleEndings, powerObjects, centralConcept
 - **Tout en français** : UI, prompts, contenu généré — intégralement en français
 - **Dark mode** : classe `dark` sur `<html>`, palette violet `#7c3aed` / indigo `#4f46e5`
 - **Routing** : Wouter côté frontend, Express Router côté API, paths gérés par le proxy Replit

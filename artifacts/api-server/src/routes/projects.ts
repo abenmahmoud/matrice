@@ -504,7 +504,7 @@ router.delete("/projects/:id/characters/:charId", async (req, res) => {
 router.post("/projects/:id/generate-relationships", async (req, res) => {
   try {
     const chars = await db.select().from(charactersTable).where(eq(charactersTable.projectId, req.params.id));
-    const rels = generateRelationships(req.params.id, chars);
+    const rels = await generateRelationships(req.params.id, chars);
     await db.delete(relationshipsTable).where(eq(relationshipsTable.projectId, req.params.id));
     const inserted = rels.length > 0 ? await db.insert(relationshipsTable).values(rels).returning() : [];
     res.json(inserted);

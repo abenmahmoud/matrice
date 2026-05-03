@@ -72,12 +72,19 @@ async function buildProjectContext(projectId: string): Promise<string> {
     if (m.logline) lines.push(`Logline : ${m.logline}`);
     if (m.centralConflict) lines.push(`Conflit central : ${m.centralConflict}`);
     if (m.protagonist) lines.push(`Protagoniste : ${m.protagonist}`);
-    if (m.antagonist) lines.push(`Antagoniste : ${m.antagonist}`);
+    if (m.antagonist) lines.push(`Antagoniste / Opposition : ${m.antagonist}`);
     if (m.emotionalStakes) lines.push(`Enjeux émotionnels : ${m.emotionalStakes}`);
     if (m.themes?.length) lines.push(`Thèmes : ${m.themes.join(", ")}`);
     if (m.symbolicMotifs?.length) lines.push(`Motifs symboliques : ${m.symbolicMotifs.join(", ")}`);
     if (m.visibleWorld) lines.push(`Monde visible : ${m.visibleWorld}`);
     if (m.invisibleForces) lines.push(`Forces invisibles : ${m.invisibleForces}`);
+    if ((m.universeLaws as string[] | undefined)?.length) lines.push(`Lois de l'univers : ${(m.universeLaws as string[]).join(" | ")}`);
+    if ((m.coherenceRules as string[] | undefined)?.length) lines.push(`Règles de cohérence : ${(m.coherenceRules as string[]).join(" | ")}`);
+    if ((m.secrets as string[] | undefined)?.length) lines.push(`Secrets narratifs : ${(m.secrets as string[]).join(" | ")}`);
+    if ((m.possibleEndings as string[] | undefined)?.length) lines.push(`Fins envisagées : ${(m.possibleEndings as string[]).join(" | ")}`);
+    if ((m.powerObjects as string[] | undefined)?.length) lines.push(`Objets de pouvoir : ${(m.powerObjects as string[]).join(", ")}`);
+    if (m.centralConcept) lines.push(`Concept central : ${m.centralConcept}`);
+    if (m.shortPitch) lines.push(`Pitch court : ${m.shortPitch}`);
   }
 
   if (e) {
@@ -146,7 +153,7 @@ router.post("/manuscripts/analyze", (req, res) => {
 
       send({ type: "progress", step: hasProjectContext ? "Chargement du contexte projet..." : "Analyse structurelle...", percent: 20 });
 
-      const systemPrompt = `Tu es le plus grand analyste narratif au monde — précision d'un éditeur Gallimard, sensibilité d'un jury Cannes, rigueur d'un professeur de l'AFI. Tu combines Aristote, McKee, Vogler, Jung, et Propp. Tu travailles exclusivement en français. Tu réponds UNIQUEMENT en JSON valide, sans commentaire.`;
+      const systemPrompt = `Tu es le plus grand analyste narratif au monde — précision d'un éditeur Gallimard, sensibilité d'un jury Cannes, rigueur d'un professeur de La Fémis. Tu combines Aristote (catharsis, hamartia), McKee (structure, subtext), Vogler (Le Voyage du Héros), Jung (archétypes, Ombre), Propp (fonctions narratives), et Lajos Egri (prémisse, contradiction de personnage). Tu lis entre les lignes. Tu identifies ce que l'auteur écrit SANS LE SAVOIR autant que ce qu'il écrit volontairement. Tu es honnête, précis, jamais cruel, toujours utile. Tu travailles exclusivement en français. Tu réponds UNIQUEMENT en JSON valide, sans commentaire.`;
 
       const coherenceBlock = projectContext ? `
 

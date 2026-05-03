@@ -83,24 +83,38 @@ type ScoreCategory = {
 // Core AI helper
 // ---------------------------------------------------------------------------
 
-async function aiJson<T>(systemPrompt: string, userPrompt: string, fallback: T, skillsContext?: string): Promise<T> {
+async function aiJson<T>(
+  systemPrompt: string,
+  userPrompt: string,
+  fallback: T,
+  skillsContext?: string,
+  opts?: { temperature?: number; maxTokens?: number }
+): Promise<T> {
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-5.4",
-      max_completion_tokens: 8192,
+      max_completion_tokens: opts?.maxTokens ?? 8192,
       response_format: { type: "json_object" },
+      ...(opts?.temperature !== undefined ? { temperature: opts.temperature } : {}),
       messages: [
-        { role: "system", content: skillsContext ? `${systemPrompt}
-
-### SKILLS IA ACTIFS — applique impérativement ces contraintes créatives :
-${skillsContext}` : systemPrompt },
+        {
+          role: "system",
+          content: skillsContext
+            ? `${systemPrompt}\n\n### SKILLS NARRATIFS ACTIFS — intègre impérativement ces techniques dans ta génération :\n${skillsContext}`
+            : systemPrompt,
+        },
         { role: "user", content: userPrompt },
       ],
     });
     const content = response.choices[0]?.message?.content;
     if (!content) return fallback;
     return JSON.parse(content) as T;
-  } catch {
+  } catch (e) {
+    if (e instanceof SyntaxError) {
+      process.stderr.write(`[aiJson] JSON parse error — fallback activé : ${String(e)}\n`);
+    } else {
+      process.stderr.write(`[aiJson] API error — fallback activé : ${String(e)}\n`);
+    }
     return fallback;
   }
 }
@@ -130,7 +144,7 @@ Ambition artistique : ${project.artisticAmbition ?? "créer une œuvre qui réso
 // ---------------------------------------------------------------------------
 
 export async function generateNarrativeMatrix(project: Project, skillsContext?: string): Promise<NarrativeMatrix> {
-  const system = `Tu es un dramaturge et architecte narratif de haut niveau, expert des littératures française et mondiale, du cinéma d'auteur et des séries complexes. Tu travailles en français. Tu génères des matrices narratives profondes, originales et cohérentes. Réponds UNIQUEMENT en JSON valide.`;
+  const system = `Tu es un dramaturge et architecte narratif de haut niveau — formé à la pyramide de Freytag, au Voyage du Héros de Campbell, à la structure en beats de Blake Snyder, et aux théories narratives de McKee, Vogler et Propp. Expert des littératures française et mondiale, du cinéma d'auteur et des séries complexes. Tu génères des matrices narratives profondes, originales et cohérentes, avec une précision d'éditeur Gallimard et une vision d'un jury Cannes. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `À partir du projet suivant, génère une Matrice Narrative complète et professionnelle.
 
@@ -197,7 +211,7 @@ Sois précis, profond, original. Évite les clichés. Chaque élément doit êtr
 // ---------------------------------------------------------------------------
 
 export async function generateEmotionalCore(project: Project, matrix: NarrativeMatrix, skillsContext?: string): Promise<EmotionalCore> {
-  const system = `Tu es un psychologue narratif et thérapeute du récit de haut niveau. Tu analyses les structures émotionnelles profondes des personnages en t'appuyant sur la psychologie du développement, l'attachement, et les théories du traumatisme narratif. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
+  const system = `Tu es un psychologue narratif de haut niveau — formé à la théorie de l'attachement (Bowlby), à la psychologie des blessures de l'enfance (Lise Bourbeau), à la thérapie du schéma (Young), et à la dramaturgie émotionnelle (Brené Brown). Tu crées des noyaux émotionnels cliniquement précis, narrativement puissants et artistiquement vrais. Tu ne génères pas des archétypes génériques — tu génères des blessures spécifiques ancrées dans ce projet précis. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère le Noyau Émotionnel du protagoniste de ce projet.
 
@@ -312,9 +326,9 @@ Chaque description doit être précise, unique à ce projet, littéraire et acti
 // ---------------------------------------------------------------------------
 
 export async function generateCharacters(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string) {
-  const system = `Tu es un créateur de personnages de fiction de haut niveau, spécialisé dans la psychologie des personnages complexes et les arcs narratifs. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
+  const system = `Tu es un créateur de personnages de fiction de haut niveau — formé à la psychologie jungienne, à la théorie de l'attachement de Bowlby, et aux méthodes de construction de personnages de Michael Hauge et David McKee. Tu crées des personnages complexes, contradictoires, inoubliables — ni héros parfaits ni antagonistes unidimensionnels. Chaque personnage a une blessure réelle, un masque social, un besoin profond qu'il ne peut formuler. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
-  const user = `Génère 3 personnages principaux pour ce projet.
+  const user = `Génère 5 personnages principaux et secondaires pour ce projet.
 
 ${projectContext(project)}
 
@@ -327,27 +341,37 @@ Noyau émotionnel :
 - Blessure : ${emotionalCore.hiddenWound}
 - Arc : ${emotionalCore.transformationArc}
 
-Génère un objet JSON :
+Génère un objet JSON avec exactement 5 personnages :
 {
   "characters": [
     {
-      "name": "prénom et nom complets, crédibles et mémorables pour ce genre",
+      "name": "prénom et nom complets, crédibles et mémorables pour ce genre et cette culture",
       "role": "Protagoniste",
       "nature": "humain",
-      "externalObjective": "objectif externe précis (ce qu'il/elle veut faire dans le récit)",
-      "innerNeed": "besoin interne (ce dont il/elle a besoin pour se transformer)",
-      "wound": "blessure spécifique et unique",
-      "fear": "peur centrale précise",
-      "secret": "secret narratif actionnable",
-      "contradiction": "contradiction fondamentale qui génère du conflit",
-      "transformationArc": "arc de transformation complet",
-      "visualIdentity": "description physique et vestimentaire précise, signifiante",
-      "voiceStyle": "style de voix, façon de parler, tics linguistiques",
-      "linkToConflict": "comment ce personnage est lié au conflit central"
+      "externalObjective": "objectif externe précis et concret (ce qu'il/elle veut accomplir dans le récit)",
+      "innerNeed": "besoin interne profond (ce dont il/elle a RÉELLEMENT besoin pour se transformer — différent de ce qu'il/elle veut)",
+      "wound": "blessure spécifique, personnelle, datée — l'événement ou la période qui l'a formé",
+      "fear": "peur centrale précise — ce qu'il/elle ferait n'importe quoi pour éviter",
+      "secret": "secret narratif actionnable — une information qui changerait la dynamique si elle était révélée",
+      "contradiction": "contradiction fondamentale qui génère conflit et profondeur — ce qu'il dit vs ce qu'il fait",
+      "transformationArc": "arc de transformation complet — état initial → crise → état final (même si ambivalent)",
+      "visualIdentity": "description physique précise et signifiante — corps, regard, vêtements, gestuelle — tout doit avoir un sens",
+      "voiceStyle": "style de voix unique — rythme, vocabulaire, ce qu'il dit vs ce qu'il tait, tics linguistiques",
+      "linkToConflict": "comment ce personnage incarne ou alimente le conflit central"
     },
     {
       "name": "...",
       "role": "Antagoniste",
+      ...
+    },
+    {
+      "name": "...",
+      "role": "Allié / Témoin",
+      ...
+    },
+    {
+      "name": "...",
+      "role": "Catalyseur",
       ...
     },
     {
@@ -358,7 +382,7 @@ Génère un objet JSON :
   ]
 }
 
-Les noms doivent être adaptés au genre et à la culture du récit. Chaque personnage doit être distinctif et irremplaçable.`;
+IMPORTANT : Les antagonistes doivent avoir leurs propres blessures et justifications — pas de "méchants" sans âme. Les personnages secondaires doivent être irremplaçables — si on les retire, une dimension de l'histoire disparaît. Les noms doivent être adaptés au genre, à la culture et à l'époque du récit.`;
 
   type CharResult = { characters: Array<Record<string, string>> };
   const fallback: CharResult = {
@@ -389,39 +413,102 @@ Les noms doivent être adaptés au genre et à la culture du récit. Chaque pers
 // 5. Relationships
 // ---------------------------------------------------------------------------
 
-export function generateRelationships(projectId: string, characters: Array<{ id: string; name: string; role: string }>) {
-  const rels = [];
-  if (characters.length >= 2) {
-    rels.push({
-      projectId,
-      characterAId: characters[0].id,
-      characterBId: characters[1].id,
-      characterAName: characters[0].name,
-      characterBName: characters[1].name,
-      relationshipType: "Conflit central",
-      emotionalTension: "Attraction et répulsion simultanées — ils se reconnaissent comme le miroir de leur blessure",
-      hiddenTruth: "Ils ont besoin l'un de l'autre pour se transformer, même si leur relation semble destructrice",
-      conflict: "Chaque interaction pousse l'autre à révéler ce qu'il préfère cacher",
-      evolution: "De l'opposition frontale à la reconnaissance mutuelle douloureuse",
-      symbolicMeaning: "Le conflit intérieur du protagoniste extériorisé dans une relation",
-    });
+export async function generateRelationships(
+  projectId: string,
+  characters: Array<{ id: string; name: string; role: string; wound?: string | null; fear?: string | null; secret?: string | null; contradiction?: string | null; innerNeed?: string | null }>
+): Promise<Array<{
+  projectId: string;
+  characterAId: string;
+  characterBId: string;
+  characterAName: string;
+  characterBName: string;
+  relationshipType: string;
+  emotionalTension: string;
+  hiddenTruth: string;
+  conflict: string;
+  evolution: string;
+  symbolicMeaning: string;
+}>> {
+  if (characters.length < 2) return [];
+
+  const system = `Tu es un psychologue narratif expert des dynamiques interpersonnelles dans la fiction. Tu analyses les personnages et génères des relations profondes, non évidentes, psychologiquement riches. Tu évites les clichés. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
+
+  const charList = characters.map(c =>
+    `• ${c.name} [${c.role}]${c.wound ? ` | blessure: ${c.wound}` : ""}${c.fear ? ` | peur: ${c.fear}` : ""}${c.secret ? ` | secret: ${c.secret}` : ""}${c.contradiction ? ` | contradiction: ${c.contradiction}` : ""}${c.innerNeed ? ` | besoin: ${c.innerNeed}` : ""}`
+  ).join("\n");
+
+  const pairs: Array<[number, number]> = [];
+  for (let i = 0; i < Math.min(characters.length, 5); i++) {
+    for (let j = i + 1; j < Math.min(characters.length, 5); j++) {
+      pairs.push([i, j]);
+    }
   }
-  if (characters.length >= 3) {
-    rels.push({
-      projectId,
-      characterAId: characters[0].id,
-      characterBId: characters[2].id,
-      characterAName: characters[0].name,
-      characterBName: characters[2].name,
-      relationshipType: "Alliance fragile",
-      emotionalTension: "Confiance méritée mais jamais entièrement accordée",
-      hiddenTruth: "Le/la témoin sait quelque chose que le protagoniste refuse de voir",
-      conflict: "Jusqu'où peut-on aider quelqu'un qui ne veut pas être aidé ?",
-      evolution: "De la loyauté inconditionnelle à une vérité prononcée à voix haute",
-      symbolicMeaning: "Ce que le protagoniste pourrait avoir s'il acceptait sa vulnérabilité",
-    });
-  }
-  return rels;
+
+  const pairList = pairs.map(([i, j]) => `${characters[i].name} ↔ ${characters[j].name}`).join(", ");
+
+  const user = `Voici les personnages de ce projet :
+
+${charList}
+
+Génère des relations profondes et uniques pour ces paires : ${pairList}
+
+Pour chaque paire, analyse les blessures, peurs, secrets et contradictions pour créer une relation qui révèle quelque chose d'essentiel sur les deux personnages.
+
+Réponds avec un objet JSON :
+{
+  "relationships": [
+    {
+      "characterAName": "Nom exact du personnage A",
+      "characterBName": "Nom exact du personnage B",
+      "relationshipType": "Type précis (ex: Complicité coupable, Miroir inversé, Amour impossible, Rivalité fraternelle, Dépendance mutuelle, Trahison en attente, etc.)",
+      "emotionalTension": "La tension émotionnelle précise et nuancée entre eux — ce qui les attire et les repousse simultanément",
+      "hiddenTruth": "La vérité cachée que cette relation porte — ce que ni l'un ni l'autre n'ose formuler",
+      "conflict": "La source de friction profonde — pas le conflit de surface, mais ce qui crée vraiment le nœud",
+      "evolution": "Comment cette relation évolue sur l'arc narratif — 3 étapes clés",
+      "symbolicMeaning": "Ce que cette relation symbolise dans le récit — sa fonction thématique et poétique"
+    }
+  ]
+}
+
+Sois précis, psychologiquement profond, non-académique. Évite les archétypes convenus.`;
+
+  type RelResult = { relationships: Array<{ characterAName: string; characterBName: string; relationshipType: string; emotionalTension: string; hiddenTruth: string; conflict: string; evolution: string; symbolicMeaning: string }> };
+
+  const fallbackRels: RelResult["relationships"] = pairs.map(([i, j]) => ({
+    characterAName: characters[i].name,
+    characterBName: characters[j].name,
+    relationshipType: i === 0 && j === 1 ? "Conflit central" : "Alliance fragile",
+    emotionalTension: "Attraction et répulsion simultanées — ils se reconnaissent dans leur blessure commune",
+    hiddenTruth: "Ils ont besoin l'un de l'autre pour se transformer, même si leur relation semble destructrice",
+    conflict: "Chaque interaction pousse l'autre à révéler ce qu'il préfère cacher",
+    evolution: "De l'opposition à la reconnaissance → de la reconnaissance à l'acceptation → de l'acceptation à la transformation",
+    symbolicMeaning: "Le conflit intérieur du protagoniste extériorisé dans une relation",
+  }));
+
+  const result = await aiJson<RelResult>(system, user, { relationships: fallbackRels }, undefined, { temperature: 0.82 });
+
+  const nameToChar = new Map(characters.map(c => [c.name.toLowerCase().trim(), c]));
+
+  return result.relationships
+    .map(r => {
+      const charA = nameToChar.get(r.characterAName.toLowerCase().trim());
+      const charB = nameToChar.get(r.characterBName.toLowerCase().trim());
+      if (!charA || !charB) return null;
+      return {
+        projectId,
+        characterAId: charA.id,
+        characterBId: charB.id,
+        characterAName: charA.name,
+        characterBName: charB.name,
+        relationshipType: r.relationshipType,
+        emotionalTension: r.emotionalTension,
+        hiddenTruth: r.hiddenTruth,
+        conflict: r.conflict,
+        evolution: r.evolution,
+        symbolicMeaning: r.symbolicMeaning,
+      };
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
 }
 
 // ---------------------------------------------------------------------------
@@ -429,7 +516,7 @@ export function generateRelationships(projectId: string, characters: Array<{ id:
 // ---------------------------------------------------------------------------
 
 export async function generateWorldAndTimeline(project: Project, matrix: NarrativeMatrix, skillsContext?: string) {
-  const system = `Tu es un world-builder expert, spécialisé dans la construction d'univers cohérents et atmosphériques pour la fiction littéraire et cinématographique. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
+  const system = `Tu es un world-builder de haut niveau — spécialisé dans la construction d'univers cohérents, atmosphériques et narrativement habités pour la fiction littéraire et cinématographique. Tu penses comme Tolkien (systèmes de règles internes), Ursula Le Guin (cohérence sociale et culturelle) et Hayao Miyazaki (lieux chargés d'histoire et de mémoire sensorielle). Chaque lieu que tu crées doit avoir une vie avant l'arrivée des personnages. Chaque événement chronologique doit être une étape de transformation irréversible. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère l'univers et la chronologie de ce projet.
 
@@ -486,7 +573,7 @@ Les lieux doivent être mémorables, chargés de sens narratif. Chaque événeme
     causeEffectLogic: `Dans ${project.title}, chaque action émotionnelle crée une réaction narrative.`,
   };
 
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, skillsContext);
 }
 
 // ---------------------------------------------------------------------------
@@ -494,7 +581,7 @@ Les lieux doivent être mémorables, chargés de sens narratif. Chaque événeme
 // ---------------------------------------------------------------------------
 
 export async function generateResearchNotes(project: Project, matrix: NarrativeMatrix, skillsContext?: string) {
-  const system = `Tu es un chercheur littéraire et culturel spécialisé dans l'analyse des tendances narratives, la critique de genre, et le conseil éditorial. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
+  const system = `Tu es un chercheur littéraire et culturel de haut niveau — spécialisé dans l'analyse des tendances narratives mondiales, la critique de genre, l'histoire comparée de la littérature et le conseil éditorial. Tu connais le marché français (Gallimard, Actes Sud, L'Olivier) et international (Knopf, Faber). Tu identifies des œuvres de référence RÉELLES et pertinentes, tu repères les risques de clichés avec précision, et tu proposes des opportunités d'originalité concrètes. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
   const user = `Génère les notes de recherche et d'analyse pour ce projet.
 
@@ -539,7 +626,7 @@ Les œuvres de référence doivent être réelles et pertinentes. Les analyses d
     tearTriggers: ["Sacrifice non verbal", "Reconnaissance tardive"],
   };
 
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, skillsContext);
 }
 
 // ---------------------------------------------------------------------------
@@ -594,7 +681,7 @@ Les scores doivent être cohérents avec le genre "${project.genre}" et le ton "
     coherence: makeDefault(75),
   };
 
-  return aiJson<Record<string, ScoreCategory>>(system, user, fallback);
+  return aiJson<Record<string, ScoreCategory>>(system, user, fallback, skillsContext);
 }
 
 // ---------------------------------------------------------------------------
@@ -642,7 +729,7 @@ Les titres de chapitres doivent être littéraires et significatifs. Les résum�
     ],
   };
 
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, skillsContext);
 }
 
 // ---------------------------------------------------------------------------
@@ -714,7 +801,7 @@ Génère un objet JSON :
     fountainScript: `Title: ${project.title}\nAuthor: [Auteur]\n\n${scenes.map(s => `${s.heading}\n\n${s.description}\n\n`).join("\n")}FONDU AU NOIR.\n\nFIN`,
   };
 
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, skillsContext);
 }
 
 // ---------------------------------------------------------------------------
@@ -766,7 +853,7 @@ Génère un objet JSON :
     secondaryCharacters: ["Le Témoin", "Le Passé Vivant", "L'Innocence"],
   };
 
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, skillsContext);
 }
 
 // ---------------------------------------------------------------------------
@@ -821,7 +908,7 @@ Le pitch doit être convaincant, professionnel, et donner envie de lire/voir le 
     sellingPoints: [matrix.logline, `Profondeur émotionnelle rare dans le genre ${project.genre}`],
   };
 
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, skillsContext);
 }
 
 // ---------------------------------------------------------------------------
@@ -935,7 +1022,7 @@ Génère une courbe de tension dramatique avec 8 à 10 séquences. Chaque point 
     overallShape: "Courbe en vallée-montagne — creux au milieu, double pic",
     recommendation: "Votre creux de milieu est fort. Assurez-vous que la révélation change la perception de tout ce qui précède.",
   };
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, undefined, { temperature: 0.82 });
 }
 
 // ---------------------------------------------------------------------------
@@ -979,7 +1066,7 @@ Palette : 5 à 7 couleurs. Sois précis, poétique et inattendu. Pas de clichés
     sensoryNotes: { smell: "Pluie sur l'asphalte chaud, cigarette froide", sound: "Bourdonnement lointain, silence dense", touch: "Froid sec, surface rugueuse" },
     visualReferences: ["Drive (2011)", "True Detective S1", "Blade Runner 2049", "Caché (Haneke)", "La Pianiste"],
   };
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, undefined, { temperature: 0.88 });
 }
 
 // ---------------------------------------------------------------------------
@@ -1064,7 +1151,7 @@ Sois technique ET poétique. Chaque plan doit avoir une raison d'être dramatiqu
     ],
   };
 
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, undefined, { temperature: 0.78 });
 }
 
 // ---------------------------------------------------------------------------
@@ -1121,7 +1208,7 @@ Sois précis, inattendu, non-académique. Pas de parallèles évidents — cherc
     universalWound: "La peur d'être vu tel qu'on est vraiment — et d'être rejeté pour ça",
     futureResonance: "Les générations futures y liront notre époque comme celle où l'on a choisi entre ce qui est facile et ce qui est juste",
   };
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, undefined, { temperature: 0.85 });
 }
 
 // ---------------------------------------------------------------------------
@@ -1177,7 +1264,7 @@ Sois bienveillant, précis, non évident. 3 blindSpots, 3 resonanceGaps, 4 artis
     ],
     mirrorPhrase: "Une histoire sur les distances qu'on met entre soi et ce qu'on aime — et le chemin qu'on ne prend jamais assez tôt pour les traverser.",
   };
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, undefined, { temperature: 0.88 });
 }
 
 // ---------------------------------------------------------------------------
@@ -1229,7 +1316,7 @@ presence = score de 0 à 100. Sois honnête mais bienveillant.`;
     weakestPillar: "Humour — non pas par manque de talent, mais peut-être par prudence vis-à-vis de la profondeur du sujet",
     globalBalance: "Cette œuvre a la solidité d'une construction émotionnelle forte et un suspense réel. Pour atteindre l'universel, elle pourrait oser davantage la légèreté et la surprise — car ce sont eux qui permettent à la douleur d'être vraiment supportée et partagée.",
   };
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, undefined, { temperature: 0.75 });
 }
 
 // ---------------------------------------------------------------------------
@@ -1306,7 +1393,7 @@ Mets 2 à 4 personnages dans personnagesVision (les plus importants).
     motFinal: `Je fais ce film parce qu'il y a des choses qui ne peuvent exister que dans une salle obscure, entre des inconnus qui respirent ensemble dans le noir.`,
   };
 
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, undefined, { temperature: 0.82, maxTokens: 12000 });
 }
 
 // ---------------------------------------------------------------------------
@@ -1395,7 +1482,7 @@ Sois précis et cinématographique. Chaque titre de séquence doit donner envie 
     noteGlobale: "Cet arc narratif repose sur une transformation intérieure profonde du protagoniste. La force de cette structure tient à sa capacité à relier la blessure intime aux enjeux du monde extérieur — ce qui en fait une histoire universelle ancrée dans une singularité précise.",
   };
 
-  return aiJson(system, user, fallback);
+  return aiJson(system, user, fallback, undefined, { temperature: 0.85, maxTokens: 14000 });
 }
 
 // ---------------------------------------------------------------------------
