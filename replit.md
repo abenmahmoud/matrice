@@ -6,7 +6,7 @@
 
 **Stack** : React + Vite (frontend) • Express 5 (API) • PostgreSQL + Drizzle ORM • OpenAI GPT (via Replit AI Integrations) • pnpm monorepo
 
-**22 tables DB • 29 modules • 11 outils Immersion**
+**24 tables DB • 29 modules • 11 outils Immersion • Moteur IA (24 skills + 36 entrées cinéma mondial)**
 
 ---
 
@@ -117,6 +117,8 @@ miroir_artistique         — Miroir artistique (réflexion poétique)
 cinq_piliers              — Les 5 piliers dramatiques
 sequencier                — Séquencier professionnel (découpage en séquences)
 note_intention            — Note d'intention cinématographique (document CNC/producteurs)
+ai_skills                 — Skills d'injection IA (technique narrative, histoire cinéma, style auteur, standards pro)
+cinema_knowledge          — Base cinéma mondial (36+ entrées : Nouvelle Vague, Coréen, Iranien, Soviétique, etc.)
 ```
 
 ---
