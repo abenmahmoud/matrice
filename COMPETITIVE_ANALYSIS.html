@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matrice Narrative — Analyse Concurrentielle & Plan d'Évolution</title>
+<style>
+  :root {
+    --violet: #7c3aed;
+    --indigo: #4f46e5;
+    --violet-light: #a78bfa;
+    --bg: #07070d;
+    --card: #0f0f18;
+    --card2: #14141f;
+    --border: rgba(255,255,255,0.07);
+    --text: #e2e8f0;
+    --muted: rgba(255,255,255,0.45);
+    --muted2: rgba(255,255,255,0.22);
+    --green: #34d399;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --blue: #60a5fa;
+    --rose: #fb7185;
+    --orange: #fb923c;
+    --teal: #2dd4bf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    padding: 56px 24px;
+  }
+  .container { max-width: 1080px; margin: 0 auto; }
+
+  /* NAV */
+  .toc {
+    position: sticky;
+    top: 16px;
+    float: right;
+    width: 200px;
+    margin-left: 32px;
+    margin-bottom: 32px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-size: 0.72rem;
+  }
+  .toc h4 { color: var(--muted2); text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.6rem; margin-bottom: 10px; }
+  .toc a { display: block; color: var(--muted); text-decoration: none; padding: 3px 0; border-left: 2px solid transparent; padding-left: 8px; transition: all 0.15s; }
+  .toc a:hover { color: var(--violet-light); border-color: var(--violet); }
+  @media (max-width: 768px) { .toc { display: none; } }
+
+  /* HERO */
+  .hero {
+    margin-bottom: 72px;
+    padding: 52px 40px;
+    border: 1px solid rgba(124,58,237,0.25);
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(79,70,229,0.03) 100%);
+  }
+  .hero-tag {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--violet-light);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 999px;
+    padding: 3px 10px;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 14px;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, #a78bfa, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p { color: var(--muted); font-size: 0.95rem; max-width: 620px; }
+  .hero-meta {
+    display: flex;
+    gap: 20px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .hero-stat { display: flex; flex-direction: column; gap: 2px; }
+  .hero-stat .val { font-size: 1.5rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-stat .lbl { font-size: 0.65rem; color: var(--muted2); text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* SECTIONS */
+  .section { margin-bottom: 72px; }
+  .section-title {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: 24px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--violet-light);
+    margin-bottom: 12px;
+  }
+
+  /* COMPETITOR CARDS */
+  .competitor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+  .competitor-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .competitor-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .cc-red::before   { background: linear-gradient(90deg, #f87171, #fb923c); }
+  .cc-blue::before  { background: linear-gradient(90deg, #60a5fa, #818cf8); }
+  .cc-amber::before { background: linear-gradient(90deg, #fbbf24, #f97316); }
+  .cc-teal::before  { background: linear-gradient(90deg, #2dd4bf, #22d3ee); }
+  .cc-pink::before  { background: linear-gradient(90deg, #f472b6, #c084fc); }
+  .cc-green::before { background: linear-gradient(90deg, #34d399, #22d3ee); }
+
+  .cc-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .cc-name { font-size: 1.05rem; font-weight: 800; }
+  .cc-type { font-size: 0.62rem; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--muted); }
+  .cc-tagline { font-size: 0.78rem; color: var(--muted); margin-bottom: 14px; font-style: italic; }
+  .cc-price { font-size: 0.72rem; font-weight: 700; color: var(--amber); margin-bottom: 14px; }
+  .cc-pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cc-list { font-size: 0.72rem; }
+  .cc-list h5 { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+  .cc-list h5.pro { color: var(--green); }
+  .cc-list h5.con { color: var(--red); }
+  .cc-list li { list-style: none; padding: 2px 0; color: var(--muted); display: flex; gap: 6px; align-items: flex-start; }
+  .cc-list li::before { flex-shrink: 0; margin-top: 3px; font-size: 0.7rem; }
+  .cc-list.pros li::before { content: "✓"; color: var(--green); }
+  .cc-list.cons li::before { content: "✗"; color: var(--red); }
+  .cc-langs { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 0.65rem; color: var(--muted2); }
+  .cc-badge { display: inline-block; font-size: 0.6rem; padding: 2px 7px; border-radius: 5px; margin-right: 4px; margin-top: 4px; }
+  .badge-en { background: rgba(96,165,250,0.1); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+  .badge-fr { background: rgba(124,58,237,0.1); color: var(--violet-light); border: 1px solid rgba(124,58,237,0.2); }
+  .badge-no { background: rgba(248,113,113,0.08); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+  .threat-level { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 0.68rem; display: flex; align-items: center; gap: 8px; }
+  .threat-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 999px; overflow: hidden; }
+  .threat-fill { height: 100%; border-radius: 999px; }
+  .t-low  .threat-fill { background: var(--green); width: 25%; }
+  .t-med  .threat-fill { background: var(--amber); width: 55%; }
+  .t-high .threat-fill { background: var(--red); width: 85%; }
+  .t-low  .threat-label { color: var(--green); }
+  .t-med  .threat-label { color: var(--amber); }
+  .t-high .threat-label { color: var(--red); }
+  .threat-label { font-weight: 700; font-size: 0.65rem; white-space: nowrap; }
+
+  /* FEATURE MATRIX */
+  .matrix-wrap { overflow-x: auto; margin-bottom: 32px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.75rem; min-width: 700px; }
+  thead tr th {
+    text-align: center;
+    padding: 10px 12px;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted2);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  thead tr th:first-child { text-align: left; }
+  thead tr th.ours { color: var(--violet-light); }
+  tbody tr td {
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: var(--muted);
+    text-align: center;
+    vertical-align: middle;
+  }
+  tbody tr td:first-child { text-align: left; font-weight: 600; color: var(--text); font-size: 0.78rem; }
+  tbody tr:hover td { background: rgba(255,255,255,0.015); }
+  .col-ours { background: rgba(124,58,237,0.04); }
+  .m-yes    { color: var(--green); font-weight: 700; font-size: 1rem; }
+  .m-no     { color: rgba(255,255,255,0.18); font-size: 0.85rem; }
+  .m-part   { color: var(--amber); font-weight: 700; font-size: 0.7rem; }
+  .m-unique { color: var(--violet-light); font-weight: 700; font-size: 0.72rem; border: 1px solid rgba(124,58,237,0.3); border-radius: 4px; padding: 2px 6px; white-space: nowrap; }
+  .category-row td { background: rgba(255,255,255,0.02); color: var(--muted2); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; padding: 6px 12px; border: none; }
+
+  /* POSITION MAP */
+  .map-container {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 32px;
+  }
+  .map-svg { width: 100%; max-width: 600px; display: block; margin: 0 auto; }
+
+  /* WHITE SPACE */
+  .gap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .gap-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    border-left: 3px solid var(--violet);
+  }
+  .gap-card h4 { font-size: 0.8rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .gap-card p  { font-size: 0.73rem; color: var(--muted); line-height: 1.5; }
+  .gap-card .gap-size { font-size: 0.62rem; color: var(--violet-light); font-weight: 700; margin-top: 8px; }
+
+  /* ROADMAP */
+  .roadmap { display: flex; flex-direction: column; gap: 0; margin-bottom: 32px; }
+  .phase-block {
+    display: flex;
+    gap: 0;
+    position: relative;
+  }
+  .phase-block:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 44px;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, rgba(124,58,237,0.4), rgba(124,58,237,0.05));
+  }
+  .phase-timeline {
+    width: 40px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 14px;
+  }
+  .phase-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--violet), var(--indigo));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 900;
+    color: white;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .phase-content {
+    flex: 1;
+    padding: 14px 0 32px 20px;
+  }
+  .phase-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--violet-light);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .phase-content h3 { font-size: 0.95rem; color: var(--text); margin-bottom: 10px; }
+  .feature-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+  .feature-chip {
+    font-size: 0.7rem;
+    padding: 4px 11px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+  }
+  .feature-chip.hot { border-color: rgba(124,58,237,0.35); color: var(--violet-light); background: rgba(124,58,237,0.06); }
+  .feature-chip.new { border-color: rgba(52,211,153,0.3); color: var(--green); background: rgba(52,211,153,0.05); }
+  .phase-note { font-size: 0.73rem; color: var(--muted); }
+
+  /* AGENTS */
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .agent-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+  }
+  .agent-card::after {
+    content: attr(data-icon);
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 1.6rem;
+    opacity: 0.15;
+  }
+  .agent-name { font-size: 0.85rem; font-weight: 800; color: var(--text); margin-bottom: 3px; }
+  .agent-role { font-size: 0.65rem; color: var(--violet-light); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-bottom: 10px; }
+  .agent-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.5; margin-bottom: 12px; }
+  .agent-skills { display: flex; flex-wrap: wrap; gap: 5px; }
+  .agent-skill { font-size: 0.62rem; padding: 2px 8px; background: rgba(124,58,237,0.06); border: 1px solid rgba(124,58,237,0.15); border-radius: 5px; color: var(--muted); }
+
+  /* SKILLS SYSTEM */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .skill-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .skill-icon { font-size: 1.4rem; flex-shrink: 0; line-height: 1; margin-top: 2px; }
+  .skill-body {}
+  .skill-name { font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .skill-desc { font-size: 0.72rem; color: var(--muted); line-height: 1.45; }
+  .skill-status { margin-top: 6px; font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+  .s-exists { color: var(--green); }
+  .s-planned { color: var(--amber); }
+  .s-future  { color: var(--muted2); }
+
+  /* SUMMARY CALLOUT */
+  .callout {
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-bottom: 24px;
+    font-size: 0.82rem;
+  }
+  .callout.win  { background: rgba(52,211,153,0.05); border: 1px solid rgba(52,211,153,0.2); }
+  .callout.risk { background: rgba(251,191,36,0.05); border: 1px solid rgba(251,191,36,0.2); }
+  .callout.gap  { background: rgba(124,58,237,0.05); border: 1px solid rgba(124,58,237,0.2); }
+  .callout h4 { font-size: 0.75rem; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .callout.win  h4 { color: var(--green); }
+  .callout.risk h4 { color: var(--amber); }
+  .callout.gap  h4 { color: var(--violet-light); }
+  .callout ul { padding-left: 16px; color: var(--muted); }
+  .callout li { margin-bottom: 5px; }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    color: var(--muted2);
+    font-size: 0.7rem;
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    margin-top: 40px;
+  }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+  a { color: var(--violet-light); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <h4>Sommaire</h4>
+    <a href="#concurrents">Concurrents</a>
+    <a href="#matrice">Matrice de fonctions</a>
+    <a href="#position">Positionnement</a>
+    <a href="#gaps">Espaces libres</a>
+    <a href="#synthese">Synthèse stratégique</a>
+    <a href="#roadmap">Feuille de route</a>
+    <a href="#agents">Agents IA</a>
+    <a href="#skills">Système de Skills</a>
+    <a href="#actions">Actions prioritaires</a>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-tag">Analyse Concurrentielle · Mai 2026</div>
+    <h1>Matrice Narrative<br><span>dans le paysage mondial</span></h1>
+    <p>Étude comparative approfondie des outils d'écriture IA, cartographie des espaces libres, et feuille de route pour transformer Matrice Narrative en plateforme de référence mondiale pour auteurs francophones.</p>
+    <div class="hero-meta">
+      <div class="hero-stat"><span class="val">6</span><span class="lbl">concurrents analysés</span></div>
+      <div class="hero-stat"><span class="val">28</span><span class="lbl">critères comparés</span></div>
+      <div class="hero-stat"><span class="val">1</span><span class="lbl">marché non servi</span></div>
+      <div class="hero-stat"><span class="val">3</span><span class="lbl">phases d'évolution</span></div>
+    </div>
+  </div>
+
+  <!-- CONCURRENTS -->
+  <div class="section" id="concurrents">
+    <p class="section-title">01 — Paysage concurrentiel</p>
+    <h2>Les 6 acteurs analysés</h2>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:28px;">Recherche effectuée mai 2026 via sources publiques (G2, Kindlepreneur, SkyWork AI, sites officiels).</p>
+
+    <div class="competitor-grid">
+
+      <div class="competitor-card cc-red">
+        <div class="cc-header">
+          <div class="cc-name">Sudowrite</div>
+          <div class="cc-type">Roman / Fiction</div>
+        </div>
+        <div class="cc-tagline">"The AI writing partner built for novelists"</div>
+        <div class="cc-price">$10–$30 / mois · Hobby / Pro / Max</div>
+        <div class="cc-pros-cons">
+          <ul class="cc-list pros">
+            <h5 class="pro">Points forts</h5>
+            <li>Story Engine (structure narrative)</li>
+            <li>Interface "Write" très fluide</li>
+            <li>Twist / Expand / Describe (prose)</li>
+            <li>Large communauté active</li>
+          </ul>
+          <ul class="cc-list cons">
+            <h5 class="con">Faiblesses</h5>
+            <li>0% focus cinéma / scénario</li>
+            <li>Pas de pipeline 5 phases</li>
+            <li>Anglais uniquement</li>
+            <li>Pas d'analyse H.P.S.A.</li>
+          </ul>
+        </div>
+        <div class="cc-langs"><span class="cc-badge badge-en">Anglais</span><span class="cc-badge badge-no">Pas de français</span></div>
+        <div class="threat-level t-high">
+          <span class="threat-label">Menace</span>
+          <div class="threat-bar"><div class="threat-fill"></div></div>
+          <span class="threat-label">Élevée</span>
+        </div>
+      </div>
+
+      <div class="competitor-card cc-blue">
+        <div class="cc-header">
+          <div class="cc-name">Novelcrafter</div>
+          <div class="cc-type">Roman / World-building</div>
+        </div>
+        <div class="cc-tagline">"From first idea to finished manuscript"</div>
+        <div class="cc-price">$10–$25 / mois · Scribbler / Author / Sage</div>
+        <div class="cc-pros-cons">
+          <ul class="cc-list pros">
+            <h5 class="pro">Points forts</h5>
+            <li>Codex (base de connaissance)</li>
+            <li>Cohérence long-forme excellente</li>
+            <li>Intégration multi-LLM</li>
+            <li>Interface propre, rapide</li>
+          </ul>
+          <ul class="cc-list cons">
+            <h5 class="con">Faiblesses</h5>
+            <li>Zéro outil cinéma / série TV</li>
+            <li>Pas de scoring cohérence</li>
+            <li>Anglais uniquement</li>
+            <li>Pas de pitch / note d'intention</li>
+          </ul>
+        </div>
+        <div class="cc-langs"><span class="cc-badge badge-en">Anglais</span><span class="cc-badge badge-no">Pas de français</span></div>
+        <div class="threat-level t-high">
+          <span class="threat-label">Menace</span>
+          <div class="threat-bar"><div class="threat-fill"></div></div>
+          <span class="threat-label">Élevée</span>
+        </div>
+      </div>
+
+      <div class="competitor-card cc-amber">
+        <div class="cc-header">
+          <div class="cc-name">Dramatica</div>
+          <div class="cc-type">Story Theory / Studio</div>
+        </div>
+        <div class="cc-tagline">"Narrative intelligence for studio-grade story development"</div>
+        <div class="cc-price">$50–$200+/mois · équipes studios</div>
+        <div class="cc-pros-cons">
+          <ul class="cc-list pros">
+            <h5 class="pro">Points forts</h5>
+            <li>Théorie narrative très profonde</li>
+            <li>Cohérence structurelle avancée</li>
+            <li>Utilisé par des studios</li>
+            <li>Analyse d'existant (drafts)</li>
+          </ul>
+          <ul class="cc-list cons">
+            <h5 class="con">Faiblesses</h5>
+            <li>Courbe d'apprentissage énorme</li>
+            <li>Interface vieillissante</li>
+            <li>Prix prohibitif grand public</li>
+            <li>Anglais uniquement · pas de prose</li>
+          </ul>
+        </div>
+        <div class="cc-langs"><span class="cc-badge badge-en">Anglais</span><span class="cc-badge badge-no">Pas de français</span></div>
+        <div class="threat-level t-med">
+          <span class="threat-label">Menace</span>
+          <div class="threat-bar"><div class="threat-fill"></div></div>
+          <span class="threat-label">Moyenne</span>
+        </div>
+      </div>
+
+      <div class="competitor-card cc-teal">
+        <div class="cc-header">
+          <div class="cc-name">Squibler</div>
+          <div class="cc-type">Tout-en-un Généraliste</div>
+        </div>
+        <div class="cc-tagline">"AI book and script writer, templates & organization"</div>
+        <div class="cc-price">$16/mois · Pro</div>
+        <div class="cc-pros-cons">
+          <ul class="cc-list pros">
+            <h5 class="pro">Points forts</h5>
+            <li>Éditeur + templates</li>
+            <li>Dashboard projets clair</li>
+            <li>Script + roman dans un outil</li>
+            <li>Prix abordable</li>
+          </ul>
+          <ul class="cc-list cons">
+            <h5 class="con">Faiblesses</h5>
+            <li>IA superficielle (génération brute)</li>
+            <li>Pas de structure narrative profonde</li>
+            <li>Pas de pipeline créatif guidé</li>
+            <li>Anglais uniquement</li>
+          </ul>
+        </div>
+        <div class="cc-langs"><span class="cc-badge badge-en">Anglais</span><span class="cc-badge badge-no">Pas de français</span></div>
+        <div class="threat-level t-med">
+          <span class="threat-label">Menace</span>
+          <div class="threat-bar"><div class="threat-fill"></div></div>
+          <span class="threat-label">Moyenne</span>
+        </div>
+      </div>
+
+      <div class="competitor-card cc-pink">
+        <div class="cc-header">
+          <div class="cc-name">Plottr / Campfire</div>
+          <div class="cc-type">Planification / Lore</div>
+        </div>
+        <div class="cc-tagline">"Visual story planner & world-building bible"</div>
+        <div class="cc-price">$25/an (Plottr) · $8–15/mois (Campfire)</div>
+        <div class="cc-pros-cons">
+          <ul class="cc-list pros">
+            <h5 class="pro">Points forts</h5>
+            <li>Timeline visuelle excellente</li>
+            <li>Gestion de lore très complète</li>
+            <li>Campfire : world-building détaillé</li>
+          </ul>
+          <ul class="cc-list cons">
+            <h5 class="con">Faiblesses</h5>
+            <li>Pas d'IA de génération</li>
+            <li>Pas de module scénario / cinéma</li>
+            <li>Pas de pipeline guidé</li>
+            <li>Anglais uniquement</li>
+          </ul>
+        </div>
+        <div class="cc-langs"><span class="cc-badge badge-en">Anglais</span><span class="cc-badge badge-no">Pas de français</span></div>
+        <div class="threat-level t-low">
+          <span class="threat-label">Menace</span>
+          <div class="threat-bar"><div class="threat-fill"></div></div>
+          <span class="threat-label">Faible</span>
+        </div>
+      </div>
+
+      <div class="competitor-card cc-green">
+        <div class="cc-header">
+          <div class="cc-name">Jasper / ChatGPT</div>
+          <div class="cc-type">IA Généraliste</div>
+        </div>
+        <div class="cc-tagline">"General-purpose AI writing — including creative"</div>
+        <div class="cc-price">$20–$49/mois (Jasper) · $20/mois (ChatGPT+)</div>
+        <div class="cc-pros-cons">
+          <ul class="cc-list pros">
+            <h5 class="pro">Points forts</h5>
+            <li>Multilingue (dont français)</li>
+            <li>Très connu, large base</li>
+            <li>Outil de contenu puissant</li>
+          </ul>
+          <ul class="cc-list cons">
+            <h5 class="con">Faiblesses</h5>
+            <li>Pas de structure narrative</li>
+            <li>Pas de pipeline créatif</li>
+            <li>Aucune spécialisation cinéma</li>
+            <li>L'utilisateur doit tout cadrer seul</li>
+          </ul>
+        </div>
+        <div class="cc-langs"><span class="cc-badge badge-fr">Français</span><span class="cc-badge badge-en">Multilingue</span></div>
+        <div class="threat-level t-med">
+          <span class="threat-label">Menace</span>
+          <div class="threat-bar"><div class="threat-fill"></div></div>
+          <span class="threat-label">Indirecte</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- MATRICE DE FONCTIONS -->
+  <div class="section" id="matrice">
+    <p class="section-title">02 — Matrice de fonctions</p>
+    <h2>Comparaison feature-by-feature</h2>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:20px;">✓ = présent · ✗ = absent · ~ = partiel · ★ = exclusif Matrice Narrative</p>
+
+    <div class="matrix-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fonctionnalité</th>
+            <th class="ours">Matrice Narrative</th>
+            <th>Sudowrite</th>
+            <th>Novelcrafter</th>
+            <th>Dramatica</th>
+            <th>Squibler</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="category-row"><td colspan="6">— Pipeline narratif guidé</td></tr>
+          <tr>
+            <td>Pipeline en phases structurées</td>
+            <td class="col-ours"><span class="m-unique">★ 5 phases</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-part">~</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+          <tr>
+            <td>Logline + Matrice narrative IA</td>
+            <td class="col-ours"><span class="m-yes">✓</span></td>
+            <td><span class="m-part">~</span></td>
+            <td><span class="m-part">~</span></td>
+            <td><span class="m-yes">✓</span></td>
+            <td><span class="m-part">~</span></td>
+          </tr>
+          <tr>
+            <td>Noyau émotionnel du protagoniste</td>
+            <td class="col-ours"><span class="m-unique">★ 9 étapes</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-part">~</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+          <tr>
+            <td>Scoring cohérence narrative (HPSA)</td>
+            <td class="col-ours"><span class="m-unique">★ 4 axes</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-part">~</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+
+          <tr class="category-row"><td colspan="6">— Écriture Roman</td></tr>
+          <tr>
+            <td>Plan chapitré IA</td>
+            <td class="col-ours"><span class="m-unique">★ 10 champs</span></td>
+            <td><span class="m-yes">✓</span></td>
+            <td><span class="m-yes">✓</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td>Génération de prose longue</td>
+            <td class="col-ours"><span class="m-part">~</span></td>
+            <td><span class="m-yes">✓</span></td>
+            <td><span class="m-yes">✓</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-yes">✓</span></td>
+          </tr>
+
+          <tr class="category-row"><td colspan="6">— Écriture Cinéma</td></tr>
+          <tr>
+            <td>Atelier Scénario (beats + scènes)</td>
+            <td class="col-ours"><span class="m-yes">✓</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-part">~</span></td>
+          </tr>
+          <tr>
+            <td>Export format Fountain</td>
+            <td class="col-ours"><span class="m-yes">✓</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td>Scènes jouables (analyse HPSA)</td>
+            <td class="col-ours"><span class="m-unique">★ exclusif</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+          <tr>
+            <td>Mode Réalisateur (découpe technique)</td>
+            <td class="col-ours"><span class="m-unique">★ exclusif</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+          <tr>
+            <td>Séquencier professionnel</td>
+            <td class="col-ours"><span class="m-unique">★ exclusif</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+
+          <tr class="category-row"><td colspan="6">— Série TV</td></tr>
+          <tr>
+            <td>Atelier Série (épisodes enrichis)</td>
+            <td class="col-ours"><span class="m-unique">★ 16 champs</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+          <tr>
+            <td>Bible série export Markdown</td>
+            <td class="col-ours"><span class="m-yes">✓</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+
+          <tr class="category-row"><td colspan="6">— Présentation & Pitch</td></tr>
+          <tr>
+            <td>Dossier Pitch (producteurs)</td>
+            <td class="col-ours"><span class="m-yes">✓</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-part">~</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+          <tr>
+            <td>Note d'intention (CNC / festivals)</td>
+            <td class="col-ours"><span class="m-unique">★ exclusif</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+
+          <tr class="category-row"><td colspan="6">— Langue & Marché</td></tr>
+          <tr>
+            <td>Interface entièrement en français</td>
+            <td class="col-ours"><span class="m-unique">★ exclusif</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+          <tr>
+            <td>Prompts IA en français</td>
+            <td class="col-ours"><span class="m-unique">★ exclusif</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+          <tr>
+            <td>Standards CNC / Cinéma français</td>
+            <td class="col-ours"><span class="m-unique">★ exclusif</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+            <td><span class="m-no">✗</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- POSITIONNEMENT -->
+  <div class="section" id="position">
+    <p class="section-title">03 — Carte de positionnement</p>
+    <h2>Profondeur narrative vs Accès marché francophone</h2>
+
+    <div class="map-container">
+      <svg class="map-svg" viewBox="0 0 560 440" xmlns="http://www.w3.org/2000/svg">
+        <!-- Axes -->
+        <line x1="40" y1="400" x2="520" y2="400" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+        <line x1="40" y1="400" x2="40" y2="20" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+        <!-- Grid -->
+        <line x1="280" y1="400" x2="280" y2="20" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="4,4"/>
+        <line x1="40" y1="210" x2="520" y2="210" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="4,4"/>
+        <!-- Axis labels -->
+        <text x="280" y="420" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10" font-family="system-ui">Profondeur narrative →</text>
+        <text x="14" y="210" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10" font-family="system-ui" transform="rotate(-90,14,210)">Marché FR →</text>
+
+        <!-- Quadrant labels -->
+        <text x="70" y="50" fill="rgba(255,255,255,0.12)" font-size="9" font-family="system-ui">Facile mais peu profond</text>
+        <text x="300" y="50" fill="rgba(124,58,237,0.5)" font-size="9" font-family="system-ui" font-weight="bold">✦ TERRITOIRE IDÉAL</text>
+        <text x="70" y="390" fill="rgba(255,255,255,0.12)" font-size="9" font-family="system-ui">Ni l'un ni l'autre</text>
+        <text x="300" y="390" fill="rgba(255,255,255,0.12)" font-size="9" font-family="system-ui">Profond mais EN seulement</text>
+
+        <!-- Competitors -->
+        <!-- Sudowrite: haut profond, EN -->
+        <circle cx="400" cy="340" r="22" fill="rgba(248,113,113,0.15)" stroke="#f87171" stroke-width="1.5"/>
+        <text x="400" y="344" text-anchor="middle" fill="#f87171" font-size="9" font-family="system-ui" font-weight="bold">Sudowrite</text>
+
+        <!-- Novelcrafter: haut profond, EN -->
+        <circle cx="430" cy="300" r="22" fill="rgba(96,165,250,0.15)" stroke="#60a5fa" stroke-width="1.5"/>
+        <text x="430" y="304" text-anchor="middle" fill="#60a5fa" font-size="9" font-family="system-ui" font-weight="bold">Novelcrafter</text>
+
+        <!-- Dramatica: très profond, EN -->
+        <circle cx="490" cy="310" r="18" fill="rgba(251,191,36,0.12)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="490" y="314" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="system-ui" font-weight="bold">Dramatica</text>
+
+        <!-- Squibler: peu profond, EN -->
+        <circle cx="200" cy="340" r="18" fill="rgba(45,212,191,0.12)" stroke="#2dd4bf" stroke-width="1.5"/>
+        <text x="200" y="344" text-anchor="middle" fill="#2dd4bf" font-size="9" font-family="system-ui" font-weight="bold">Squibler</text>
+
+        <!-- ChatGPT: peu profond, FR partiel -->
+        <circle cx="120" cy="220" r="16" fill="rgba(52,211,153,0.12)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="120" y="224" text-anchor="middle" fill="#34d399" font-size="9" font-family="system-ui" font-weight="bold">ChatGPT</text>
+
+        <!-- MATRICE NARRATIVE: idéal -->
+        <circle cx="450" cy="80" r="34" fill="rgba(124,58,237,0.2)" stroke="#a78bfa" stroke-width="2.5"/>
+        <text x="450" y="74" text-anchor="middle" fill="#a78bfa" font-size="8" font-family="system-ui" font-weight="900">MATRICE</text>
+        <text x="450" y="86" text-anchor="middle" fill="#a78bfa" font-size="8" font-family="system-ui" font-weight="900">NARRATIVE</text>
+
+        <!-- Arrow from gap zone to Matrice -->
+        <path d="M 320 160 C 360 120 400 90 416 82" stroke="rgba(124,58,237,0.4)" stroke-width="1" fill="none" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+        <text x="310" y="155" fill="rgba(124,58,237,0.6)" font-size="8" font-family="system-ui">Zone vide</text>
+
+        <defs>
+          <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L6,3 z" fill="rgba(124,58,237,0.6)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- WHITE SPACE -->
+  <div class="section" id="gaps">
+    <p class="section-title">04 — Espaces libres</p>
+    <h2>Ce que personne ne fait encore</h2>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:24px;">Les opportunités non exploitées dans le marché actuel — zones où Matrice Narrative peut dominer sans combat direct.</p>
+
+    <div class="gap-grid">
+      <div class="gap-card">
+        <h4>Marché francophone entier</h4>
+        <p>Aucun des 6 concurrents n'a d'interface ou de prompts en français. 300 millions de francophones, 0 outil spécialisé. Le marché existe et attend.</p>
+        <div class="gap-size">Taille estimée : 300M+ locuteurs · France / Québec / Belgique / Maghreb / Afrique</div>
+      </div>
+      <div class="gap-card">
+        <h4>OS créatif Roman + Cinéma + Série</h4>
+        <p>Tous les concurrents se spécialisent (roman OU scénario OU série). Personne ne couvre les 3 dans un seul pipeline cohérent avec un projet unique.</p>
+        <div class="gap-size">Valeur clé : un auteur peut pivoter d'un roman à une adaptation sans changer d'outil</div>
+      </div>
+      <div class="gap-card">
+        <h4>Standards professionnels français</h4>
+        <p>Note d'intention CNC, dossier de pitch français, format Fountain adapté — personne ne couvre les spécificités du cinéma francophone et de ses instances (CNC, SACD, festivals).</p>
+        <div class="gap-size">Uniquement Matrice Narrative actuellement</div>
+      </div>
+      <div class="gap-card">
+        <h4>Scoring narratif quantifié</h4>
+        <p>L'analyse de cohérence (H.P.S.A.) avec scores et corrections prioritaires n'existe nulle part ailleurs. C'est une approche unique de "diagnostic narratif".</p>
+        <div class="gap-size">Différenciateur fort pour auteurs professionnels</div>
+      </div>
+      <div class="gap-card">
+        <h4>Ateliers d'immersion cinématographique</h4>
+        <p>Aucun outil ne propose l'arc de tension interactif, la chambre des atmosphères, le mode réalisateur, ou la constellation de personnages dans un même espace.</p>
+        <div class="gap-size">11 outils Immersion = avantage démontrable en démo</div>
+      </div>
+      <div class="gap-card">
+        <h4>Multi-agents narratifs spécialisés</h4>
+        <p>Aucun concurrent n'utilise des agents IA distincts par rôle (script doctor, showrunner, éditeur). C'est la prochaine évolution de la catégorie — être premier est critique.</p>
+        <div class="gap-size">Fenêtre d'opportunité : 12–18 mois avant que les grands entrent</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SYNTHÈSE -->
+  <div class="section" id="synthese">
+    <p class="section-title">05 — Synthèse stratégique</p>
+    <h2>Positionnement recommandé (Dunford)</h2>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:24px; line-height:1.7;max-width:680px;">
+      <strong style="color:var(--text)">Pour les auteurs et cinéastes francophones</strong> qui veulent transformer une idée en œuvre structurée et professionnelle, <strong style="color:var(--text)">Matrice Narrative</strong> est un <strong style="color:var(--text)">OS créatif complet</strong> qui guide tout le cycle — roman, scénario, série — via un pipeline IA en 5 phases. Contrairement à Sudowrite ou Novelcrafter, Matrice Narrative couvre Roman + Cinéma + Série TV dans un seul outil, en français, avec les standards professionnels (CNC, SACD, festivals).
+    </p>
+
+    <div class="callout win">
+      <h4>Ce que nous gagnons</h4>
+      <ul>
+        <li>Seul outil 100% français avec prompts IA en français natif — monopole de facto sur 300M de francophones</li>
+        <li>Seul outil à couvrir Roman + Cinéma + Série dans un seul pipeline cohérent</li>
+        <li>Scoring H.P.S.A. et corrections prioritaires = différenciateur quantifiable unique</li>
+        <li>Standards CNC / Note d'intention = porte d'entrée naturelle vers les professionnels</li>
+        <li>11 outils Immersion = expérience démo irréplicable en 10 minutes</li>
+      </ul>
+    </div>
+
+    <div class="callout risk">
+      <h4>Risques à surveiller</h4>
+      <ul>
+        <li>Sudowrite et Novelcrafter pourraient ajouter le français (ils ont les ressources)</li>
+        <li>OpenAI pourrait lancer un outil spécialisé (ChatGPT Projects est un signal)</li>
+        <li>La génération de prose longue reste un point faible — les concurrents sont meilleurs sur ce point</li>
+        <li>Pas encore de collaboration multi-utilisateurs (writers' room)</li>
+      </ul>
+    </div>
+
+    <div class="callout gap">
+      <h4>La fenêtre d'opportunité</h4>
+      <ul>
+        <li>12–18 mois avant que Sudowrite / Novelcrafter localisent en français</li>
+        <li>L'ajout de multi-agents avant les concurrents crée un fossé technique difficile à combler</li>
+        <li>Le marché francophone professionnel (CNC, production) n'a jamais eu d'outil dédié</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ROADMAP -->
+  <div class="section" id="roadmap">
+    <p class="section-title">06 — Feuille de route d'évolution</p>
+    <h2>3 phases pour dominer la catégorie</h2>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:32px;">Priorités classées par impact / effort. Phase 1 = renforcer les fondations. Phase 2 = puissance IA. Phase 3 = écosystème.</p>
+
+    <div class="roadmap">
+
+      <div class="phase-block">
+        <div class="phase-timeline"><div class="phase-dot">1</div></div>
+        <div class="phase-content">
+          <div class="phase-label">Phase 1 — 0 à 3 mois · Fondations</div>
+          <h3>Solidifier & Compléter le pipeline existant</h3>
+          <div class="feature-list">
+            <span class="feature-chip hot">Éditeur de prose intégré (markdown rich-text)</span>
+            <span class="feature-chip hot">Sauvegarde auto + historique de versions</span>
+            <span class="feature-chip hot">Génération par chapitre (prose réelle, pas seulement plan)</span>
+            <span class="feature-chip new">Système de Notes contextuelles par module</span>
+            <span class="feature-chip new">Dashboard analytics du projet (mots écrits, modules complétés)</span>
+            <span class="feature-chip">Export PDF formaté pour impression</span>
+            <span class="feature-chip">Mode focus (écriture plein écran)</span>
+          </div>
+          <p class="phase-note">Objectif : combler le gap prose longue face à Sudowrite/Novelcrafter. Un auteur doit pouvoir écrire le roman entier dans Matrice Narrative.</p>
+        </div>
+      </div>
+
+      <div class="phase-block">
+        <div class="phase-timeline"><div class="phase-dot">2</div></div>
+        <div class="phase-content">
+          <div class="phase-label">Phase 2 — 3 à 9 mois · Intelligence IA avancée</div>
+          <h3>Multi-agents spécialisés + Mémoire du projet</h3>
+          <div class="feature-list">
+            <span class="feature-chip hot">Agent Script Doctor (analyse scène par scène)</span>
+            <span class="feature-chip hot">Agent Showrunner (cohérence inter-épisodes)</span>
+            <span class="feature-chip hot">Agent Éditeur Littéraire (style, voix, rythme prose)</span>
+            <span class="feature-chip hot">Mémoire vectorielle du projet (RAG sur toute l'œuvre)</span>
+            <span class="feature-chip new">Détection de contradictions automatique</span>
+            <span class="feature-chip new">Suggestions proactives basées sur le contexte</span>
+            <span class="feature-chip new">Skills enseignables (auteur peut uploader ses propres références)</span>
+            <span class="feature-chip">Chat avec un agent qui connaît tout le projet</span>
+          </div>
+          <p class="phase-note">C'est la grande différenciation. Les concurrents anglais travaillent sur des fonctions similaires — être premier sur le marché FR avec des agents narratifs spécialisés crée un fossé.</p>
+        </div>
+      </div>
+
+      <div class="phase-block">
+        <div class="phase-timeline"><div class="phase-dot">3</div></div>
+        <div class="phase-content">
+          <div class="phase-label">Phase 3 — 9 à 18 mois · Écosystème & Communauté</div>
+          <h3>Plateforme, collaboration & marché</h3>
+          <div class="feature-list">
+            <span class="feature-chip hot">Writers' Room (collaboration temps réel sur un projet)</span>
+            <span class="feature-chip hot">Intégration Final Draft / Highland (import/export)</span>
+            <span class="feature-chip hot">API publique (plugins tiers)</span>
+            <span class="feature-chip new">Bibliothèque de templates (genres, formats)</span>
+            <span class="feature-chip new">Marketplace de skills communautaires</span>
+            <span class="feature-chip new">Portail Producteurs (partage sécurisé dossier pitch)</span>
+            <span class="feature-chip">App mobile (lecture + annotations)</span>
+            <span class="feature-chip">Intégration CNC (dépôt direct)</span>
+          </div>
+          <p class="phase-note">L'objectif est de devenir l'infrastructure du cinéma francophone indépendant, pas juste un outil d'écriture.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- AGENTS IA -->
+  <div class="section" id="agents">
+    <p class="section-title">07 — Architecture multi-agents</p>
+    <h2>Les agents spécialisés à construire</h2>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:24px;">Chaque agent a un rôle précis, un contexte spécifique injecté, et travaille sur une portion définie du projet. Ils peuvent être orchestrés ensemble pour un workflow complet.</p>
+
+    <div class="agents-grid">
+
+      <div class="agent-card" data-icon="🎬">
+        <div class="agent-name">Agent Script Doctor</div>
+        <div class="agent-role">Analyse Scène par scène</div>
+        <div class="agent-desc">Analyse chaque scène du scénario comme un script doctor professionnel : tension dramatique, sous-texte, fonction narrative, score HPSA local, suggestions de réécriture.</div>
+        <div class="agent-skills">
+          <span class="agent-skill">Scènes jouables</span>
+          <span class="agent-skill">Beats labellisés</span>
+          <span class="agent-skill">HPSA par scène</span>
+          <span class="agent-skill">Réécritures</span>
+        </div>
+      </div>
+
+      <div class="agent-card" data-icon="📺">
+        <div class="agent-name">Agent Showrunner</div>
+        <div class="agent-role">Cohérence Série TV</div>
+        <div class="agent-desc">Surveille la cohérence inter-épisodes, les arcs A/B/C, les questions dramatiques en suspens, la progression des personnages et les lois de l'univers sur toute la saison.</div>
+        <div class="agent-skills">
+          <span class="agent-skill">Arc saison</span>
+          <span class="agent-skill">Cliff-hangers</span>
+          <span class="agent-skill">Règles univers</span>
+          <span class="agent-skill">Continuité</span>
+        </div>
+      </div>
+
+      <div class="agent-card" data-icon="📖">
+        <div class="agent-name">Agent Éditeur Littéraire</div>
+        <div class="agent-role">Style & Prose Roman</div>
+        <div class="agent-desc">Analyse la voix narrative, le rythme de la prose, la densité des descriptions, la focalisation et les transitions entre chapitres. Suggère des reformulations et des coupes.</div>
+        <div class="agent-skills">
+          <span class="agent-skill">Voix narrative</span>
+          <span class="agent-skill">Rythme prose</span>
+          <span class="agent-skill">Focalisation</span>
+          <span class="agent-skill">Densité</span>
+        </div>
+      </div>
+
+      <div class="agent-card" data-icon="🏛️">
+        <div class="agent-name">Agent Architecte Narratif</div>
+        <div class="agent-role">Cohérence globale du projet</div>
+        <div class="agent-desc">Vue macro de tout le projet : contradictions entre modules, thèmes sous-exploités, personnages sous-développés, lois d'univers violées. Rapport de cohérence globale.</div>
+        <div class="agent-skills">
+          <span class="agent-skill">Cross-module</span>
+          <span class="agent-skill">Contradictions</span>
+          <span class="agent-skill">Thèmes</span>
+          <span class="agent-skill">Rapport</span>
+        </div>
+      </div>
+
+      <div class="agent-card" data-icon="🎯">
+        <div class="agent-name">Agent Lecteur Cible</div>
+        <div class="agent-role">Feedback public / comité</div>
+        <div class="agent-desc">Simule la réaction d'un lecteur, spectateur, ou membre d'un comité de lecture (CNC, éditeur, producteur) selon le profil choisi. Donne un retour émotionnel authentique.</div>
+        <div class="agent-skills">
+          <span class="agent-skill">Profils comité</span>
+          <span class="agent-skill">Réaction émotionnelle</span>
+          <span class="agent-skill">CNC</span>
+          <span class="agent-skill">Éditeurs</span>
+        </div>
+      </div>
+
+      <div class="agent-card" data-icon="🗣️">
+        <div class="agent-name">Agent Personnage</div>
+        <div class="agent-role">Voix & Psychologie (existant)</div>
+        <div class="agent-desc">Déjà partiellement implémenté dans le module Dialogue. À étendre : chaque personnage peut relire le scénario et signaler les incohérences avec sa psychologie et sa blessure.</div>
+        <div class="agent-skills">
+          <span class="agent-skill">Voix propre</span>
+          <span class="agent-skill">Blessure/Peur</span>
+          <span class="agent-skill">Incohérences</span>
+          <span class="agent-skill">En cours</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout gap">
+      <h4>Architecture d'orchestration recommandée</h4>
+      <ul>
+        <li><strong style="color:var(--text)">Orchestrateur central</strong> — un agent maître décide quel agent spécialisé appeler selon la tâche demandée par l'auteur</li>
+        <li><strong style="color:var(--text)">Mémoire partagée (RAG)</strong> — tous les agents lisent la même base de connaissance vectorielle du projet (matrice, personnages, lois d'univers, chapitres)</li>
+        <li><strong style="color:var(--text)">Résultats persistants</strong> — chaque rapport d'agent est sauvegardé et devient contexte pour les analyses suivantes</li>
+        <li><strong style="color:var(--text)">Mode pipeline</strong> — lancer tous les agents en séquence sur un projet = rapport de santé narratif complet en 1 clic</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SKILLS -->
+  <div class="section" id="skills">
+    <p class="section-title">08 — Système de Skills</p>
+    <h2>Les compétences à enseigner à l'IA</h2>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:24px;">Les skills sont des ensembles de connaissances injectées dans les prompts système. Certains sont déjà présents (Laboratoire Narratif), d'autres sont à construire.</p>
+
+    <div class="skills-grid">
+
+      <div class="skill-card">
+        <div class="skill-icon">🧪</div>
+        <div class="skill-body">
+          <div class="skill-name">Laboratoire Narratif</div>
+          <div class="skill-desc">Techniques de structure, arc émotionnel, archétypes jungiens, théorie de l'attachement. Injecté dans tous les modules de génération via skillsContext.</div>
+          <div class="skill-status s-exists">✓ Déjà implémenté</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">🎬</div>
+        <div class="skill-body">
+          <div class="skill-name">Grammaire Cinématographique</div>
+          <div class="skill-desc">Plans, mouvements caméra, montage, continuité, raccords. Renforcera le Mode Réalisateur, le Séquencier et les Scènes Jouables.</div>
+          <div class="skill-status s-planned">→ Phase 1 à construire</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">🏛️</div>
+        <div class="skill-body">
+          <div class="skill-name">Standards CNC & SACD</div>
+          <div class="skill-desc">Critères de sélection CNC, format dossier avance sur recettes, règles SACD, conventions festivals Cannes/César. Injecté dans Note d'Intention et Pitch.</div>
+          <div class="skill-status s-planned">→ Phase 1 à construire</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">📡</div>
+        <div class="skill-body">
+          <div class="skill-name">Codes Séries TV par Plateforme</div>
+          <div class="skill-desc">Spécificités Netflix, Canal+, Arte, France Télévisions : durées d'épisodes, niveaux de violence, attentes éditoriales, formats d'accroche. Pour l'Atelier Série.</div>
+          <div class="skill-status s-planned">→ Phase 2 à construire</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">🎭</div>
+        <div class="skill-body">
+          <div class="skill-name">Genres & Codes Narratifs</div>
+          <div class="skill-desc">Thriller, drame familial, comédie romantique, SF, horreur — chaque genre a des conventions, des promesses implicites au lecteur, des beats attendus spécifiques.</div>
+          <div class="skill-status s-planned">→ Phase 2 à construire</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">🧠</div>
+        <div class="skill-body">
+          <div class="skill-name">Skills Personnalisés (auteur)</div>
+          <div class="skill-desc">L'auteur peut uploader ses propres références : style d'auteur admiré, extraits de textes inspirants, règles personnelles d'écriture. L'IA adopte ces guidelines.</div>
+          <div class="skill-status s-future">◇ Phase 3 — futur</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">📚</div>
+        <div class="skill-body">
+          <div class="skill-name">Références Littéraires & Filmiques</div>
+          <div class="skill-desc">Base de données de références (films, romans) analysés selon les axes HPSA, la structure en 3 actes, les archétypes. L'IA peut comparer le projet à ces références.</div>
+          <div class="skill-status s-future">◇ Phase 3 — futur</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">🌍</div>
+        <div class="skill-body">
+          <div class="skill-name">Diversité Narrative</div>
+          <div class="skill-desc">Représentation, intersectionnalité, biais narratifs, test de Bechdel. L'IA peut auditer un projet et suggérer des enrichissements de représentation.</div>
+          <div class="skill-status s-future">◇ Phase 3 — futur</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ACTIONS PRIORITAIRES -->
+  <div class="section" id="actions">
+    <p class="section-title">09 — Actions prioritaires</p>
+    <h2>Les 5 choses à faire maintenant</h2>
+
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:32px;">
+
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 22px;display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;color:white;flex-shrink:0;">1</div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:4px;">Ajouter un éditeur de prose riche dans l'Atelier Roman</div>
+          <div style="font-size:0.75rem;color:var(--muted);">C'est le seul gap fonctionnel face à Sudowrite et Novelcrafter. Sans génération de prose longue, Matrice Narrative reste un outil de planification. Avec, c'est un concurrent direct.</div>
+        </div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 22px;display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;color:white;flex-shrink:0;">2</div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:4px;">Construire le skill "Standards CNC & SACD"</div>
+          <div style="font-size:0.75rem;color:var(--muted);">Injecter les critères CNC dans la Note d'Intention et le Dossier Pitch. Cela crée une valeur immédiate pour les cinéastes professionnels — un argument de vente que les concurrents anglophones ne peuvent pas répliquer.</div>
+        </div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 22px;display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;color:white;flex-shrink:0;">3</div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:4px;">Implémenter l'Agent Script Doctor</div>
+          <div style="font-size:0.75rem;color:var(--muted);">Premier agent spécialisé visible par l'utilisateur. L'analyse scène par scène avec HPSA local et suggestions de réécriture est un différenciateur immédiatement démontrables face à la concurrence.</div>
+        </div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 22px;display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;color:white;flex-shrink:0;">4</div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:4px;">Ajouter la mémoire vectorielle du projet (RAG)</div>
+          <div style="font-size:0.75rem;color:var(--muted);">Indexer tout le contenu du projet (matrice, personnages, chapitres, lois) dans un vecteur store. Les agents pourront ensuite interroger "tout ce que l'auteur a écrit" pour des réponses contextuelles et une détection de contradictions automatique.</div>
+        </div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 22px;display:flex;gap:18px;align-items:flex-start;">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:900;color:white;flex-shrink:0;">5</div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:700;color:var(--text);margin-bottom:4px;">Lancer sur Product Hunt France + réseaux scénaristes</div>
+          <div style="font-size:0.75rem;color:var(--muted);">La Fémis, La Scénaristerie, Unifrance, groupes Facebook/Discord de scénaristes francophones. La fenêtre d'opportunité (0 concurrent FR) justifie une prise de marché agressive maintenant, avant que Sudowrite localise en français.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>Matrice Narrative — Analyse concurrentielle · Sources : G2, Kindlepreneur, SkyWork AI, sites officiels · Mai 2026</p>
+    <p style="margin-top:6px;opacity:0.4">Aucun outil concurrent n'offre Roman + Cinéma + Série + Français dans un même pipeline guidé par IA. La fenêtre est ouverte.</p>
+  </footer>
+
+</div>
+</body>
+</html>
