@@ -6,16 +6,20 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { BookOutlineChaptersItem } from "./bookOutlineChaptersItem";
+import type { BookOutlineTitleIdeasItem } from "./bookOutlineTitleIdeasItem";
 
 export interface BookOutline {
   id?: string;
   projectId: string;
-  titleIdeas: string[];
+  titleIdeas: BookOutlineTitleIdeasItem[];
   backCoverPitch?: string;
   shortSynopsis: string;
   longSynopsis?: string;
   tableOfContents?: string[];
   structure?: string;
+  narrativeVoice?: string;
+  openingLine?: string;
+  closingLine?: string;
   chapters: BookOutlineChaptersItem[];
   updatedAt?: string;
 }

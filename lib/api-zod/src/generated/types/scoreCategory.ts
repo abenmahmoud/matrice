@@ -17,6 +17,10 @@ export interface ScoreCategory {
   corrections: string[];
   suggestions?: string[];
   trendNotes?: string;
+  humorSources?: string[];
+  tearTriggerMechanisms?: string[];
+  suspenseMechanisms?: string[];
+  attractivenessFactors?: string[];
   clicheRisk?: string;
   originalityOpportunity?: string;
 }

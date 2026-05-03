@@ -12,6 +12,7 @@ export interface Screenplay {
   id?: string;
   projectId: string;
   logline: string;
+  tagline?: string;
   cinematicSynopsis?: string;
   treatment?: string;
   beats?: ScreenplayBeatsItem[];

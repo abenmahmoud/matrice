@@ -159,6 +159,7 @@ export const GetProjectResponse = zod
             visualIdentity: zod.string().optional(),
             voiceStyle: zod.string().optional(),
             linkToConflict: zod.string().optional(),
+            backstory: zod.string().optional(),
             createdAt: zod.string().optional(),
           }),
         )
@@ -555,6 +556,7 @@ export const GenerateCharactersResponseItem = zod.object({
   visualIdentity: zod.string().optional(),
   voiceStyle: zod.string().optional(),
   linkToConflict: zod.string().optional(),
+  backstory: zod.string().optional(),
   createdAt: zod.string().optional(),
 });
 export const GenerateCharactersResponse = zod.array(
@@ -584,6 +586,7 @@ export const ListCharactersResponseItem = zod.object({
   visualIdentity: zod.string().optional(),
   voiceStyle: zod.string().optional(),
   linkToConflict: zod.string().optional(),
+  backstory: zod.string().optional(),
   createdAt: zod.string().optional(),
 });
 export const ListCharactersResponse = zod.array(ListCharactersResponseItem);
@@ -609,6 +612,7 @@ export const CreateCharacterBody = zod.object({
   visualIdentity: zod.string().optional(),
   voiceStyle: zod.string().optional(),
   linkToConflict: zod.string().optional(),
+  backstory: zod.string().optional(),
 });
 
 /**
@@ -633,6 +637,7 @@ export const UpdateCharacterBody = zod.object({
   visualIdentity: zod.string().optional(),
   voiceStyle: zod.string().optional(),
   linkToConflict: zod.string().optional(),
+  backstory: zod.string().optional(),
 });
 
 export const UpdateCharacterResponse = zod.object({
@@ -651,6 +656,7 @@ export const UpdateCharacterResponse = zod.object({
   visualIdentity: zod.string().optional(),
   voiceStyle: zod.string().optional(),
   linkToConflict: zod.string().optional(),
+  backstory: zod.string().optional(),
   createdAt: zod.string().optional(),
 });
 
@@ -981,14 +987,8 @@ export const generateHpsaScoreResponseSuspenseScoreMax = 100;
 export const generateHpsaScoreResponseAttractiviteScoreMin = 0;
 export const generateHpsaScoreResponseAttractiviteScoreMax = 100;
 
-export const generateHpsaScoreResponseProfondeurEmotionnelleScoreMin = 0;
-export const generateHpsaScoreResponseProfondeurEmotionnelleScoreMax = 100;
-
-export const generateHpsaScoreResponseOriginaliteScoreMin = 0;
-export const generateHpsaScoreResponseOriginaliteScoreMax = 100;
-
-export const generateHpsaScoreResponseCoherenceScoreMin = 0;
-export const generateHpsaScoreResponseCoherenceScoreMax = 100;
+export const generateHpsaScoreResponseGlobalScoreMin = 0;
+export const generateHpsaScoreResponseGlobalScoreMax = 100;
 
 export const GenerateHpsaScoreResponse = zod.object({
   id: zod.string().optional(),
@@ -1003,6 +1003,10 @@ export const GenerateHpsaScoreResponse = zod.object({
     corrections: zod.array(zod.string()),
     suggestions: zod.array(zod.string()).optional(),
     trendNotes: zod.string().optional(),
+    humorSources: zod.array(zod.string()).optional(),
+    tearTriggerMechanisms: zod.array(zod.string()).optional(),
+    suspenseMechanisms: zod.array(zod.string()).optional(),
+    attractivenessFactors: zod.array(zod.string()).optional(),
     clicheRisk: zod.string().optional(),
     originalityOpportunity: zod.string().optional(),
   }),
@@ -1016,6 +1020,10 @@ export const GenerateHpsaScoreResponse = zod.object({
     corrections: zod.array(zod.string()),
     suggestions: zod.array(zod.string()).optional(),
     trendNotes: zod.string().optional(),
+    humorSources: zod.array(zod.string()).optional(),
+    tearTriggerMechanisms: zod.array(zod.string()).optional(),
+    suspenseMechanisms: zod.array(zod.string()).optional(),
+    attractivenessFactors: zod.array(zod.string()).optional(),
     clicheRisk: zod.string().optional(),
     originalityOpportunity: zod.string().optional(),
   }),
@@ -1029,6 +1037,10 @@ export const GenerateHpsaScoreResponse = zod.object({
     corrections: zod.array(zod.string()),
     suggestions: zod.array(zod.string()).optional(),
     trendNotes: zod.string().optional(),
+    humorSources: zod.array(zod.string()).optional(),
+    tearTriggerMechanisms: zod.array(zod.string()).optional(),
+    suspenseMechanisms: zod.array(zod.string()).optional(),
+    attractivenessFactors: zod.array(zod.string()).optional(),
     clicheRisk: zod.string().optional(),
     originalityOpportunity: zod.string().optional(),
   }),
@@ -1042,48 +1054,18 @@ export const GenerateHpsaScoreResponse = zod.object({
     corrections: zod.array(zod.string()),
     suggestions: zod.array(zod.string()).optional(),
     trendNotes: zod.string().optional(),
+    humorSources: zod.array(zod.string()).optional(),
+    tearTriggerMechanisms: zod.array(zod.string()).optional(),
+    suspenseMechanisms: zod.array(zod.string()).optional(),
+    attractivenessFactors: zod.array(zod.string()).optional(),
     clicheRisk: zod.string().optional(),
     originalityOpportunity: zod.string().optional(),
   }),
-  profondeurEmotionnelle: zod.object({
-    score: zod
-      .number()
-      .min(generateHpsaScoreResponseProfondeurEmotionnelleScoreMin)
-      .max(generateHpsaScoreResponseProfondeurEmotionnelleScoreMax),
-    diagnostic: zod.string(),
-    weaknesses: zod.array(zod.string()),
-    corrections: zod.array(zod.string()),
-    suggestions: zod.array(zod.string()).optional(),
-    trendNotes: zod.string().optional(),
-    clicheRisk: zod.string().optional(),
-    originalityOpportunity: zod.string().optional(),
-  }),
-  originalite: zod.object({
-    score: zod
-      .number()
-      .min(generateHpsaScoreResponseOriginaliteScoreMin)
-      .max(generateHpsaScoreResponseOriginaliteScoreMax),
-    diagnostic: zod.string(),
-    weaknesses: zod.array(zod.string()),
-    corrections: zod.array(zod.string()),
-    suggestions: zod.array(zod.string()).optional(),
-    trendNotes: zod.string().optional(),
-    clicheRisk: zod.string().optional(),
-    originalityOpportunity: zod.string().optional(),
-  }),
-  coherence: zod.object({
-    score: zod
-      .number()
-      .min(generateHpsaScoreResponseCoherenceScoreMin)
-      .max(generateHpsaScoreResponseCoherenceScoreMax),
-    diagnostic: zod.string(),
-    weaknesses: zod.array(zod.string()),
-    corrections: zod.array(zod.string()),
-    suggestions: zod.array(zod.string()).optional(),
-    trendNotes: zod.string().optional(),
-    clicheRisk: zod.string().optional(),
-    originalityOpportunity: zod.string().optional(),
-  }),
+  globalScore: zod
+    .number()
+    .min(generateHpsaScoreResponseGlobalScoreMin)
+    .max(generateHpsaScoreResponseGlobalScoreMax),
+  priorityFixes: zod.array(zod.string()),
   updatedAt: zod.string().optional(),
 });
 
@@ -1106,14 +1088,8 @@ export const getHpsaScoreResponseSuspenseScoreMax = 100;
 export const getHpsaScoreResponseAttractiviteScoreMin = 0;
 export const getHpsaScoreResponseAttractiviteScoreMax = 100;
 
-export const getHpsaScoreResponseProfondeurEmotionnelleScoreMin = 0;
-export const getHpsaScoreResponseProfondeurEmotionnelleScoreMax = 100;
-
-export const getHpsaScoreResponseOriginaliteScoreMin = 0;
-export const getHpsaScoreResponseOriginaliteScoreMax = 100;
-
-export const getHpsaScoreResponseCoherenceScoreMin = 0;
-export const getHpsaScoreResponseCoherenceScoreMax = 100;
+export const getHpsaScoreResponseGlobalScoreMin = 0;
+export const getHpsaScoreResponseGlobalScoreMax = 100;
 
 export const GetHpsaScoreResponse = zod.object({
   id: zod.string().optional(),
@@ -1128,6 +1104,10 @@ export const GetHpsaScoreResponse = zod.object({
     corrections: zod.array(zod.string()),
     suggestions: zod.array(zod.string()).optional(),
     trendNotes: zod.string().optional(),
+    humorSources: zod.array(zod.string()).optional(),
+    tearTriggerMechanisms: zod.array(zod.string()).optional(),
+    suspenseMechanisms: zod.array(zod.string()).optional(),
+    attractivenessFactors: zod.array(zod.string()).optional(),
     clicheRisk: zod.string().optional(),
     originalityOpportunity: zod.string().optional(),
   }),
@@ -1141,6 +1121,10 @@ export const GetHpsaScoreResponse = zod.object({
     corrections: zod.array(zod.string()),
     suggestions: zod.array(zod.string()).optional(),
     trendNotes: zod.string().optional(),
+    humorSources: zod.array(zod.string()).optional(),
+    tearTriggerMechanisms: zod.array(zod.string()).optional(),
+    suspenseMechanisms: zod.array(zod.string()).optional(),
+    attractivenessFactors: zod.array(zod.string()).optional(),
     clicheRisk: zod.string().optional(),
     originalityOpportunity: zod.string().optional(),
   }),
@@ -1154,6 +1138,10 @@ export const GetHpsaScoreResponse = zod.object({
     corrections: zod.array(zod.string()),
     suggestions: zod.array(zod.string()).optional(),
     trendNotes: zod.string().optional(),
+    humorSources: zod.array(zod.string()).optional(),
+    tearTriggerMechanisms: zod.array(zod.string()).optional(),
+    suspenseMechanisms: zod.array(zod.string()).optional(),
+    attractivenessFactors: zod.array(zod.string()).optional(),
     clicheRisk: zod.string().optional(),
     originalityOpportunity: zod.string().optional(),
   }),
@@ -1167,48 +1155,18 @@ export const GetHpsaScoreResponse = zod.object({
     corrections: zod.array(zod.string()),
     suggestions: zod.array(zod.string()).optional(),
     trendNotes: zod.string().optional(),
+    humorSources: zod.array(zod.string()).optional(),
+    tearTriggerMechanisms: zod.array(zod.string()).optional(),
+    suspenseMechanisms: zod.array(zod.string()).optional(),
+    attractivenessFactors: zod.array(zod.string()).optional(),
     clicheRisk: zod.string().optional(),
     originalityOpportunity: zod.string().optional(),
   }),
-  profondeurEmotionnelle: zod.object({
-    score: zod
-      .number()
-      .min(getHpsaScoreResponseProfondeurEmotionnelleScoreMin)
-      .max(getHpsaScoreResponseProfondeurEmotionnelleScoreMax),
-    diagnostic: zod.string(),
-    weaknesses: zod.array(zod.string()),
-    corrections: zod.array(zod.string()),
-    suggestions: zod.array(zod.string()).optional(),
-    trendNotes: zod.string().optional(),
-    clicheRisk: zod.string().optional(),
-    originalityOpportunity: zod.string().optional(),
-  }),
-  originalite: zod.object({
-    score: zod
-      .number()
-      .min(getHpsaScoreResponseOriginaliteScoreMin)
-      .max(getHpsaScoreResponseOriginaliteScoreMax),
-    diagnostic: zod.string(),
-    weaknesses: zod.array(zod.string()),
-    corrections: zod.array(zod.string()),
-    suggestions: zod.array(zod.string()).optional(),
-    trendNotes: zod.string().optional(),
-    clicheRisk: zod.string().optional(),
-    originalityOpportunity: zod.string().optional(),
-  }),
-  coherence: zod.object({
-    score: zod
-      .number()
-      .min(getHpsaScoreResponseCoherenceScoreMin)
-      .max(getHpsaScoreResponseCoherenceScoreMax),
-    diagnostic: zod.string(),
-    weaknesses: zod.array(zod.string()),
-    corrections: zod.array(zod.string()),
-    suggestions: zod.array(zod.string()).optional(),
-    trendNotes: zod.string().optional(),
-    clicheRisk: zod.string().optional(),
-    originalityOpportunity: zod.string().optional(),
-  }),
+  globalScore: zod
+    .number()
+    .min(getHpsaScoreResponseGlobalScoreMin)
+    .max(getHpsaScoreResponseGlobalScoreMax),
+  priorityFixes: zod.array(zod.string()),
   updatedAt: zod.string().optional(),
 });
 
@@ -1222,17 +1180,37 @@ export const GenerateBookOutlineParams = zod.object({
 export const GenerateBookOutlineResponse = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
-  titleIdeas: zod.array(zod.string()),
+  titleIdeas: zod.array(
+    zod.union([
+      zod.string(),
+      zod.object({
+        title: zod.string(),
+        tone: zod.string().optional(),
+        why: zod.string().optional(),
+      }),
+    ]),
+  ),
   backCoverPitch: zod.string().optional(),
   shortSynopsis: zod.string(),
   longSynopsis: zod.string().optional(),
   tableOfContents: zod.array(zod.string()).optional(),
   structure: zod.string().optional(),
+  narrativeVoice: zod.string().optional(),
+  openingLine: zod.string().optional(),
+  closingLine: zod.string().optional(),
   chapters: zod.array(
     zod.object({
       number: zod.number(),
       title: zod.string(),
       summary: zod.string(),
+      pov: zod.string().optional(),
+      location: zod.string().optional(),
+      timeframe: zod.string().optional(),
+      emotionalArc: zod.string().optional(),
+      keyScene: zod.string().optional(),
+      closingHook: zod.string().optional(),
+      narrativePurpose: zod.string().optional(),
+      voiceNote: zod.string().optional(),
       draftContent: zod.string().optional(),
     }),
   ),
@@ -1249,17 +1227,37 @@ export const GetBookOutlineParams = zod.object({
 export const GetBookOutlineResponse = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
-  titleIdeas: zod.array(zod.string()),
+  titleIdeas: zod.array(
+    zod.union([
+      zod.string(),
+      zod.object({
+        title: zod.string(),
+        tone: zod.string().optional(),
+        why: zod.string().optional(),
+      }),
+    ]),
+  ),
   backCoverPitch: zod.string().optional(),
   shortSynopsis: zod.string(),
   longSynopsis: zod.string().optional(),
   tableOfContents: zod.array(zod.string()).optional(),
   structure: zod.string().optional(),
+  narrativeVoice: zod.string().optional(),
+  openingLine: zod.string().optional(),
+  closingLine: zod.string().optional(),
   chapters: zod.array(
     zod.object({
       number: zod.number(),
       title: zod.string(),
       summary: zod.string(),
+      pov: zod.string().optional(),
+      location: zod.string().optional(),
+      timeframe: zod.string().optional(),
+      emotionalArc: zod.string().optional(),
+      keyScene: zod.string().optional(),
+      closingHook: zod.string().optional(),
+      narrativePurpose: zod.string().optional(),
+      voiceNote: zod.string().optional(),
       draftContent: zod.string().optional(),
     }),
   ),
@@ -1276,17 +1274,37 @@ export const UpdateBookOutlineParams = zod.object({
 export const UpdateBookOutlineBody = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
-  titleIdeas: zod.array(zod.string()),
+  titleIdeas: zod.array(
+    zod.union([
+      zod.string(),
+      zod.object({
+        title: zod.string(),
+        tone: zod.string().optional(),
+        why: zod.string().optional(),
+      }),
+    ]),
+  ),
   backCoverPitch: zod.string().optional(),
   shortSynopsis: zod.string(),
   longSynopsis: zod.string().optional(),
   tableOfContents: zod.array(zod.string()).optional(),
   structure: zod.string().optional(),
+  narrativeVoice: zod.string().optional(),
+  openingLine: zod.string().optional(),
+  closingLine: zod.string().optional(),
   chapters: zod.array(
     zod.object({
       number: zod.number(),
       title: zod.string(),
       summary: zod.string(),
+      pov: zod.string().optional(),
+      location: zod.string().optional(),
+      timeframe: zod.string().optional(),
+      emotionalArc: zod.string().optional(),
+      keyScene: zod.string().optional(),
+      closingHook: zod.string().optional(),
+      narrativePurpose: zod.string().optional(),
+      voiceNote: zod.string().optional(),
       draftContent: zod.string().optional(),
     }),
   ),
@@ -1296,17 +1314,37 @@ export const UpdateBookOutlineBody = zod.object({
 export const UpdateBookOutlineResponse = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
-  titleIdeas: zod.array(zod.string()),
+  titleIdeas: zod.array(
+    zod.union([
+      zod.string(),
+      zod.object({
+        title: zod.string(),
+        tone: zod.string().optional(),
+        why: zod.string().optional(),
+      }),
+    ]),
+  ),
   backCoverPitch: zod.string().optional(),
   shortSynopsis: zod.string(),
   longSynopsis: zod.string().optional(),
   tableOfContents: zod.array(zod.string()).optional(),
   structure: zod.string().optional(),
+  narrativeVoice: zod.string().optional(),
+  openingLine: zod.string().optional(),
+  closingLine: zod.string().optional(),
   chapters: zod.array(
     zod.object({
       number: zod.number(),
       title: zod.string(),
       summary: zod.string(),
+      pov: zod.string().optional(),
+      location: zod.string().optional(),
+      timeframe: zod.string().optional(),
+      emotionalArc: zod.string().optional(),
+      keyScene: zod.string().optional(),
+      closingHook: zod.string().optional(),
+      narrativePurpose: zod.string().optional(),
+      voiceNote: zod.string().optional(),
       draftContent: zod.string().optional(),
     }),
   ),
@@ -1324,13 +1362,16 @@ export const GenerateScreenplayResponse = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
   logline: zod.string(),
+  tagline: zod.string().optional(),
   cinematicSynopsis: zod.string().optional(),
   treatment: zod.string().optional(),
   beats: zod
     .array(
       zod.object({
         number: zod.number(),
+        label: zod.string().optional(),
         description: zod.string(),
+        pageRange: zod.string().optional(),
       }),
     )
     .optional(),
@@ -1340,6 +1381,8 @@ export const GenerateScreenplayResponse = zod.object({
       heading: zod.string(),
       description: zod.string(),
       dialogueDraft: zod.string().optional(),
+      emotionalTone: zod.string().optional(),
+      dramaticFunction: zod.string().optional(),
     }),
   ),
   fountainScript: zod.string().optional(),
@@ -1357,13 +1400,16 @@ export const GetScreenplayResponse = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
   logline: zod.string(),
+  tagline: zod.string().optional(),
   cinematicSynopsis: zod.string().optional(),
   treatment: zod.string().optional(),
   beats: zod
     .array(
       zod.object({
         number: zod.number(),
+        label: zod.string().optional(),
         description: zod.string(),
+        pageRange: zod.string().optional(),
       }),
     )
     .optional(),
@@ -1373,6 +1419,8 @@ export const GetScreenplayResponse = zod.object({
       heading: zod.string(),
       description: zod.string(),
       dialogueDraft: zod.string().optional(),
+      emotionalTone: zod.string().optional(),
+      dramaticFunction: zod.string().optional(),
     }),
   ),
   fountainScript: zod.string().optional(),
@@ -1390,13 +1438,16 @@ export const UpdateScreenplayBody = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
   logline: zod.string(),
+  tagline: zod.string().optional(),
   cinematicSynopsis: zod.string().optional(),
   treatment: zod.string().optional(),
   beats: zod
     .array(
       zod.object({
         number: zod.number(),
+        label: zod.string().optional(),
         description: zod.string(),
+        pageRange: zod.string().optional(),
       }),
     )
     .optional(),
@@ -1406,6 +1457,8 @@ export const UpdateScreenplayBody = zod.object({
       heading: zod.string(),
       description: zod.string(),
       dialogueDraft: zod.string().optional(),
+      emotionalTone: zod.string().optional(),
+      dramaticFunction: zod.string().optional(),
     }),
   ),
   fountainScript: zod.string().optional(),
@@ -1416,13 +1469,16 @@ export const UpdateScreenplayResponse = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
   logline: zod.string(),
+  tagline: zod.string().optional(),
   cinematicSynopsis: zod.string().optional(),
   treatment: zod.string().optional(),
   beats: zod
     .array(
       zod.object({
         number: zod.number(),
+        label: zod.string().optional(),
         description: zod.string(),
+        pageRange: zod.string().optional(),
       }),
     )
     .optional(),
@@ -1432,6 +1488,8 @@ export const UpdateScreenplayResponse = zod.object({
       heading: zod.string(),
       description: zod.string(),
       dialogueDraft: zod.string().optional(),
+      emotionalTone: zod.string().optional(),
+      dramaticFunction: zod.string().optional(),
     }),
   ),
   fountainScript: zod.string().optional(),
@@ -1449,19 +1507,64 @@ export const GenerateSeriesResponse = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
   format: zod.string(),
+  loglineSerie: zod.string().optional(),
   seasonConcept: zod.string().optional(),
-  longArcs: zod.array(zod.string()).optional(),
+  seriesPotential: zod.string().optional(),
+  longArcs: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          label: zod.string(),
+          description: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   episodes: zod.array(
     zod.object({
       number: zod.number(),
       title: zod.string(),
+      logline: zod.string().optional(),
       summary: zod.string(),
+      openingScene: zod.string().optional(),
+      questionDramatique: zod.string().optional(),
+      intrigueA: zod.string().optional(),
+      intrigueB: zod.string().optional(),
+      midpoint: zod.string().optional(),
+      climax: zod.string().optional(),
       cliffhanger: zod.string().optional(),
       emotionalEvolution: zod.string().optional(),
+      humourOrganique: zod.string().optional(),
+      momentDePleur: zod.string().optional(),
+      keyReveal: zod.string().optional(),
+      toneNote: zod.string().optional(),
+      lienArcSaison: zod.string().optional(),
     }),
   ),
-  progressiveRevelations: zod.array(zod.string()).optional(),
-  secondaryCharacters: zod.array(zod.string()).optional(),
+  progressiveRevelations: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          episode: zod.number().optional(),
+          revelation: zod.string(),
+        }),
+      ]),
+    )
+    .optional(),
+  secondaryCharacters: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          name: zod.string(),
+          role: zod.string().optional(),
+          arc: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   updatedAt: zod.string().optional(),
 });
 
@@ -1476,19 +1579,64 @@ export const GetSeriesResponse = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
   format: zod.string(),
+  loglineSerie: zod.string().optional(),
   seasonConcept: zod.string().optional(),
-  longArcs: zod.array(zod.string()).optional(),
+  seriesPotential: zod.string().optional(),
+  longArcs: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          label: zod.string(),
+          description: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   episodes: zod.array(
     zod.object({
       number: zod.number(),
       title: zod.string(),
+      logline: zod.string().optional(),
       summary: zod.string(),
+      openingScene: zod.string().optional(),
+      questionDramatique: zod.string().optional(),
+      intrigueA: zod.string().optional(),
+      intrigueB: zod.string().optional(),
+      midpoint: zod.string().optional(),
+      climax: zod.string().optional(),
       cliffhanger: zod.string().optional(),
       emotionalEvolution: zod.string().optional(),
+      humourOrganique: zod.string().optional(),
+      momentDePleur: zod.string().optional(),
+      keyReveal: zod.string().optional(),
+      toneNote: zod.string().optional(),
+      lienArcSaison: zod.string().optional(),
     }),
   ),
-  progressiveRevelations: zod.array(zod.string()).optional(),
-  secondaryCharacters: zod.array(zod.string()).optional(),
+  progressiveRevelations: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          episode: zod.number().optional(),
+          revelation: zod.string(),
+        }),
+      ]),
+    )
+    .optional(),
+  secondaryCharacters: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          name: zod.string(),
+          role: zod.string().optional(),
+          arc: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   updatedAt: zod.string().optional(),
 });
 
@@ -1503,19 +1651,64 @@ export const UpdateSeriesBody = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
   format: zod.string(),
+  loglineSerie: zod.string().optional(),
   seasonConcept: zod.string().optional(),
-  longArcs: zod.array(zod.string()).optional(),
+  seriesPotential: zod.string().optional(),
+  longArcs: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          label: zod.string(),
+          description: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   episodes: zod.array(
     zod.object({
       number: zod.number(),
       title: zod.string(),
+      logline: zod.string().optional(),
       summary: zod.string(),
+      openingScene: zod.string().optional(),
+      questionDramatique: zod.string().optional(),
+      intrigueA: zod.string().optional(),
+      intrigueB: zod.string().optional(),
+      midpoint: zod.string().optional(),
+      climax: zod.string().optional(),
       cliffhanger: zod.string().optional(),
       emotionalEvolution: zod.string().optional(),
+      humourOrganique: zod.string().optional(),
+      momentDePleur: zod.string().optional(),
+      keyReveal: zod.string().optional(),
+      toneNote: zod.string().optional(),
+      lienArcSaison: zod.string().optional(),
     }),
   ),
-  progressiveRevelations: zod.array(zod.string()).optional(),
-  secondaryCharacters: zod.array(zod.string()).optional(),
+  progressiveRevelations: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          episode: zod.number().optional(),
+          revelation: zod.string(),
+        }),
+      ]),
+    )
+    .optional(),
+  secondaryCharacters: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          name: zod.string(),
+          role: zod.string().optional(),
+          arc: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   updatedAt: zod.string().optional(),
 });
 
@@ -1523,19 +1716,64 @@ export const UpdateSeriesResponse = zod.object({
   id: zod.string().optional(),
   projectId: zod.string(),
   format: zod.string(),
+  loglineSerie: zod.string().optional(),
   seasonConcept: zod.string().optional(),
-  longArcs: zod.array(zod.string()).optional(),
+  seriesPotential: zod.string().optional(),
+  longArcs: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          label: zod.string(),
+          description: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   episodes: zod.array(
     zod.object({
       number: zod.number(),
       title: zod.string(),
+      logline: zod.string().optional(),
       summary: zod.string(),
+      openingScene: zod.string().optional(),
+      questionDramatique: zod.string().optional(),
+      intrigueA: zod.string().optional(),
+      intrigueB: zod.string().optional(),
+      midpoint: zod.string().optional(),
+      climax: zod.string().optional(),
       cliffhanger: zod.string().optional(),
       emotionalEvolution: zod.string().optional(),
+      humourOrganique: zod.string().optional(),
+      momentDePleur: zod.string().optional(),
+      keyReveal: zod.string().optional(),
+      toneNote: zod.string().optional(),
+      lienArcSaison: zod.string().optional(),
     }),
   ),
-  progressiveRevelations: zod.array(zod.string()).optional(),
-  secondaryCharacters: zod.array(zod.string()).optional(),
+  progressiveRevelations: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          episode: zod.number().optional(),
+          revelation: zod.string(),
+        }),
+      ]),
+    )
+    .optional(),
+  secondaryCharacters: zod
+    .array(
+      zod.union([
+        zod.string(),
+        zod.object({
+          name: zod.string(),
+          role: zod.string().optional(),
+          arc: zod.string().optional(),
+        }),
+      ]),
+    )
+    .optional(),
   updatedAt: zod.string().optional(),
 });
 
@@ -1637,6 +1875,305 @@ export const UpdatePitchResponse = zod.object({
 });
 
 /**
+ * @summary Generate film concept data
+ */
+export const GenerateFilmDataParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GenerateFilmDataResponse = zod.object({
+  id: zod.string().optional(),
+  projectId: zod.string(),
+  concept: zod.string(),
+  logline: zod.string(),
+  tagline: zod.string().optional(),
+  shortSynopsis: zod.string().optional(),
+  longSynopsis: zod.string().optional(),
+  treatment: zod.string().optional(),
+  targetDuration: zod.string().optional(),
+  filmFormat: zod.string().optional(),
+  visualPromise: zod.string().optional(),
+  emotionalPromise: zod.string().optional(),
+  dramaticQuestion: zod.string().optional(),
+  centralImage: zod.string().optional(),
+  updatedAt: zod.string().optional(),
+});
+
+/**
+ * @summary Get film data
+ */
+export const GetFilmDataParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetFilmDataResponse = zod.object({
+  id: zod.string().optional(),
+  projectId: zod.string(),
+  concept: zod.string(),
+  logline: zod.string(),
+  tagline: zod.string().optional(),
+  shortSynopsis: zod.string().optional(),
+  longSynopsis: zod.string().optional(),
+  treatment: zod.string().optional(),
+  targetDuration: zod.string().optional(),
+  filmFormat: zod.string().optional(),
+  visualPromise: zod.string().optional(),
+  emotionalPromise: zod.string().optional(),
+  dramaticQuestion: zod.string().optional(),
+  centralImage: zod.string().optional(),
+  updatedAt: zod.string().optional(),
+});
+
+/**
+ * @summary Update film data
+ */
+export const UpdateFilmDataParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateFilmDataBody = zod.object({
+  id: zod.string().optional(),
+  projectId: zod.string(),
+  concept: zod.string(),
+  logline: zod.string(),
+  tagline: zod.string().optional(),
+  shortSynopsis: zod.string().optional(),
+  longSynopsis: zod.string().optional(),
+  treatment: zod.string().optional(),
+  targetDuration: zod.string().optional(),
+  filmFormat: zod.string().optional(),
+  visualPromise: zod.string().optional(),
+  emotionalPromise: zod.string().optional(),
+  dramaticQuestion: zod.string().optional(),
+  centralImage: zod.string().optional(),
+  updatedAt: zod.string().optional(),
+});
+
+export const UpdateFilmDataResponse = zod.object({
+  id: zod.string().optional(),
+  projectId: zod.string(),
+  concept: zod.string(),
+  logline: zod.string(),
+  tagline: zod.string().optional(),
+  shortSynopsis: zod.string().optional(),
+  longSynopsis: zod.string().optional(),
+  treatment: zod.string().optional(),
+  targetDuration: zod.string().optional(),
+  filmFormat: zod.string().optional(),
+  visualPromise: zod.string().optional(),
+  emotionalPromise: zod.string().optional(),
+  dramaticQuestion: zod.string().optional(),
+  centralImage: zod.string().optional(),
+  updatedAt: zod.string().optional(),
+});
+
+/**
+ * @summary Generate playable film scenes
+ */
+export const GenerateFilmScenesParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GenerateFilmScenesResponseItem = zod.object({
+  id: zod.string().optional(),
+  projectId: zod.string(),
+  sceneNumber: zod.number(),
+  title: zod.string(),
+  intExt: zod.string().optional(),
+  location: zod.string().optional(),
+  timeOfDay: zod.string().optional(),
+  charactersPresent: zod.array(zod.string()).optional(),
+  protagonistObjective: zod.string().optional(),
+  obstacle: zod.string().optional(),
+  visibleConflict: zod.string().optional(),
+  emotionalSubtext: zod.string().optional(),
+  openingBeat: zod.string().optional(),
+  dramaticTurn: zod.string().optional(),
+  closingBeat: zod.string().optional(),
+  emotionBefore: zod.string().optional(),
+  emotionAfter: zod.string().optional(),
+  strongImage: zod.string().optional(),
+  soundOrSilence: zod.string().optional(),
+  symbolicObject: zod.string().optional(),
+  actionDescription: zod.string().optional(),
+  dialogueFragment: zod.string().optional(),
+  narrativeFunction: zod.string().optional(),
+  suspenseLevel: zod.number().optional(),
+  humourLevel: zod.number().optional(),
+  emotionalPowerLevel: zod.number().optional(),
+  attractivenessLevel: zod.number().optional(),
+  hpsaCheck: zod.object({}).passthrough().optional(),
+  linkToEmotionalCore: zod.string().optional(),
+  directorNote: zod.string().optional(),
+  cameraSuggestion: zod.string().optional(),
+  riskOfCliche: zod.string().optional(),
+  originalAlternative: zod.string().optional(),
+  createdAt: zod.string().optional(),
+  updatedAt: zod.string().optional(),
+});
+export const GenerateFilmScenesResponse = zod.array(
+  GenerateFilmScenesResponseItem,
+);
+
+/**
+ * @summary Get all film scenes
+ */
+export const GetFilmScenesParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetFilmScenesResponseItem = zod.object({
+  id: zod.string().optional(),
+  projectId: zod.string(),
+  sceneNumber: zod.number(),
+  title: zod.string(),
+  intExt: zod.string().optional(),
+  location: zod.string().optional(),
+  timeOfDay: zod.string().optional(),
+  charactersPresent: zod.array(zod.string()).optional(),
+  protagonistObjective: zod.string().optional(),
+  obstacle: zod.string().optional(),
+  visibleConflict: zod.string().optional(),
+  emotionalSubtext: zod.string().optional(),
+  openingBeat: zod.string().optional(),
+  dramaticTurn: zod.string().optional(),
+  closingBeat: zod.string().optional(),
+  emotionBefore: zod.string().optional(),
+  emotionAfter: zod.string().optional(),
+  strongImage: zod.string().optional(),
+  soundOrSilence: zod.string().optional(),
+  symbolicObject: zod.string().optional(),
+  actionDescription: zod.string().optional(),
+  dialogueFragment: zod.string().optional(),
+  narrativeFunction: zod.string().optional(),
+  suspenseLevel: zod.number().optional(),
+  humourLevel: zod.number().optional(),
+  emotionalPowerLevel: zod.number().optional(),
+  attractivenessLevel: zod.number().optional(),
+  hpsaCheck: zod.object({}).passthrough().optional(),
+  linkToEmotionalCore: zod.string().optional(),
+  directorNote: zod.string().optional(),
+  cameraSuggestion: zod.string().optional(),
+  riskOfCliche: zod.string().optional(),
+  originalAlternative: zod.string().optional(),
+  createdAt: zod.string().optional(),
+  updatedAt: zod.string().optional(),
+});
+export const GetFilmScenesResponse = zod.array(GetFilmScenesResponseItem);
+
+/**
+ * @summary Update a film scene
+ */
+export const UpdateFilmSceneParams = zod.object({
+  id: zod.coerce.string(),
+  sceneId: zod.coerce.string(),
+});
+
+export const UpdateFilmSceneBody = zod.object({
+  id: zod.string().optional(),
+  projectId: zod.string(),
+  sceneNumber: zod.number(),
+  title: zod.string(),
+  intExt: zod.string().optional(),
+  location: zod.string().optional(),
+  timeOfDay: zod.string().optional(),
+  charactersPresent: zod.array(zod.string()).optional(),
+  protagonistObjective: zod.string().optional(),
+  obstacle: zod.string().optional(),
+  visibleConflict: zod.string().optional(),
+  emotionalSubtext: zod.string().optional(),
+  openingBeat: zod.string().optional(),
+  dramaticTurn: zod.string().optional(),
+  closingBeat: zod.string().optional(),
+  emotionBefore: zod.string().optional(),
+  emotionAfter: zod.string().optional(),
+  strongImage: zod.string().optional(),
+  soundOrSilence: zod.string().optional(),
+  symbolicObject: zod.string().optional(),
+  actionDescription: zod.string().optional(),
+  dialogueFragment: zod.string().optional(),
+  narrativeFunction: zod.string().optional(),
+  suspenseLevel: zod.number().optional(),
+  humourLevel: zod.number().optional(),
+  emotionalPowerLevel: zod.number().optional(),
+  attractivenessLevel: zod.number().optional(),
+  hpsaCheck: zod.object({}).passthrough().optional(),
+  linkToEmotionalCore: zod.string().optional(),
+  directorNote: zod.string().optional(),
+  cameraSuggestion: zod.string().optional(),
+  riskOfCliche: zod.string().optional(),
+  originalAlternative: zod.string().optional(),
+  createdAt: zod.string().optional(),
+  updatedAt: zod.string().optional(),
+});
+
+export const UpdateFilmSceneResponse = zod.object({
+  id: zod.string().optional(),
+  projectId: zod.string(),
+  sceneNumber: zod.number(),
+  title: zod.string(),
+  intExt: zod.string().optional(),
+  location: zod.string().optional(),
+  timeOfDay: zod.string().optional(),
+  charactersPresent: zod.array(zod.string()).optional(),
+  protagonistObjective: zod.string().optional(),
+  obstacle: zod.string().optional(),
+  visibleConflict: zod.string().optional(),
+  emotionalSubtext: zod.string().optional(),
+  openingBeat: zod.string().optional(),
+  dramaticTurn: zod.string().optional(),
+  closingBeat: zod.string().optional(),
+  emotionBefore: zod.string().optional(),
+  emotionAfter: zod.string().optional(),
+  strongImage: zod.string().optional(),
+  soundOrSilence: zod.string().optional(),
+  symbolicObject: zod.string().optional(),
+  actionDescription: zod.string().optional(),
+  dialogueFragment: zod.string().optional(),
+  narrativeFunction: zod.string().optional(),
+  suspenseLevel: zod.number().optional(),
+  humourLevel: zod.number().optional(),
+  emotionalPowerLevel: zod.number().optional(),
+  attractivenessLevel: zod.number().optional(),
+  hpsaCheck: zod.object({}).passthrough().optional(),
+  linkToEmotionalCore: zod.string().optional(),
+  directorNote: zod.string().optional(),
+  cameraSuggestion: zod.string().optional(),
+  riskOfCliche: zod.string().optional(),
+  originalAlternative: zod.string().optional(),
+  createdAt: zod.string().optional(),
+  updatedAt: zod.string().optional(),
+});
+
+/**
+ * @summary Delete a film scene
+ */
+export const DeleteFilmSceneParams = zod.object({
+  id: zod.coerce.string(),
+  sceneId: zod.coerce.string(),
+});
+
+/**
+ * @summary Check HPSA scores for a scene
+ */
+export const CheckSceneHpsaParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const CheckSceneHpsaBody = zod.object({
+  sceneDescription: zod.string(),
+  context: zod.string().optional(),
+});
+
+export const CheckSceneHpsaResponse = zod.object({
+  humour: zod.number().optional(),
+  pleur: zod.number().optional(),
+  suspense: zod.number().optional(),
+  attractivite: zod.number().optional(),
+  feedback: zod.string().optional(),
+});
+
+/**
  * @summary Export project data
  */
 export const ExportProjectParams = zod.object({
@@ -1649,6 +2186,8 @@ export const ExportProjectParams = zod.object({
     "manuscript",
     "screenplay",
     "pitch",
+    "series-markdown",
+    "season-arc-json",
     "complete",
   ]),
 });

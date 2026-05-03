@@ -96,6 +96,7 @@ export interface Character {
   visualIdentity?: string;
   voiceStyle?: string;
   linkToConflict?: string;
+  backstory?: string;
   createdAt?: string;
 }
 
@@ -187,6 +188,7 @@ export interface CreateCharacterInput {
   visualIdentity?: string;
   voiceStyle?: string;
   linkToConflict?: string;
+  backstory?: string;
 }
 
 export interface Relationship {
@@ -265,6 +267,10 @@ export interface ScoreCategory {
   corrections: string[];
   suggestions?: string[];
   trendNotes?: string;
+  humorSources?: string[];
+  tearTriggerMechanisms?: string[];
+  suspenseMechanisms?: string[];
+  attractivenessFactors?: string[];
   clicheRisk?: string;
   originalityOpportunity?: string;
 }
@@ -276,35 +282,59 @@ export interface HpsaScore {
   pleur: ScoreCategory;
   suspense: ScoreCategory;
   attractivite: ScoreCategory;
-  profondeurEmotionnelle: ScoreCategory;
-  originalite: ScoreCategory;
-  coherence: ScoreCategory;
+  /**
+   * @minimum 0
+   * @maximum 100
+   */
+  globalScore: number;
+  priorityFixes: string[];
   updatedAt?: string;
 }
+
+export type BookOutlineTitleIdeasItem =
+  | string
+  | {
+      title: string;
+      tone?: string;
+      why?: string;
+    };
 
 export type BookOutlineChaptersItem = {
   number: number;
   title: string;
   summary: string;
+  pov?: string;
+  location?: string;
+  timeframe?: string;
+  emotionalArc?: string;
+  keyScene?: string;
+  closingHook?: string;
+  narrativePurpose?: string;
+  voiceNote?: string;
   draftContent?: string;
 };
 
 export interface BookOutline {
   id?: string;
   projectId: string;
-  titleIdeas: string[];
+  titleIdeas: BookOutlineTitleIdeasItem[];
   backCoverPitch?: string;
   shortSynopsis: string;
   longSynopsis?: string;
   tableOfContents?: string[];
   structure?: string;
+  narrativeVoice?: string;
+  openingLine?: string;
+  closingLine?: string;
   chapters: BookOutlineChaptersItem[];
   updatedAt?: string;
 }
 
 export type ScreenplayBeatsItem = {
   number: number;
+  label?: string;
   description: string;
+  pageRange?: string;
 };
 
 export type ScreenplayScenesItem = {
@@ -312,12 +342,15 @@ export type ScreenplayScenesItem = {
   heading: string;
   description: string;
   dialogueDraft?: string;
+  emotionalTone?: string;
+  dramaticFunction?: string;
 };
 
 export interface Screenplay {
   id?: string;
   projectId: string;
   logline: string;
+  tagline?: string;
   cinematicSynopsis?: string;
   treatment?: string;
   beats?: ScreenplayBeatsItem[];
@@ -326,23 +359,59 @@ export interface Screenplay {
   updatedAt?: string;
 }
 
+export type SeriesLongArcsItem =
+  | string
+  | {
+      label: string;
+      description?: string;
+    };
+
 export type SeriesEpisodesItem = {
   number: number;
   title: string;
+  logline?: string;
   summary: string;
+  openingScene?: string;
+  questionDramatique?: string;
+  intrigueA?: string;
+  intrigueB?: string;
+  midpoint?: string;
+  climax?: string;
   cliffhanger?: string;
   emotionalEvolution?: string;
+  humourOrganique?: string;
+  momentDePleur?: string;
+  keyReveal?: string;
+  toneNote?: string;
+  lienArcSaison?: string;
 };
+
+export type SeriesProgressiveRevelationsItem =
+  | string
+  | {
+      episode?: number;
+      revelation: string;
+    };
+
+export type SeriesSecondaryCharactersItem =
+  | string
+  | {
+      name: string;
+      role?: string;
+      arc?: string;
+    };
 
 export interface Series {
   id?: string;
   projectId: string;
   format: string;
+  loglineSerie?: string;
   seasonConcept?: string;
-  longArcs?: string[];
+  seriesPotential?: string;
+  longArcs?: SeriesLongArcsItem[];
   episodes: SeriesEpisodesItem[];
-  progressiveRevelations?: string[];
-  secondaryCharacters?: string[];
+  progressiveRevelations?: SeriesProgressiveRevelationsItem[];
+  secondaryCharacters?: SeriesSecondaryCharactersItem[];
   updatedAt?: string;
 }
 
@@ -362,6 +431,77 @@ export interface PitchDocument {
   world?: string;
   filmSeasonArc?: string;
   sellingPoints?: string[];
+  updatedAt?: string;
+}
+
+export interface CheckSceneHpsaInput {
+  sceneDescription: string;
+  context?: string;
+}
+
+export interface SceneHpsaResult {
+  humour?: number;
+  pleur?: number;
+  suspense?: number;
+  attractivite?: number;
+  feedback?: string;
+}
+
+export interface FilmData {
+  id?: string;
+  projectId: string;
+  concept: string;
+  logline: string;
+  tagline?: string;
+  shortSynopsis?: string;
+  longSynopsis?: string;
+  treatment?: string;
+  targetDuration?: string;
+  filmFormat?: string;
+  visualPromise?: string;
+  emotionalPromise?: string;
+  dramaticQuestion?: string;
+  centralImage?: string;
+  updatedAt?: string;
+}
+
+export type FilmSceneHpsaCheck = { [key: string]: unknown };
+
+export interface FilmScene {
+  id?: string;
+  projectId: string;
+  sceneNumber: number;
+  title: string;
+  intExt?: string;
+  location?: string;
+  timeOfDay?: string;
+  charactersPresent?: string[];
+  protagonistObjective?: string;
+  obstacle?: string;
+  visibleConflict?: string;
+  emotionalSubtext?: string;
+  openingBeat?: string;
+  dramaticTurn?: string;
+  closingBeat?: string;
+  emotionBefore?: string;
+  emotionAfter?: string;
+  strongImage?: string;
+  soundOrSilence?: string;
+  symbolicObject?: string;
+  actionDescription?: string;
+  dialogueFragment?: string;
+  narrativeFunction?: string;
+  suspenseLevel?: number;
+  humourLevel?: number;
+  emotionalPowerLevel?: number;
+  attractivenessLevel?: number;
+  hpsaCheck?: FilmSceneHpsaCheck;
+  linkToEmotionalCore?: string;
+  directorNote?: string;
+  cameraSuggestion?: string;
+  riskOfCliche?: string;
+  originalAlternative?: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 

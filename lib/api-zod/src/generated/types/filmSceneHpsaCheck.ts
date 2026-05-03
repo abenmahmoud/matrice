@@ -6,9 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ScreenplayBeatsItem = {
-  number: number;
-  label?: string;
-  description: string;
-  pageRange?: string;
-};
+export type FilmSceneHpsaCheck = { [key: string]: unknown };

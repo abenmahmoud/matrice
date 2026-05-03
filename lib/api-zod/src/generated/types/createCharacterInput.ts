@@ -20,4 +20,5 @@ export interface CreateCharacterInput {
   visualIdentity?: string;
   voiceStyle?: string;
   linkToConflict?: string;
+  backstory?: string;
 }

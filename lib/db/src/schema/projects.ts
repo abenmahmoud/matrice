@@ -1,4 +1,4 @@
-import { pgTable, text, real, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, real, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -106,6 +106,7 @@ export const charactersTable = pgTable("characters", {
   visualIdentity: text("visual_identity"),
   voiceStyle: text("voice_style"),
   linkToConflict: text("link_to_conflict"),
+  backstory: text("backstory"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -163,13 +164,17 @@ export const researchDataTable = pgTable("research_data", {
 
 export type ResearchData = typeof researchDataTable.$inferSelect;
 
-type ScoreCategory = {
+export type ScoreCategory = {
   score: number;
   diagnostic: string;
   weaknesses: string[];
   corrections: string[];
   suggestions?: string[];
   trendNotes?: string;
+  humorSources?: string[];
+  tearTriggerMechanisms?: string[];
+  suspenseMechanisms?: string[];
+  attractivenessFactors?: string[];
   clicheRisk?: string;
   originalityOpportunity?: string;
 };
@@ -181,52 +186,108 @@ export const hpsaScoresTable = pgTable("hpsa_scores", {
   pleur: jsonb("pleur").$type<ScoreCategory>().notNull().default({ score: 0, diagnostic: "", weaknesses: [], corrections: [] }),
   suspense: jsonb("suspense").$type<ScoreCategory>().notNull().default({ score: 0, diagnostic: "", weaknesses: [], corrections: [] }),
   attractivite: jsonb("attractivite").$type<ScoreCategory>().notNull().default({ score: 0, diagnostic: "", weaknesses: [], corrections: [] }),
-  profondeurEmotionnelle: jsonb("profondeur_emotionnelle").$type<ScoreCategory>().notNull().default({ score: 0, diagnostic: "", weaknesses: [], corrections: [] }),
-  originalite: jsonb("originalite").$type<ScoreCategory>().notNull().default({ score: 0, diagnostic: "", weaknesses: [], corrections: [] }),
-  coherence: jsonb("coherence").$type<ScoreCategory>().notNull().default({ score: 0, diagnostic: "", weaknesses: [], corrections: [] }),
+  globalScore: real("global_score").notNull().default(0),
+  priorityFixes: jsonb("priority_fixes").$type<string[]>().notNull().default([]),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export type HpsaScore = typeof hpsaScoresTable.$inferSelect;
 
+export type BookChapter = {
+  number: number;
+  title: string;
+  summary: string;
+  pov?: string;
+  location?: string;
+  timeframe?: string;
+  emotionalArc?: string;
+  keyScene?: string;
+  closingHook?: string;
+  narrativePurpose?: string;
+  voiceNote?: string;
+  draftContent?: string;
+};
+
 export const bookOutlinesTable = pgTable("book_outlines", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
-  titleIdeas: jsonb("title_ideas").$type<string[]>().notNull().default([]),
+  titleIdeas: jsonb("title_ideas").$type<Array<string | { title: string; tone?: string; why?: string }>>().notNull().default([]),
   backCoverPitch: text("back_cover_pitch").notNull().default(""),
   shortSynopsis: text("short_synopsis").notNull().default(""),
   longSynopsis: text("long_synopsis").notNull().default(""),
   tableOfContents: jsonb("table_of_contents").$type<string[]>().notNull().default([]),
   structure: text("structure").notNull().default(""),
-  chapters: jsonb("chapters").$type<Array<{ number: number; title: string; summary: string; draftContent?: string }>>().notNull().default([]),
+  narrativeVoice: text("narrative_voice").notNull().default(""),
+  openingLine: text("opening_line").notNull().default(""),
+  closingLine: text("closing_line").notNull().default(""),
+  chapters: jsonb("chapters").$type<BookChapter[]>().notNull().default([]),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export type BookOutline = typeof bookOutlinesTable.$inferSelect;
 
+export type ScreenplayBeat = {
+  number: number;
+  label?: string;
+  description: string;
+  pageRange?: string;
+};
+
+export type ScreenplayScene = {
+  number: number;
+  heading: string;
+  description: string;
+  dialogueDraft?: string;
+  emotionalTone?: string;
+  dramaticFunction?: string;
+};
+
 export const screenplaysTable = pgTable("screenplays", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
   logline: text("logline").notNull().default(""),
+  tagline: text("tagline").notNull().default(""),
   cinematicSynopsis: text("cinematic_synopsis").notNull().default(""),
   treatment: text("treatment").notNull().default(""),
-  beats: jsonb("beats").$type<Array<{ number: number; description: string }>>().notNull().default([]),
-  scenes: jsonb("scenes").$type<Array<{ number: number; heading: string; description: string; dialogueDraft?: string }>>().notNull().default([]),
+  beats: jsonb("beats").$type<ScreenplayBeat[]>().notNull().default([]),
+  scenes: jsonb("scenes").$type<ScreenplayScene[]>().notNull().default([]),
   fountainScript: text("fountain_script").notNull().default(""),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export type Screenplay = typeof screenplaysTable.$inferSelect;
 
+export type SeriesEpisode = {
+  number: number;
+  title: string;
+  logline?: string;
+  summary: string;
+  openingScene?: string;
+  questionDramatique?: string;
+  intrigueA?: string;
+  intrigueB?: string;
+  midpoint?: string;
+  climax?: string;
+  cliffhanger?: string;
+  emotionalEvolution?: string;
+  humourOrganique?: string;
+  momentDePleur?: string;
+  keyReveal?: string;
+  toneNote?: string;
+  lienArcSaison?: string;
+};
+
 export const seriesTable = pgTable("series_data", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
   format: text("format").notNull().default(""),
+  loglineSerie: text("logline_serie").notNull().default(""),
   seasonConcept: text("season_concept").notNull().default(""),
-  longArcs: jsonb("long_arcs").$type<string[]>().notNull().default([]),
-  episodes: jsonb("episodes").$type<Array<{ number: number; title: string; summary: string; cliffhanger?: string; emotionalEvolution?: string }>>().notNull().default([]),
-  progressiveRevelations: jsonb("progressive_revelations").$type<string[]>().notNull().default([]),
-  secondaryCharacters: jsonb("secondary_characters").$type<string[]>().notNull().default([]),
+  seriesPotential: text("series_potential").notNull().default(""),
+  longArcs: jsonb("long_arcs").$type<Array<string | { label: string; description: string }>>().notNull().default([]),
+  episodes: jsonb("episodes").$type<SeriesEpisode[]>().notNull().default([]),
+  progressiveRevelations: jsonb("progressive_revelations").$type<Array<string | { episode: number; revelation: string }>>().notNull().default([]),
+  secondaryCharacters: jsonb("secondary_characters").$type<Array<string | { name: string; role: string; arc: string }>>().notNull().default([]),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
@@ -350,3 +411,67 @@ export const noteIntentionTable = pgTable("note_intention", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 export type NoteIntention = typeof noteIntentionTable.$inferSelect;
+
+// ---------------------------------------------------------------------------
+// Film Data — concept et structure du long/court-métrage
+// ---------------------------------------------------------------------------
+export const filmDataTable = pgTable("film_data", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  concept: text("concept").notNull().default(""),
+  logline: text("logline").notNull().default(""),
+  tagline: text("tagline").notNull().default(""),
+  shortSynopsis: text("short_synopsis").notNull().default(""),
+  longSynopsis: text("long_synopsis").notNull().default(""),
+  treatment: text("treatment").notNull().default(""),
+  targetDuration: text("target_duration").notNull().default(""),
+  filmFormat: text("film_format").notNull().default(""),
+  visualPromise: text("visual_promise").notNull().default(""),
+  emotionalPromise: text("emotional_promise").notNull().default(""),
+  dramaticQuestion: text("dramatic_question").notNull().default(""),
+  centralImage: text("central_image").notNull().default(""),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type FilmData = typeof filmDataTable.$inferSelect;
+
+// ---------------------------------------------------------------------------
+// Film Scenes — scènes jouables avec analyse dramaturgique
+// ---------------------------------------------------------------------------
+export const filmScenesTable = pgTable("film_scenes", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  projectId: text("project_id").notNull().references(() => projectsTable.id, { onDelete: "cascade" }),
+  sceneNumber: integer("scene_number").notNull().default(1),
+  title: text("title").notNull().default(""),
+  intExt: text("int_ext").notNull().default("INT."),
+  location: text("location").notNull().default(""),
+  timeOfDay: text("time_of_day").notNull().default(""),
+  charactersPresent: jsonb("characters_present").$type<string[]>().notNull().default([]),
+  protagonistObjective: text("protagonist_objective").notNull().default(""),
+  obstacle: text("obstacle").notNull().default(""),
+  visibleConflict: text("visible_conflict").notNull().default(""),
+  emotionalSubtext: text("emotional_subtext").notNull().default(""),
+  openingBeat: text("opening_beat").notNull().default(""),
+  dramaticTurn: text("dramatic_turn").notNull().default(""),
+  closingBeat: text("closing_beat").notNull().default(""),
+  emotionBefore: text("emotion_before").notNull().default(""),
+  emotionAfter: text("emotion_after").notNull().default(""),
+  strongImage: text("strong_image").notNull().default(""),
+  soundOrSilence: text("sound_or_silence").notNull().default(""),
+  symbolicObject: text("symbolic_object").notNull().default(""),
+  actionDescription: text("action_description").notNull().default(""),
+  dialogueFragment: text("dialogue_fragment").notNull().default(""),
+  narrativeFunction: text("narrative_function").notNull().default(""),
+  suspenseLevel: real("suspense_level").notNull().default(0),
+  humourLevel: real("humour_level").notNull().default(0),
+  emotionalPowerLevel: real("emotional_power_level").notNull().default(0),
+  attractivenessLevel: real("attractiveness_level").notNull().default(0),
+  hpsaCheck: jsonb("hpsa_check").$type<Record<string, number>>().notNull().default({}),
+  linkToEmotionalCore: text("link_to_emotional_core").notNull().default(""),
+  directorNote: text("director_note").notNull().default(""),
+  cameraSuggestion: text("camera_suggestion").notNull().default(""),
+  riskOfCliche: text("risk_of_cliche").notNull().default(""),
+  originalAlternative: text("original_alternative").notNull().default(""),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+export type FilmScene = typeof filmScenesTable.$inferSelect;

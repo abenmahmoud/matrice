@@ -9,7 +9,19 @@
 export type SeriesEpisodesItem = {
   number: number;
   title: string;
+  logline?: string;
   summary: string;
+  openingScene?: string;
+  questionDramatique?: string;
+  intrigueA?: string;
+  intrigueB?: string;
+  midpoint?: string;
+  climax?: string;
   cliffhanger?: string;
   emotionalEvolution?: string;
+  humourOrganique?: string;
+  momentDePleur?: string;
+  keyReveal?: string;
+  toneNote?: string;
+  lienArcSaison?: string;
 };

@@ -682,36 +682,97 @@ EXIGENCES ABSOLUES :
 // 8. H.P.S.A. Scores
 // ---------------------------------------------------------------------------
 
-export async function generateHpsaScore(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string): Promise<Record<string, ScoreCategory>> {
-  const system = `Tu es un analyste narratif et consultant en développement de projets créatifs. Tu évalues les projets narratifs selon 7 axes : humour, pleur (émotion), suspense, attractivité, profondeur émotionnelle, originalité, cohérence. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
+export async function generateHpsaScore(project: Project, matrix: NarrativeMatrix, emotionalCore: EmotionalCore, skillsContext?: string): Promise<{
+  humour: ScoreCategory;
+  pleur: ScoreCategory;
+  suspense: ScoreCategory;
+  attractivite: ScoreCategory;
+  globalScore: number;
+  priorityFixes: string[];
+}> {
+  const system = `Tu es un analyste narratif expert — spécialiste en dramaturgie émotionnelle, formé aux neurosciences de l'émotion (Damasio, Ekman) et à la psychologie des récits (Jerome Bruner, Keith Oatley). Tu évalues les projets narratifs selon 4 axes fondamentaux H.P.S.A. (Humour, Pleur, Suspense, Attractivité) qui mesurent l'impact émotionnel universel d'une œuvre narrative. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
 
-  const user = `Évalue ce projet narratif sur 7 axes et génère les scores H.P.S.A.
+  const user = `Évalue ce projet narratif sur les 4 axes H.P.S.A. et fournis un diagnostic clinique de niveau professionnel.
 
 ${projectContext(project)}
 
 Concept central : ${matrix.centralConcept}
+Logline : ${matrix.logline}
 Enjeux émotionnels : ${matrix.emotionalStakes}
+Protagoniste : ${matrix.protagonist}
+Conflit central : ${matrix.centralConflict}
 Émotion dominante : ${emotionalCore.dominantEmotion}
+Blessure cachée : ${emotionalCore.hiddenWound}
 Arc de transformation : ${emotionalCore.transformationArc}
+Genre : ${project.genre} — Ton : ${project.tone}
 
-Génère un objet JSON avec exactement ces 7 clés : humour, pleur, suspense, attractivite, profondeurEmotionnelle, originalite, coherence.
-Chaque catégorie a cette structure :
+DÉFINITIONS DES 4 AXES :
+- H (Humour) : Présence, organicité et qualité du comique — sources précises (humour de situation, de caractère, de langage, absurde, autodérision, décalage culturel)
+- P (Pleur) : Puissance émotionnelle — déclencheurs de larmes identifiables (injustice, sacrifice, perte, retrouvailles, beauté inattendue, reconnaissance tardive)
+- S (Suspense) : Tension narrative — mécanique de l'attente, question dramatique centrale, information asymétrique, menace réelle perçue
+- A (Attractivité) : Désirabilité du projet — originalité du concept, potentiel commercial, pouvoir d'identification du protagoniste, promesse visuelle/émotionnelle
+
+Génère un objet JSON avec EXACTEMENT cette structure :
 {
-  "score": <nombre entre 0 et 100, réaliste selon le genre et ton>,
-  "diagnostic": "diagnostic précis de 1-2 phrases",
-  "weaknesses": ["faiblesse 1", "faiblesse 2"],
-  "corrections": ["correction 1", "correction 2", "correction 3"],
-  "suggestions": ["suggestion créative 1", "suggestion 2"],
-  "trendNotes": "note sur les tendances actuelles pertinentes",
-  "clicheRisk": "risque de cliché spécifique à éviter",
-  "originalityOpportunity": "opportunité d'originalité concrète"
+  "humour": {
+    "score": <0-100, réaliste et justifié>,
+    "diagnostic": "Diagnostic en 2 phrases — présence actuelle et potentiel non exploité",
+    "weaknesses": ["faiblesse concrète 1 — avec référence à une scène ou personnage type", "faiblesse 2"],
+    "corrections": ["correction actionniste 1 — technique précise et exemple d'auteur", "correction 2", "correction 3"],
+    "suggestions": ["suggestion créative surprenante 1", "suggestion 2"],
+    "trendNotes": "Ce que le marché ${project.genre} fait actuellement avec l'humour — tendance 2024-2025",
+    "humorSources": ["Source 1 (type : absurde/décalage/ironie/autodérision/tendresse comique)", "Source 2"],
+    "clicheRisk": "Le cliché comique à éviter absolument dans ce genre et ce ton",
+    "originalityOpportunity": "Porte d'entrée d'originalité comique concrète — avec exemple d'œuvre référence"
+  },
+  "pleur": {
+    "score": <0-100>,
+    "diagnostic": "Diagnostic en 2 phrases",
+    "weaknesses": ["faiblesse 1", "faiblesse 2"],
+    "corrections": ["correction 1", "correction 2", "correction 3"],
+    "suggestions": ["suggestion 1", "suggestion 2"],
+    "trendNotes": "Tendances émotionnelles actuelles dans ce genre",
+    "tearTriggerMechanisms": ["Mécanisme 1 (type : injustice/sacrifice/reconnaissance/perte/beauté inattendue)", "Mécanisme 2"],
+    "clicheRisk": "Le cliché émotionnel à éviter",
+    "originalityOpportunity": "Opportunité d'émotion originale et puissante"
+  },
+  "suspense": {
+    "score": <0-100>,
+    "diagnostic": "Diagnostic en 2 phrases",
+    "weaknesses": ["faiblesse 1", "faiblesse 2"],
+    "corrections": ["correction 1", "correction 2", "correction 3"],
+    "suggestions": ["suggestion 1", "suggestion 2"],
+    "trendNotes": "Tendances suspense actuelles dans ce genre",
+    "suspenseMechanisms": ["Mécanisme 1 (information asymétrique/bombe sous la table/course contre la montre/secret révélé progressivement)", "Mécanisme 2"],
+    "clicheRisk": "Le cliché de suspense à éviter",
+    "originalityOpportunity": "Tension narrative originale à exploiter"
+  },
+  "attractivite": {
+    "score": <0-100>,
+    "diagnostic": "Diagnostic en 2 phrases",
+    "weaknesses": ["faiblesse 1", "faiblesse 2"],
+    "corrections": ["correction 1", "correction 2", "correction 3"],
+    "suggestions": ["suggestion 1", "suggestion 2"],
+    "trendNotes": "Tendances d'attractivité dans ce segment de marché",
+    "attractivenessFactors": ["Facteur 1 (originalité concept/pouvoir identification/promesse visuelle/ancrage culturel)", "Facteur 2"],
+    "clicheRisk": "Ce qui rend ce type de projet trop prévisible",
+    "originalityOpportunity": "L'élément distinctif qui peut rendre ce projet inoubliable"
+  },
+  "globalScore": <moyenne pondérée des 4 scores avec poids : suspense x1.3, pleur x1.2, attractivite x1.1, humour x0.9 — résultat entre 0 et 100>,
+  "priorityFixes": [
+    "Action prioritaire 1 — la plus urgente, la plus impactante : verbe d'action + quoi faire précisément",
+    "Action prioritaire 2",
+    "Action prioritaire 3",
+    "Action prioritaire 4 (si nécessaire)",
+    "Action prioritaire 5 (si nécessaire)"
+  ]
 }
 
-Les scores doivent être cohérents avec le genre "${project.genre}" et le ton "${project.tone}". Sois honnête — évite les scores trop élevés ou trop bas sans justification.`;
+IMPORTANT : Sois honnête et précis. Les scores entre 40-75 sont la norme pour les projets en développement. Un projet parfait n'existe pas. Les corrections et suggestions doivent être actionnables AUJOURD'HUI, pas des vœux pieux.`;
 
   const makeDefault = (score: number): ScoreCategory => ({
     score,
-    diagnostic: "À évaluer",
+    diagnostic: "Analyse en cours",
     weaknesses: ["À identifier"],
     corrections: ["À définir"],
     suggestions: ["À développer"],
@@ -720,17 +781,21 @@ Les scores doivent être cohérents avec le genre "${project.genre}" et le ton "
     originalityOpportunity: "Opportunités à explorer",
   });
 
-  const fallback: Record<string, ScoreCategory> = {
+  const fallback = {
     humour: makeDefault(50),
     pleur: makeDefault(65),
     suspense: makeDefault(70),
     attractivite: makeDefault(60),
-    profondeurEmotionnelle: makeDefault(68),
-    originalite: makeDefault(72),
-    coherence: makeDefault(75),
+    globalScore: 61,
+    priorityFixes: [
+      "Identifier les 3 moments de comédie naturelle du projet",
+      "Renforcer la question dramatique centrale avec une contrainte de temps",
+      "Créer un moment de sacrifice irréversible pour déclencher l'émotion",
+      "Affiner la promesse visuelle distinctive du projet",
+    ],
   };
 
-  return aiJson<Record<string, ScoreCategory>>(system, user, fallback, skillsContext, { maxTokens: 10000 });
+  return aiJson(system, user, fallback, skillsContext, { maxTokens: 10000 });
 }
 
 // ---------------------------------------------------------------------------
@@ -1589,6 +1654,7 @@ Sois précis et cinématographique. Chaque titre de séquence doit donner envie 
 
   const fallbackSeqs = [
     { numero: 1, titre: "Le monde d'avant", lieu: "EXT. VILLE - MATIN", moment: "Aube", personnages: ["Protagoniste"], fonctionDramatique: "Exposition", arcEmotionnel: "Calme apparent, routine installée — une vie qui semble équilibrée mais quelque chose manque", dureeEstimee: 3, liensThematiques: "Établit l'état initial que l'histoire viendra briser", noteRealisateur: "Caméra portée, proche du personnage — on entre dans son monde sans distanciation" },
+
     { numero: 2, titre: "Les premières fissures", lieu: "INT. LIEU INTIME - JOUR", moment: "Jour", personnages: ["Protagoniste"], fonctionDramatique: "Mise en situation", arcEmotionnel: "Le doute s'installe — quelque chose ne va plus comme avant", dureeEstimee: 4, liensThematiques: "La blessure intérieure commence à affleurer", noteRealisateur: "Plans fixes, le personnage cherche sa place dans le cadre" },
     { numero: 3, titre: "Ce qui change tout", lieu: "EXT. LIEU NEUTRE - JOUR", moment: "Jour", personnages: ["Protagoniste", "Personnage déclencheur"], fonctionDramatique: "Incident déclencheur", arcEmotionnel: "Rupture — il n'y a plus de retour possible, le monde a changé", dureeEstimee: 5, liensThematiques: "Le conflit central prend corps pour la première fois", noteRealisateur: "Coupe franche — avant/après. La caméra recule légèrement quand tout bascule" },
     { numero: 4, titre: "Le refus du changement", lieu: "INT. ESPACE QUOTIDIEN - NUIT", moment: "Nuit", personnages: ["Protagoniste"], fonctionDramatique: "Complication", arcEmotionnel: "Résistance, déni — le personnage essaie de revenir en arrière", dureeEstimee: 4, liensThematiques: "L'ancienne vie contre la nouvelle réalité", noteRealisateur: "Lumière chaude rassurante mais quelque chose dans le cadrage dit que c'est faux" },
@@ -1654,4 +1720,215 @@ RÈGLES ABSOLUES :
   } catch {
     return "(Le personnage garde le silence pour l'instant.)";
   }
+}
+
+// ---------------------------------------------------------------------------
+// Film Data — concept cinématographique complet
+// ---------------------------------------------------------------------------
+
+export async function generateFilmData(project: Project, matrix: NarrativeMatrix | null, skillsContext?: string) {
+  const system = `Tu es un développeur de projets cinématographiques de haut niveau — formé au CNC, à la Cinéfondation de Cannes et aux labs Sundance et Torino Film Lab. Tu rédiges des dossiers de développement pour long et court-métrages, au niveau des dossiers soumis à Arte Films, Les Films du Losange, Memento Films, Wild Bunch. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
+
+  const user = `Développe le dossier de concept cinématographique complet pour ce projet.
+
+${projectContext(project)}
+${matrix ? `Logline source : ${matrix.logline}
+Concept central : ${matrix.centralConcept}
+Enjeux émotionnels : ${matrix.emotionalStakes}
+Protagoniste : ${matrix.protagonist}` : ""}
+
+Génère un objet JSON :
+{
+  "concept": "Le concept du film en 3-4 phrases — ce qui est UNIQUE dans cette histoire, ce que le spectateur n'a jamais vu sous cette forme. Niveau dossier Cannes.",
+  "logline": "Logline format industrie : Quand [PROTAGONISTE + CONTEXTE], il/elle doit [OBJECTIF] avant que [ENJEU FATAL] — mais [OBSTACLE FONDAMENTAL]. 1 phrase, 30 mots max.",
+  "tagline": "Tagline d'affiche — 5 à 8 mots, mémorables, poétiques, qui donnent envie d'acheter une place.",
+  "shortSynopsis": "Synopsis court (120 mots) — présent de narration, style économique, tension narrative perceptible dès les premières lignes.",
+  "longSynopsis": "Synopsis long (450-600 mots) — complet, révèle la fin, pour les sélectionneurs et producteurs. Raconte tout mais avec style.",
+  "treatment": "Traitement cinématographique (600-800 mots) — séquence par séquence, directions visuelles, atmosphère, jeu des acteurs. Niveau dossier CNC.",
+  "targetDuration": "Durée cible (ex: 90 minutes, 25 minutes, 15 minutes) avec justification artistique",
+  "filmFormat": "Format (Long-métrage / Court-métrage / Moyen-métrage) avec justification",
+  "visualPromise": "La promesse visuelle du film — ce que l'œil va voir, l'esthétique, les partis pris visuels. 2-3 phrases concrètes.",
+  "emotionalPromise": "La promesse émotionnelle — ce que le spectateur va RESSENTIR. Pas ce qu'il va comprendre : ce qu'il va vivre. 2-3 phrases.",
+  "dramaticQuestion": "La question dramatique centrale — celle à laquelle le film entier tente de répondre. Une seule question, précise, universelle.",
+  "centralImage": "L'image centrale du film — la seule image qui contient tout le film. Concrète, visuelle, symbolique. Comme si vous décriviez la scène la plus importante."
+}`;
+
+  const fallback = {
+    concept: project.rawIdea.slice(0, 200),
+    logline: matrix?.logline ?? "À développer",
+    tagline: project.title,
+    shortSynopsis: matrix?.shortPitch ?? "À développer",
+    longSynopsis: matrix?.longSynopsis ?? "À développer",
+    treatment: "Traitement à développer",
+    targetDuration: "90 minutes",
+    filmFormat: "Long-métrage",
+    visualPromise: "À définir",
+    emotionalPromise: "À définir",
+    dramaticQuestion: "À définir",
+    centralImage: "À définir",
+  };
+
+  return aiJson(system, user, fallback, skillsContext, { maxTokens: 6000 });
+}
+
+// ---------------------------------------------------------------------------
+// Film Scenes — scènes jouables avec analyse dramaturgique complète
+// ---------------------------------------------------------------------------
+
+type FilmSceneData = {
+  sceneNumber: number;
+  title: string;
+  intExt: string;
+  location: string;
+  timeOfDay: string;
+  charactersPresent: string[];
+  protagonistObjective: string;
+  obstacle: string;
+  visibleConflict: string;
+  emotionalSubtext: string;
+  openingBeat: string;
+  dramaticTurn: string;
+  closingBeat: string;
+  emotionBefore: string;
+  emotionAfter: string;
+  strongImage: string;
+  soundOrSilence: string;
+  symbolicObject: string;
+  actionDescription: string;
+  dialogueFragment: string;
+  narrativeFunction: string;
+  suspenseLevel: number;
+  humourLevel: number;
+  emotionalPowerLevel: number;
+  attractivenessLevel: number;
+  hpsaCheck: Record<string, number>;
+  linkToEmotionalCore: string;
+  directorNote: string;
+  cameraSuggestion: string;
+  riskOfCliche: string;
+  originalAlternative: string;
+};
+
+export async function generatePlayableScenes(project: Project, matrix: NarrativeMatrix | null, emotionalCore: EmotionalCore | null, skillsContext?: string): Promise<FilmSceneData[]> {
+  const system = `Tu es un scénariste et metteur en scène spécialisé dans le développement de scènes jouables — formé au Actors Studio, à l'Actor's Lab de Berlin, et aux workshops de dramaturgie de la Fémis. Tu décomposes chaque scène en unités dramatiques précises et actionnables. Chaque scène que tu génères doit POUVOIR ÊTRE TOURNÉE DEMAIN — avec des directions concrètes pour les acteurs, le réalisateur et le directeur photo. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
+
+  const user = `Génère 10 scènes jouables clés pour ce projet — les scènes les plus importantes de l'arc narratif complet.
+
+${projectContext(project)}
+${matrix ? `Concept : ${matrix.centralConcept}
+Protagoniste : ${matrix.protagonist} — Antagoniste : ${matrix.antagonist}
+Conflit central : ${matrix.centralConflict}
+Arc dramatique : ${matrix.emotionalStakes}` : ""}
+${emotionalCore ? `Noyau émotionnel : ${emotionalCore.dominantEmotion} → ${emotionalCore.transformationArc}` : ""}
+
+Génère un tableau JSON de 10 scènes, chacune avec cette structure COMPLÈTE :
+{
+  "sceneNumber": <1 à 10>,
+  "title": "Titre évocateur et cinématographique — pas 'Scène 1', un vrai titre",
+  "intExt": "INT." ou "EXT." ou "INT./EXT.",
+  "location": "Lieu précis et évocateur (ex: 'Cuisine familiale — désordre de vie')",
+  "timeOfDay": "JOUR | NUIT | AUBE | CRÉPUSCULE | NUIT TARDIVE",
+  "charactersPresent": ["Prénom1", "Prénom2"],
+  "protagonistObjective": "Ce que le protagoniste veut obtenir DANS CETTE SCÈNE — objectif simple et mesurable",
+  "obstacle": "Ce qui empêche le protagoniste d'obtenir ce qu'il veut",
+  "visibleConflict": "Le conflit visible, actable — ce que le spectateur voit et entend",
+  "emotionalSubtext": "Ce qui se passe VRAIMENT sous la surface — ce que les personnages ne disent pas",
+  "openingBeat": "Comment commence exactement la scène — action physique précise",
+  "dramaticTurn": "Le moment où tout bascule dans la scène — le turning point",
+  "closingBeat": "Comment se termine exactement la scène — action physique précise",
+  "emotionBefore": "État émotionnel du protagoniste EN ENTRANT dans la scène",
+  "emotionAfter": "État émotionnel du protagoniste EN SORTANT de la scène",
+  "strongImage": "L'image forte de la scène — celle que le spectateur retiendra",
+  "soundOrSilence": "Son spécifique ou silence important dans cette scène",
+  "symbolicObject": "Objet symbolique présent ou absent dans cette scène",
+  "actionDescription": "Description de l'action principale (3-4 phrases en présent de narration, style scénario)",
+  "dialogueFragment": "1-3 répliques représentatives — en format Fountain (PERSONNAGE\\nRéplique)",
+  "narrativeFunction": "Exposition | Complication | Révélation | Point médian | Climax | Résolution | Transition | Confrontation",
+  "suspenseLevel": <0.0 à 1.0>,
+  "humourLevel": <0.0 à 1.0>,
+  "emotionalPowerLevel": <0.0 à 1.0>,
+  "attractivenessLevel": <0.0 à 1.0>,
+  "hpsaCheck": {"humour": <0-100>, "pleur": <0-100>, "suspense": <0-100>, "attractivite": <0-100>},
+  "linkToEmotionalCore": "Comment cette scène résonne avec le noyau émotionnel du protagoniste",
+  "directorNote": "Note de mise en scène précise — axe caméra, distance, mouvement, rythme",
+  "cameraSuggestion": "Suggestion cadrage : Plan large | Plan américain | Gros plan | Plan fixe | Caméra portée | etc.",
+  "riskOfCliche": "Le risque de cliché à éviter absolument dans cette scène",
+  "originalAlternative": "L'alternative originale — comment rendre cette scène inoubliable"
+}
+
+Les 10 scènes doivent couvrir l'arc complet : ouverture, déclencheur, montée, point médian, crise, climax, résolution. Genre : ${project.genre} — Ton : ${project.tone}.`;
+
+  const makeFallback = (n: number): FilmSceneData => ({
+    sceneNumber: n,
+    title: `Scène ${n}`,
+    intExt: "INT.",
+    location: "Lieu à définir",
+    timeOfDay: "JOUR",
+    charactersPresent: ["Protagoniste"],
+    protagonistObjective: "À définir",
+    obstacle: "À définir",
+    visibleConflict: "À définir",
+    emotionalSubtext: "À définir",
+    openingBeat: "À définir",
+    dramaticTurn: "À définir",
+    closingBeat: "À définir",
+    emotionBefore: "Neutre",
+    emotionAfter: "Perturbé",
+    strongImage: "À définir",
+    soundOrSilence: "À définir",
+    symbolicObject: "À définir",
+    actionDescription: "À développer",
+    dialogueFragment: "",
+    narrativeFunction: "Transition",
+    suspenseLevel: 0.5,
+    humourLevel: 0.2,
+    emotionalPowerLevel: 0.5,
+    attractivenessLevel: 0.5,
+    hpsaCheck: { humour: 20, pleur: 50, suspense: 50, attractivite: 50 },
+    linkToEmotionalCore: "À définir",
+    directorNote: "À définir",
+    cameraSuggestion: "Plan américain",
+    riskOfCliche: "À identifier",
+    originalAlternative: "À trouver",
+  });
+
+  const fallback = Array.from({ length: 10 }, (_, i) => makeFallback(i + 1));
+
+  const result = await aiJson<{ scenes?: FilmSceneData[] } | FilmSceneData[]>(
+    system, user, { scenes: fallback }, skillsContext, { maxTokens: 20000 }
+  );
+  return Array.isArray(result) ? result : (result.scenes ?? fallback);
+}
+
+// ---------------------------------------------------------------------------
+// Check Scene HPSA — analyse H.P.S.A. d'une scène précise
+// ---------------------------------------------------------------------------
+
+export async function checkSceneHpsa(project: Project, sceneDescription: string, context?: string): Promise<{
+  humour: number;
+  pleur: number;
+  suspense: number;
+  attractivite: number;
+  feedback: string;
+}> {
+  const system = `Tu es un analyste narratif expert en dramaturgie émotionnelle. Tu évalues l'impact H.P.S.A. (Humour, Pleur, Suspense, Attractivité) d'une scène précise sur une échelle de 0 à 100. Tu travailles en français. Réponds UNIQUEMENT en JSON valide.`;
+
+  const user = `Évalue cette scène selon les 4 axes H.P.S.A.
+
+Projet : "${project.title}" — ${project.genre}, ton ${project.tone}
+${context ? `Contexte dramatique : ${context}` : ""}
+
+Description de la scène :
+${sceneDescription}
+
+Génère un objet JSON :
+{
+  "humour": <0-100>,
+  "pleur": <0-100>,
+  "suspense": <0-100>,
+  "attractivite": <0-100>,
+  "feedback": "Analyse en 2-3 phrases : point fort de la scène, point faible principal, suggestion d'amélioration concrète"
+}`;
+
+  return aiJson(system, user, { humour: 30, pleur: 50, suspense: 60, attractivite: 55, feedback: "Analyse en cours" }, undefined, { maxTokens: 1000 });
 }

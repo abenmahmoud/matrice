@@ -126,7 +126,7 @@ router.post("/manuscripts/analyze", (req, res) => {
     const send = (e: Record<string, unknown>) => { if (isSSE) sseSend(res, e); };
 
     try {
-      const { content, projectId } = req.body as { content: string; projectId?: string };
+      const { content, projectId, analyseType } = req.body as { content: string; projectId?: string; analyseType?: string };
       if (!content || content.trim().length < 50) {
         send({ type: "error", message: "Le texte est trop court (minimum 50 caractères)." });
         if (isSSE) res.end(); else res.status(400).json({ error: "Texte trop court" });
@@ -153,7 +153,17 @@ router.post("/manuscripts/analyze", (req, res) => {
 
       send({ type: "progress", step: hasProjectContext ? "Chargement du contexte projet..." : "Analyse structurelle...", percent: 20 });
 
-      const systemPrompt = `Tu es le plus grand analyste narratif au monde — précision d'un éditeur Gallimard, sensibilité d'un jury Cannes, rigueur d'un professeur de La Fémis. Tu combines Aristote (catharsis, hamartia), McKee (structure, subtext), Vogler (Le Voyage du Héros), Jung (archétypes, Ombre), Propp (fonctions narratives), et Lajos Egri (prémisse, contradiction de personnage). Tu lis entre les lignes. Tu identifies ce que l'auteur écrit SANS LE SAVOIR autant que ce qu'il écrit volontairement. Tu es honnête, précis, jamais cruel, toujours utile. Tu travailles exclusivement en français. Tu réponds UNIQUEMENT en JSON valide, sans commentaire.`;
+      const typeContext = analyseType === "scene"
+        ? "\n\nFOCUS TYPE : SCÈNE CINÉMATOGRAPHIQUE. Analyse avec la précision d'un script doctor : tension dramatique scène par scène, économie de dialogue, sous-texte, fonction dramatique dans l'ensemble, mise en scène implicite, HPSA de la scène (Humour/Pleur/Suspense/Attractivité)."
+        : analyseType === "chapter"
+        ? "\n\nFOCUS TYPE : CHAPITRE DE ROMAN. Analyse en éditeur littéraire : voix narrative, régime focalisation, densité prose, gestion du temps (scène vs sommaire), arc de chapitre, intériorité, promesse de la prochaine page."
+        : analyseType === "series"
+        ? "\n\nFOCUS TYPE : ÉPISODE DE SÉRIE. Analyse en showrunner : question dramatique d'épisode, arc A/B/C, tease saison, respiration émotionnelle, cliff-hanger, cohérence avec la bible, équilibre standalone/feuilleton."
+        : analyseType === "pitch"
+        ? "\n\nFOCUS TYPE : PITCH / LOGLINE. Analyse en lecteur de script / comité de lecture : accroche, clarté du concept, unicité, potentiel commercial, résonance émotionnelle, comparables évidents, questions sans réponse."
+        : "";
+
+      const systemPrompt = `Tu es le plus grand analyste narratif au monde — précision d'un éditeur Gallimard, sensibilité d'un jury Cannes, rigueur d'un professeur de La Fémis. Tu combines Aristote (catharsis, hamartia), McKee (structure, subtext), Vogler (Le Voyage du Héros), Jung (archétypes, Ombre), Propp (fonctions narratives), et Lajos Egri (prémisse, contradiction de personnage). Tu lis entre les lignes. Tu identifies ce que l'auteur écrit SANS LE SAVOIR autant que ce qu'il écrit volontairement. Tu es honnête, précis, jamais cruel, toujours utile. Tu travailles exclusivement en français. Tu réponds UNIQUEMENT en JSON valide, sans commentaire.${typeContext}`;
 
       const coherenceBlock = projectContext ? `
 

@@ -562,7 +562,7 @@ export default function ProjectAnalysePage() {
       const res = await fetch(`${BASE}/api/manuscripts/analyze`, {
         method: "POST",
         headers: { Accept: "text/event-stream", "Content-Type": "application/json" },
-        body: JSON.stringify({ content, projectId: id }),
+        body: JSON.stringify({ content, projectId: id, analyseType: analyseType === "auto" ? undefined : analyseType }),
         signal: abortRef.current.signal,
       });
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
@@ -591,6 +591,7 @@ export default function ProjectAnalysePage() {
     }
   };
 
+  const [analyseType, setAnalyseType] = useState<"auto" | "scene" | "chapter" | "series" | "pitch">("auto");
   const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
   const hasMatrix = !!(matrix?.logline || matrix?.centralConflict);
   const chronoHistory = [...history].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
@@ -692,19 +693,57 @@ export default function ProjectAnalysePage() {
             {/* Input */}
             {!analysis && !genState.isGenerating && (
               <div className="space-y-4">
+                {/* Type selector */}
+                <div>
+                  <label className="text-xs text-white/30 uppercase tracking-wider block mb-2">Type d'extrait</label>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { key: "auto", label: "Automatique", desc: "Détection IA" },
+                      { key: "scene", label: "Scène", desc: "Cinéma / TV" },
+                      { key: "chapter", label: "Chapitre", desc: "Roman" },
+                      { key: "series", label: "Épisode", desc: "Série" },
+                      { key: "pitch", label: "Pitch", desc: "Présentation" },
+                    ] as { key: typeof analyseType; label: string; desc: string }[]).map(t => (
+                      <button key={t.key} onClick={() => setAnalyseType(t.key)}
+                        className={cn(
+                          "flex flex-col items-center px-3 py-2 rounded-xl border text-xs font-medium transition-all min-w-[72px]",
+                          analyseType === t.key
+                            ? "bg-violet-600/30 border-violet-500/60 text-violet-200 shadow-[0_0_12px_rgba(139,92,246,0.2)]"
+                            : "bg-white/[0.02] border-white/[0.08] text-white/30 hover:text-white/50 hover:border-white/15"
+                        )}>
+                        {t.label}
+                        <span className="text-[10px] opacity-60 font-normal mt-0.5">{t.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs text-white/30 uppercase tracking-wider">Extrait à analyser</label>
                     <span className="text-xs text-white/20">{wordCount.toLocaleString("fr-FR")} mots</span>
                   </div>
                   <textarea value={content} onChange={e => setContent(e.target.value)}
-                    placeholder={`Collez ici un extrait de votre projet "${project?.title ?? "..."}" — chapitre, scène, dialogue, synopsis...\n\nL'IA va :\n· Analyser la structure, les émotions, les archétypes\n· Vérifier la cohérence avec votre matrice narrative\n· Identifier les dérives par rapport à vos intentions\n· Recommander des techniques pour renforcer votre vision`}
-                    rows={14}
+                    placeholder={analyseType === "scene"
+                      ? `Collez ici votre scène — action, décor, dialogue, sous-texte...\n\nL'IA va analyser : tension dramatique, fonctions des personnages, sous-texte, rythme cinématographique.`
+                      : analyseType === "chapter"
+                      ? `Collez ici votre chapitre — narration, intériorité, dialogues...\n\nL'IA va analyser : voix narrative, arc de chapitre, cohérence avec l'arc global, prose.`
+                      : analyseType === "series"
+                      ? `Collez ici votre synopsis d'épisode — structure, arcs, cliffhanger...\n\nL'IA va analyser : question dramatique, arcs A/B, tease saison, cohérence personnages.`
+                      : analyseType === "pitch"
+                      ? `Collez ici votre pitch ou logline...\n\nL'IA va analyser : accroche, clarté du concept, potentiel commercial, singularité.`
+                      : `Collez ici un extrait de votre projet "${project?.title ?? "..."}" — chapitre, scène, dialogue, synopsis...\n\nL'IA va :\n· Analyser la structure, les émotions, les archétypes\n· Vérifier la cohérence avec votre matrice narrative\n· Identifier les dérives par rapport à vos intentions\n· Recommander des techniques pour renforcer votre vision`}
+                    rows={12}
                     className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] text-white/80 text-sm px-4 py-3.5 placeholder:text-white/15 focus:outline-none focus:ring-2 focus:ring-violet-500/30 resize-none leading-relaxed transition-all" />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex flex-wrap gap-2">
-                    {["Premier acte", "Scène clé", "Dialogue pivot", "Climax"].map(t => (
+                    {(analyseType === "scene" ? ["Scène d'ouverture", "Confrontation", "Résolution"] :
+                      analyseType === "chapter" ? ["Premier chapitre", "Point médian", "Climax"] :
+                      analyseType === "series" ? ["Pilote", "Midseason", "Finale"] :
+                      analyseType === "pitch" ? ["Logline", "Synopsis court", "Note d'intention"] :
+                      ["Premier acte", "Scène clé", "Dialogue pivot", "Climax"]
+                    ).map(t => (
                       <span key={t} className="text-xs text-white/20 bg-white/[0.03] border border-white/[0.06] rounded-lg px-2.5 py-1">{t}</span>
                     ))}
                   </div>

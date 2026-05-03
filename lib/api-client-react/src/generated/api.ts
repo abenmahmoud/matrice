@@ -19,6 +19,7 @@ import type {
 import type {
   BookOutline,
   Character,
+  CheckSceneHpsaInput,
   CoherenceCheck,
   CreateCharacterInput,
   CreateProjectInput,
@@ -26,6 +27,8 @@ import type {
   EmotionalCore,
   EmotionalPath,
   ExportResult,
+  FilmData,
+  FilmScene,
   HealthStatus,
   HpsaScore,
   NarrativeMatrix,
@@ -34,6 +37,7 @@ import type {
   ProjectDetail,
   Relationship,
   ResearchData,
+  SceneHpsaResult,
   Screenplay,
   Series,
   UpdateProjectInput,
@@ -3616,6 +3620,695 @@ export const useUpdatePitch = <
 };
 
 /**
+ * @summary Generate film concept data
+ */
+export const getGenerateFilmDataUrl = (id: string) => {
+  return `/api/projects/${id}/generate-film-data`;
+};
+
+export const generateFilmData = async (
+  id: string,
+  options?: RequestInit,
+): Promise<FilmData> => {
+  return customFetch<FilmData>(getGenerateFilmDataUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getGenerateFilmDataMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateFilmData>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateFilmData>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["generateFilmData"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateFilmData>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return generateFilmData(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateFilmDataMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateFilmData>>
+>;
+
+export type GenerateFilmDataMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate film concept data
+ */
+export const useGenerateFilmData = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateFilmData>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateFilmData>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getGenerateFilmDataMutationOptions(options));
+};
+
+/**
+ * @summary Get film data
+ */
+export const getGetFilmDataUrl = (id: string) => {
+  return `/api/projects/${id}/film-data`;
+};
+
+export const getFilmData = async (
+  id: string,
+  options?: RequestInit,
+): Promise<FilmData> => {
+  return customFetch<FilmData>(getGetFilmDataUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetFilmDataQueryKey = (id: string) => {
+  return [`/api/projects/${id}/film-data`] as const;
+};
+
+export const getGetFilmDataQueryOptions = <
+  TData = Awaited<ReturnType<typeof getFilmData>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getFilmData>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetFilmDataQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getFilmData>>> = ({
+    signal,
+  }) => getFilmData(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getFilmData>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetFilmDataQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getFilmData>>
+>;
+export type GetFilmDataQueryError = ErrorType<void>;
+
+/**
+ * @summary Get film data
+ */
+
+export function useGetFilmData<
+  TData = Awaited<ReturnType<typeof getFilmData>>,
+  TError = ErrorType<void>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getFilmData>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetFilmDataQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update film data
+ */
+export const getUpdateFilmDataUrl = (id: string) => {
+  return `/api/projects/${id}/film-data`;
+};
+
+export const updateFilmData = async (
+  id: string,
+  filmData: FilmData,
+  options?: RequestInit,
+): Promise<FilmData> => {
+  return customFetch<FilmData>(getUpdateFilmDataUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(filmData),
+  });
+};
+
+export const getUpdateFilmDataMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateFilmData>>,
+    TError,
+    { id: string; data: BodyType<FilmData> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateFilmData>>,
+  TError,
+  { id: string; data: BodyType<FilmData> },
+  TContext
+> => {
+  const mutationKey = ["updateFilmData"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateFilmData>>,
+    { id: string; data: BodyType<FilmData> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateFilmData(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateFilmDataMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateFilmData>>
+>;
+export type UpdateFilmDataMutationBody = BodyType<FilmData>;
+export type UpdateFilmDataMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update film data
+ */
+export const useUpdateFilmData = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateFilmData>>,
+    TError,
+    { id: string; data: BodyType<FilmData> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateFilmData>>,
+  TError,
+  { id: string; data: BodyType<FilmData> },
+  TContext
+> => {
+  return useMutation(getUpdateFilmDataMutationOptions(options));
+};
+
+/**
+ * @summary Generate playable film scenes
+ */
+export const getGenerateFilmScenesUrl = (id: string) => {
+  return `/api/projects/${id}/generate-film-scenes`;
+};
+
+export const generateFilmScenes = async (
+  id: string,
+  options?: RequestInit,
+): Promise<FilmScene[]> => {
+  return customFetch<FilmScene[]>(getGenerateFilmScenesUrl(id), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getGenerateFilmScenesMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateFilmScenes>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateFilmScenes>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ["generateFilmScenes"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateFilmScenes>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return generateFilmScenes(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateFilmScenesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateFilmScenes>>
+>;
+
+export type GenerateFilmScenesMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Generate playable film scenes
+ */
+export const useGenerateFilmScenes = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateFilmScenes>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof generateFilmScenes>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  return useMutation(getGenerateFilmScenesMutationOptions(options));
+};
+
+/**
+ * @summary Get all film scenes
+ */
+export const getGetFilmScenesUrl = (id: string) => {
+  return `/api/projects/${id}/film-scenes`;
+};
+
+export const getFilmScenes = async (
+  id: string,
+  options?: RequestInit,
+): Promise<FilmScene[]> => {
+  return customFetch<FilmScene[]>(getGetFilmScenesUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetFilmScenesQueryKey = (id: string) => {
+  return [`/api/projects/${id}/film-scenes`] as const;
+};
+
+export const getGetFilmScenesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getFilmScenes>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getFilmScenes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetFilmScenesQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getFilmScenes>>> = ({
+    signal,
+  }) => getFilmScenes(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getFilmScenes>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetFilmScenesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getFilmScenes>>
+>;
+export type GetFilmScenesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get all film scenes
+ */
+
+export function useGetFilmScenes<
+  TData = Awaited<ReturnType<typeof getFilmScenes>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getFilmScenes>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetFilmScenesQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a film scene
+ */
+export const getUpdateFilmSceneUrl = (id: string, sceneId: string) => {
+  return `/api/projects/${id}/film-scenes/${sceneId}`;
+};
+
+export const updateFilmScene = async (
+  id: string,
+  sceneId: string,
+  filmScene: FilmScene,
+  options?: RequestInit,
+): Promise<FilmScene> => {
+  return customFetch<FilmScene>(getUpdateFilmSceneUrl(id, sceneId), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(filmScene),
+  });
+};
+
+export const getUpdateFilmSceneMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateFilmScene>>,
+    TError,
+    { id: string; sceneId: string; data: BodyType<FilmScene> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateFilmScene>>,
+  TError,
+  { id: string; sceneId: string; data: BodyType<FilmScene> },
+  TContext
+> => {
+  const mutationKey = ["updateFilmScene"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateFilmScene>>,
+    { id: string; sceneId: string; data: BodyType<FilmScene> }
+  > = (props) => {
+    const { id, sceneId, data } = props ?? {};
+
+    return updateFilmScene(id, sceneId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateFilmSceneMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateFilmScene>>
+>;
+export type UpdateFilmSceneMutationBody = BodyType<FilmScene>;
+export type UpdateFilmSceneMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a film scene
+ */
+export const useUpdateFilmScene = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateFilmScene>>,
+    TError,
+    { id: string; sceneId: string; data: BodyType<FilmScene> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateFilmScene>>,
+  TError,
+  { id: string; sceneId: string; data: BodyType<FilmScene> },
+  TContext
+> => {
+  return useMutation(getUpdateFilmSceneMutationOptions(options));
+};
+
+/**
+ * @summary Delete a film scene
+ */
+export const getDeleteFilmSceneUrl = (id: string, sceneId: string) => {
+  return `/api/projects/${id}/film-scenes/${sceneId}`;
+};
+
+export const deleteFilmScene = async (
+  id: string,
+  sceneId: string,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteFilmSceneUrl(id, sceneId), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteFilmSceneMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteFilmScene>>,
+    TError,
+    { id: string; sceneId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteFilmScene>>,
+  TError,
+  { id: string; sceneId: string },
+  TContext
+> => {
+  const mutationKey = ["deleteFilmScene"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteFilmScene>>,
+    { id: string; sceneId: string }
+  > = (props) => {
+    const { id, sceneId } = props ?? {};
+
+    return deleteFilmScene(id, sceneId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteFilmSceneMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteFilmScene>>
+>;
+
+export type DeleteFilmSceneMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a film scene
+ */
+export const useDeleteFilmScene = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteFilmScene>>,
+    TError,
+    { id: string; sceneId: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteFilmScene>>,
+  TError,
+  { id: string; sceneId: string },
+  TContext
+> => {
+  return useMutation(getDeleteFilmSceneMutationOptions(options));
+};
+
+/**
+ * @summary Check HPSA scores for a scene
+ */
+export const getCheckSceneHpsaUrl = (id: string) => {
+  return `/api/projects/${id}/check-scene-hpsa`;
+};
+
+export const checkSceneHpsa = async (
+  id: string,
+  checkSceneHpsaInput: CheckSceneHpsaInput,
+  options?: RequestInit,
+): Promise<SceneHpsaResult> => {
+  return customFetch<SceneHpsaResult>(getCheckSceneHpsaUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(checkSceneHpsaInput),
+  });
+};
+
+export const getCheckSceneHpsaMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof checkSceneHpsa>>,
+    TError,
+    { id: string; data: BodyType<CheckSceneHpsaInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof checkSceneHpsa>>,
+  TError,
+  { id: string; data: BodyType<CheckSceneHpsaInput> },
+  TContext
+> => {
+  const mutationKey = ["checkSceneHpsa"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof checkSceneHpsa>>,
+    { id: string; data: BodyType<CheckSceneHpsaInput> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return checkSceneHpsa(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CheckSceneHpsaMutationResult = NonNullable<
+  Awaited<ReturnType<typeof checkSceneHpsa>>
+>;
+export type CheckSceneHpsaMutationBody = BodyType<CheckSceneHpsaInput>;
+export type CheckSceneHpsaMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Check HPSA scores for a scene
+ */
+export const useCheckSceneHpsa = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof checkSceneHpsa>>,
+    TError,
+    { id: string; data: BodyType<CheckSceneHpsaInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof checkSceneHpsa>>,
+  TError,
+  { id: string; data: BodyType<CheckSceneHpsaInput> },
+  TContext
+> => {
+  return useMutation(getCheckSceneHpsaMutationOptions(options));
+};
+
+/**
  * @summary Export project data
  */
 export const getExportProjectUrl = (
@@ -3628,6 +4321,8 @@ export const getExportProjectUrl = (
     | "manuscript"
     | "screenplay"
     | "pitch"
+    | "series-markdown"
+    | "season-arc-json"
     | "complete",
 ) => {
   return `/api/projects/${id}/export/${type}`;
@@ -3643,6 +4338,8 @@ export const exportProject = async (
     | "manuscript"
     | "screenplay"
     | "pitch"
+    | "series-markdown"
+    | "season-arc-json"
     | "complete",
   options?: RequestInit,
 ): Promise<ExportResult> => {
@@ -3662,6 +4359,8 @@ export const getExportProjectQueryKey = (
     | "manuscript"
     | "screenplay"
     | "pitch"
+    | "series-markdown"
+    | "season-arc-json"
     | "complete",
 ) => {
   return [`/api/projects/${id}/export/${type}`] as const;
@@ -3680,6 +4379,8 @@ export const getExportProjectQueryOptions = <
     | "manuscript"
     | "screenplay"
     | "pitch"
+    | "series-markdown"
+    | "season-arc-json"
     | "complete",
   options?: {
     query?: UseQueryOptions<
@@ -3732,6 +4433,8 @@ export function useExportProject<
     | "manuscript"
     | "screenplay"
     | "pitch"
+    | "series-markdown"
+    | "season-arc-json"
     | "complete",
   options?: {
     query?: UseQueryOptions<

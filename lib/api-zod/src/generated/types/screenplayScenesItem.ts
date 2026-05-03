@@ -11,4 +11,6 @@ export type ScreenplayScenesItem = {
   heading: string;
   description: string;
   dialogueDraft?: string;
+  emotionalTone?: string;
+  dramaticFunction?: string;
 };

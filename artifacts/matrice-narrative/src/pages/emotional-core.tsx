@@ -126,31 +126,70 @@ export default function EmotionalCorePage() {
           <EditableField label="État émotionnel final" value={core.finalEmotionalState ?? ""} onSave={(v) => handleUpdate("finalEmotionalState", v)} multiline />
         </SectionCard>
 
-        <SectionCard title="Chemin émotionnel">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-foreground">Visualisation de l'arc émotionnel narratif</p>
+        <SectionCard title="Chemin de Correction Émotionnelle">
+          <div className="flex items-center justify-between mb-5">
+            <p className="text-xs text-muted-foreground">Arc dramaturgique de la transformation intérieure</p>
             <Button size="sm" variant="outline" onClick={handleGeneratePath} disabled={generatePath.isPending}>
               {generatePath.isPending ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : null}
-              Générer le chemin
+              {generatePath.isPending ? "Génération…" : "Générer l'arc"}
             </Button>
           </div>
-          <div className="relative">
-            <div className="absolute top-5 left-0 right-0 h-0.5 bg-border/40" />
-            <div className="relative flex gap-2 overflow-x-auto pb-4">
+
+          {/* Visual pipeline */}
+          <div className="relative overflow-x-auto">
+            <div className="flex items-stretch gap-0 min-w-max">
               {(emotionalPath.length > 0 ? emotionalPath : PATH_STAGES.map(s => ({ stage: s.key, label: s.label, description: "" }))).map((stage, i) => {
-                const stageConfig = PATH_STAGES[i] ?? PATH_STAGES[0];
+                const stageConfig = PATH_STAGES[i] ?? PATH_STAGES[i % PATH_STAGES.length];
+                const hasDesc = !!stage.description;
+
                 return (
-                  <div key={i} className="flex flex-col items-center gap-2 min-w-[90px]">
-                    <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-bold z-10 ${stageConfig.color}`}>
-                      {i + 1}
+                  <div key={i} className="flex items-center">
+                    {/* Stage card */}
+                    <div className={`relative flex flex-col items-center text-center px-3 py-4 rounded-xl border-2 min-w-[100px] max-w-[120px] transition-all hover:scale-105 ${stageConfig.color}`}>
+                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold mb-2 ${stageConfig.color}`}>
+                        {i + 1}
+                      </div>
+                      <p className="text-xs font-semibold leading-tight mb-1">{stage.label}</p>
+                      {hasDesc && (
+                        <p className="text-[10px] leading-tight opacity-70 line-clamp-3">{stage.description}</p>
+                      )}
+                      {!hasDesc && (
+                        <p className="text-[9px] leading-tight opacity-40 italic">
+                          {stageConfig.key === "blessure" ? "Événement fondateur" :
+                           stageConfig.key === "masque" ? "Mécanisme de défense" :
+                           stageConfig.key === "desir" ? "Objectif conscient" :
+                           stageConfig.key === "conflit" ? "Opposition centrale" :
+                           stageConfig.key === "confrontation" ? "Moment de vérité" :
+                           stageConfig.key === "effondrement" ? "Nuit de l'âme" :
+                           stageConfig.key === "verite" ? "Révélation intérieure" :
+                           stageConfig.key === "correction" ? "Changement de cap" :
+                           "Nouveau paradigme"}
+                        </p>
+                      )}
                     </div>
-                    <p className="text-xs font-medium text-center leading-tight">{stage.label}</p>
-                    {stage.description && (
-                      <p className="text-xs text-muted-foreground text-center leading-tight max-w-[80px] line-clamp-2">{stage.description}</p>
+
+                    {/* Arrow connector */}
+                    {i < PATH_STAGES.length - 1 && (
+                      <div className="flex items-center mx-1 shrink-0">
+                        <div className="w-4 h-0.5 bg-border/50" />
+                        <div className="w-0 h-0 border-t-[5px] border-t-transparent border-b-[5px] border-b-transparent border-l-[8px] border-l-border/50" />
+                      </div>
                     )}
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Legend */}
+          <div className="mt-4 pt-4 border-t border-border/30">
+            <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-2">Légende des phases</p>
+            <div className="flex flex-wrap gap-2">
+              {PATH_STAGES.map(s => (
+                <span key={s.key} className={`text-[10px] px-2 py-0.5 rounded-full border ${s.color.split(" ")[0]} ${s.color.split(" ")[1]} ${s.color.split(" ")[2]} opacity-70`}>
+                  {s.label}
+                </span>
+              ))}
             </div>
           </div>
         </SectionCard>

@@ -6,15 +6,20 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SeriesEpisodesItem } from "./seriesEpisodesItem";
+import type { SeriesLongArcsItem } from "./seriesLongArcsItem";
+import type { SeriesProgressiveRevelationsItem } from "./seriesProgressiveRevelationsItem";
+import type { SeriesSecondaryCharactersItem } from "./seriesSecondaryCharactersItem";
 
 export interface Series {
   id?: string;
   projectId: string;
   format: string;
+  loglineSerie?: string;
   seasonConcept?: string;
-  longArcs?: string[];
+  seriesPotential?: string;
+  longArcs?: SeriesLongArcsItem[];
   episodes: SeriesEpisodesItem[];
-  progressiveRevelations?: string[];
-  secondaryCharacters?: string[];
+  progressiveRevelations?: SeriesProgressiveRevelationsItem[];
+  secondaryCharacters?: SeriesSecondaryCharactersItem[];
   updatedAt?: string;
 }

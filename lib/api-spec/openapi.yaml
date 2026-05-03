@@ -890,6 +890,184 @@ paths:
               schema:
                 $ref: "#/components/schemas/PitchDocument"
 
+  /projects/{id}/generate-film-data:
+    post:
+      operationId: generateFilmData
+      tags: [film]
+      summary: Generate film concept data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated film data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmData"
+
+  /projects/{id}/film-data:
+    get:
+      operationId: getFilmData
+      tags: [film]
+      summary: Get film data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Film data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmData"
+        "404":
+          description: Not found
+    put:
+      operationId: updateFilmData
+      tags: [film]
+      summary: Update film data
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FilmData"
+      responses:
+        "200":
+          description: Updated film data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmData"
+
+  /projects/{id}/generate-film-scenes:
+    post:
+      operationId: generateFilmScenes
+      tags: [film]
+      summary: Generate playable film scenes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated film scenes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FilmScene"
+
+  /projects/{id}/film-scenes:
+    get:
+      operationId: getFilmScenes
+      tags: [film]
+      summary: Get all film scenes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Film scenes list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FilmScene"
+
+  /projects/{id}/film-scenes/{sceneId}:
+    patch:
+      operationId: updateFilmScene
+      tags: [film]
+      summary: Update a film scene
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sceneId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FilmScene"
+      responses:
+        "200":
+          description: Updated scene
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FilmScene"
+    delete:
+      operationId: deleteFilmScene
+      tags: [film]
+      summary: Delete a film scene
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: sceneId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /projects/{id}/check-scene-hpsa:
+    post:
+      operationId: checkSceneHpsa
+      tags: [film]
+      summary: Check HPSA scores for a scene
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckSceneHpsaInput"
+      responses:
+        "200":
+          description: HPSA scene analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SceneHpsaResult"
+
   /projects/{id}/export/{type}:
     get:
       operationId: exportProject
@@ -906,7 +1084,7 @@ paths:
           required: true
           schema:
             type: string
-            enum: [matrix, emotional-core, hpsa, book-outline, manuscript, screenplay, pitch, complete]
+            enum: [matrix, emotional-core, hpsa, book-outline, manuscript, screenplay, pitch, series-markdown, season-arc-json, complete]
       responses:
         "200":
           description: Export data
@@ -1293,6 +1471,8 @@ components:
           type: string
         linkToConflict:
           type: string
+        backstory:
+          type: string
         createdAt:
           type: string
       required:
@@ -1329,6 +1509,8 @@ components:
         voiceStyle:
           type: string
         linkToConflict:
+          type: string
+        backstory:
           type: string
       required:
         - name
@@ -1506,12 +1688,14 @@ components:
           $ref: "#/components/schemas/ScoreCategory"
         attractivite:
           $ref: "#/components/schemas/ScoreCategory"
-        profondeurEmotionnelle:
-          $ref: "#/components/schemas/ScoreCategory"
-        originalite:
-          $ref: "#/components/schemas/ScoreCategory"
-        coherence:
-          $ref: "#/components/schemas/ScoreCategory"
+        globalScore:
+          type: number
+          minimum: 0
+          maximum: 100
+        priorityFixes:
+          type: array
+          items:
+            type: string
         updatedAt:
           type: string
       required:
@@ -1520,9 +1704,8 @@ components:
         - pleur
         - suspense
         - attractivite
-        - profondeurEmotionnelle
-        - originalite
-        - coherence
+        - globalScore
+        - priorityFixes
 
     ScoreCategory:
       type: object
@@ -1547,6 +1730,22 @@ components:
             type: string
         trendNotes:
           type: string
+        humorSources:
+          type: array
+          items:
+            type: string
+        tearTriggerMechanisms:
+          type: array
+          items:
+            type: string
+        suspenseMechanisms:
+          type: array
+          items:
+            type: string
+        attractivenessFactors:
+          type: array
+          items:
+            type: string
         clicheRisk:
           type: string
         originalityOpportunity:
@@ -1567,7 +1766,17 @@ components:
         titleIdeas:
           type: array
           items:
-            type: string
+            oneOf:
+              - type: string
+              - type: object
+                properties:
+                  title:
+                    type: string
+                  tone:
+                    type: string
+                  why:
+                    type: string
+                required: [title]
         backCoverPitch:
           type: string
         shortSynopsis:
@@ -1580,6 +1789,12 @@ components:
             type: string
         structure:
           type: string
+        narrativeVoice:
+          type: string
+        openingLine:
+          type: string
+        closingLine:
+          type: string
         chapters:
           type: array
           items:
@@ -1590,6 +1805,22 @@ components:
               title:
                 type: string
               summary:
+                type: string
+              pov:
+                type: string
+              location:
+                type: string
+              timeframe:
+                type: string
+              emotionalArc:
+                type: string
+              keyScene:
+                type: string
+              closingHook:
+                type: string
+              narrativePurpose:
+                type: string
+              voiceNote:
                 type: string
               draftContent:
                 type: string
@@ -1611,6 +1842,8 @@ components:
           type: string
         logline:
           type: string
+        tagline:
+          type: string
         cinematicSynopsis:
           type: string
         treatment:
@@ -1622,7 +1855,11 @@ components:
             properties:
               number:
                 type: integer
+              label:
+                type: string
               description:
+                type: string
+              pageRange:
                 type: string
             required: [number, description]
         scenes:
@@ -1637,6 +1874,10 @@ components:
               description:
                 type: string
               dialogueDraft:
+                type: string
+              emotionalTone:
+                type: string
+              dramaticFunction:
                 type: string
             required: [number, heading, description]
         fountainScript:
@@ -1657,12 +1898,24 @@ components:
           type: string
         format:
           type: string
+        loglineSerie:
+          type: string
         seasonConcept:
+          type: string
+        seriesPotential:
           type: string
         longArcs:
           type: array
           items:
-            type: string
+            oneOf:
+              - type: string
+              - type: object
+                properties:
+                  label:
+                    type: string
+                  description:
+                    type: string
+                required: [label]
         episodes:
           type: array
           items:
@@ -1672,21 +1925,63 @@ components:
                 type: integer
               title:
                 type: string
+              logline:
+                type: string
               summary:
+                type: string
+              openingScene:
+                type: string
+              questionDramatique:
+                type: string
+              intrigueA:
+                type: string
+              intrigueB:
+                type: string
+              midpoint:
+                type: string
+              climax:
                 type: string
               cliffhanger:
                 type: string
               emotionalEvolution:
                 type: string
+              humourOrganique:
+                type: string
+              momentDePleur:
+                type: string
+              keyReveal:
+                type: string
+              toneNote:
+                type: string
+              lienArcSaison:
+                type: string
             required: [number, title, summary]
         progressiveRevelations:
           type: array
           items:
-            type: string
+            oneOf:
+              - type: string
+              - type: object
+                properties:
+                  episode:
+                    type: integer
+                  revelation:
+                    type: string
+                required: [revelation]
         secondaryCharacters:
           type: array
           items:
-            type: string
+            oneOf:
+              - type: string
+              - type: object
+                properties:
+                  name:
+                    type: string
+                  role:
+                    type: string
+                  arc:
+                    type: string
+                required: [name]
         updatedAt:
           type: string
       required:
@@ -1738,6 +2033,148 @@ components:
         - title
         - format
         - genre
+
+    CheckSceneHpsaInput:
+      type: object
+      properties:
+        sceneDescription:
+          type: string
+        context:
+          type: string
+      required:
+        - sceneDescription
+
+    SceneHpsaResult:
+      type: object
+      properties:
+        humour:
+          type: number
+        pleur:
+          type: number
+        suspense:
+          type: number
+        attractivite:
+          type: number
+        feedback:
+          type: string
+
+    FilmData:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        concept:
+          type: string
+        logline:
+          type: string
+        tagline:
+          type: string
+        shortSynopsis:
+          type: string
+        longSynopsis:
+          type: string
+        treatment:
+          type: string
+        targetDuration:
+          type: string
+        filmFormat:
+          type: string
+        visualPromise:
+          type: string
+        emotionalPromise:
+          type: string
+        dramaticQuestion:
+          type: string
+        centralImage:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - concept
+        - logline
+
+    FilmScene:
+      type: object
+      properties:
+        id:
+          type: string
+        projectId:
+          type: string
+        sceneNumber:
+          type: integer
+        title:
+          type: string
+        intExt:
+          type: string
+        location:
+          type: string
+        timeOfDay:
+          type: string
+        charactersPresent:
+          type: array
+          items:
+            type: string
+        protagonistObjective:
+          type: string
+        obstacle:
+          type: string
+        visibleConflict:
+          type: string
+        emotionalSubtext:
+          type: string
+        openingBeat:
+          type: string
+        dramaticTurn:
+          type: string
+        closingBeat:
+          type: string
+        emotionBefore:
+          type: string
+        emotionAfter:
+          type: string
+        strongImage:
+          type: string
+        soundOrSilence:
+          type: string
+        symbolicObject:
+          type: string
+        actionDescription:
+          type: string
+        dialogueFragment:
+          type: string
+        narrativeFunction:
+          type: string
+        suspenseLevel:
+          type: number
+        humourLevel:
+          type: number
+        emotionalPowerLevel:
+          type: number
+        attractivenessLevel:
+          type: number
+        hpsaCheck:
+          type: object
+        linkToEmotionalCore:
+          type: string
+        directorNote:
+          type: string
+        cameraSuggestion:
+          type: string
+        riskOfCliche:
+          type: string
+        originalAlternative:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - projectId
+        - sceneNumber
+        - title
 
     ExportResult:
       type: object

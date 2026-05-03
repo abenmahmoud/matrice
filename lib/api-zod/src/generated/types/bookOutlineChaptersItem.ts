@@ -10,5 +10,13 @@ export type BookOutlineChaptersItem = {
   number: number;
   title: string;
   summary: string;
+  pov?: string;
+  location?: string;
+  timeframe?: string;
+  emotionalArc?: string;
+  keyScene?: string;
+  closingHook?: string;
+  narrativePurpose?: string;
+  voiceNote?: string;
   draftContent?: string;
 };

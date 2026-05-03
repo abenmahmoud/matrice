@@ -14,8 +14,11 @@ export interface HpsaScore {
   pleur: ScoreCategory;
   suspense: ScoreCategory;
   attractivite: ScoreCategory;
-  profondeurEmotionnelle: ScoreCategory;
-  originalite: ScoreCategory;
-  coherence: ScoreCategory;
+  /**
+   * @minimum 0
+   * @maximum 100
+   */
+  globalScore: number;
+  priorityFixes: string[];
   updatedAt?: string;
 }

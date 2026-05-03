@@ -22,5 +22,6 @@ export interface Character {
   visualIdentity?: string;
   voiceStyle?: string;
   linkToConflict?: string;
+  backstory?: string;
   createdAt?: string;
 }

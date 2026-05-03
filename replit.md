@@ -6,7 +6,7 @@
 
 **Stack** : React + Vite (frontend) • Express 5 (API) • PostgreSQL + Drizzle ORM • OpenAI GPT (via Replit AI Integrations) • pnpm monorepo
 
-**20 tables DB • 26 modules • 11 outils Immersion**
+**22 tables DB • 28 modules • 11 outils Immersion**
 
 ---
 

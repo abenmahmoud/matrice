@@ -1,10 +1,10 @@
-import { Link, useLocation, useParams, useRoute } from "wouter";
+import { Link, useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
   Home, LayoutDashboard, Plus, BookOpen, Brain, Users, Network, Globe2,
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
-  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText
+  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -19,14 +19,15 @@ type StatusMap = {
 
 const PHASES = [
   {
-    label: "Fondations",
+    label: "1 · Comprendre",
     items: [
       { name: "Matrice Narrative", href: "matrix", icon: BookOpen, key: "matrix" as keyof StatusMap },
       { name: "Noyau Émotionnel", href: "emotional-core", icon: Brain, key: "emotionalCore" as keyof StatusMap },
+      { name: "Notes de Recherche", href: "research", icon: Search, key: "research" as keyof StatusMap },
     ],
   },
   {
-    label: "Structure",
+    label: "2 · Construire",
     items: [
       { name: "Personnages", href: "characters", icon: Users, key: "characters" as keyof StatusMap },
       { name: "Relations", href: "relationships", icon: Network, key: "relationships" as keyof StatusMap },
@@ -34,14 +35,7 @@ const PHASES = [
     ],
   },
   {
-    label: "Analyse",
-    items: [
-      { name: "Scores H.P.S.A.", href: "hpsa", icon: Activity, key: "hpsa" as keyof StatusMap },
-      { name: "Notes de Recherche", href: "research", icon: Search, key: "research" as keyof StatusMap },
-    ],
-  },
-  {
-    label: "Écriture",
+    label: "3 · Écrire",
     items: [
       { name: "Atelier Livre", href: "book", icon: Book, key: "book" as keyof StatusMap },
       { name: "Atelier Scénario", href: "screenplay", icon: Film, key: "screenplay" as keyof StatusMap },
@@ -49,17 +43,27 @@ const PHASES = [
     ],
   },
   {
-    label: "Publication",
+    label: "4 · Corriger",
     items: [
-      { name: "Dossier de Pitch", href: "pitch", icon: Presentation, key: "pitch" as keyof StatusMap },
+      { name: "Scores H.P.S.A.", href: "hpsa", icon: Activity, key: "hpsa" as keyof StatusMap },
     ],
     extra: [
-      { name: "Exports", href: "exports", icon: Download },
+      { name: "Les 5 Piliers", href: "piliers", icon: BarChart2 },
       { name: "Analyse IA", href: "analyse", icon: FileSearch },
     ],
   },
   {
-    label: "Immersion",
+    label: "5 · Présenter",
+    items: [
+      { name: "Dossier de Pitch", href: "pitch", icon: Presentation, key: "pitch" as keyof StatusMap },
+    ],
+    extra: [
+      { name: "Note d'Intention", href: "note-intention", icon: ScrollText },
+      { name: "Exports", href: "exports", icon: Download },
+    ],
+  },
+  {
+    label: "Studio",
     items: [],
     extra: [
       { name: "Arc de Tension", href: "tension-arc", icon: TrendingUp },
@@ -70,9 +74,8 @@ const PHASES = [
       { name: "Carnet de Tournage", href: "notebook", icon: Printer },
       { name: "Écho du Temps", href: "echo-temps", icon: Clock },
       { name: "Miroir Artistique", href: "miroir", icon: Telescope },
-      { name: "Les 5 Piliers", href: "piliers", icon: BarChart2 },
       { name: "Séquencier", href: "sequencier", icon: Clapperboard },
-      { name: "Note d'Intention", href: "note-intention", icon: ScrollText },
+      { name: "Scènes Jouables", href: "film-scenes", icon: Wand2 },
     ],
   },
 ];
@@ -163,7 +166,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </div>
 
-              {/* Phases */}
+              {/* Pipeline phases */}
               <div className="space-y-4 mt-4 px-2">
                 {PHASES.map((phase) => (
                   <div key={phase.label}>

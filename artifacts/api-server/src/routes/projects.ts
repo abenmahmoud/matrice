@@ -4,16 +4,18 @@ import {
   projectsTable, narrativeMatricesTable, emotionalCoresTable, emotionalPathsTable,
   charactersTable, relationshipsTable, worldDataTable, researchDataTable,
   hpsaScoresTable, bookOutlinesTable, screenplaysTable, seriesTable, pitchDocumentsTable,
-  narrativeSkillsTable, projectSkillsTable
+  narrativeSkillsTable, projectSkillsTable,
+  filmDataTable, filmScenesTable
 } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import {
   generateNarrativeMatrix, generateEmotionalCore, generateEmotionalPath,
   generateCharacters, generateRelationships, generateWorldAndTimeline,
   generateResearchNotes, generateHpsaScore, checkCoherence,
   generateBookOutline, generateScreenplay, generateSeries, generatePitch,
   autoLinkSkills, generateTensionArc, generateAtmosphere, characterDialogue, generateDirectorMode,
-  generateEchoDuTemps, generateMiroirArtistique, generateCinqPiliers, generateSequencier, generateNoteIntention
+  generateEchoDuTemps, generateMiroirArtistique, generateCinqPiliers, generateSequencier, generateNoteIntention,
+  generateFilmData, generatePlayableScenes, checkSceneHpsa
 } from "../services/generationService.js";
 import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistiqueTable, cinqPiliersTable, sequencierTable, noteIntentionTable } from "@workspace/db";
 
@@ -1001,6 +1003,56 @@ router.get("/projects/:id/export/:type", async (req, res) => {
         }
         break;
       }
+      case "series-markdown": {
+        const [s] = await db.select().from(seriesTable).where(eq(seriesTable.projectId, id));
+        if (s) {
+          const eps = (s.episodes as Array<{ number: number; title: string; logline?: string; summary: string; cliffhanger?: string; emotionalEvolution?: string }> | null) ?? [];
+          const arcs = (s.longArcs as string[] | null) ?? [];
+          content = [
+            `# BIBLE SÉRIE — ${project.title}`,
+            ``,
+            `**Format :** ${s.format}`,
+            ``,
+            `## Concept de saison`,
+            s.seasonConcept ?? "",
+            ``,
+            arcs.length > 0 ? `## Arcs longs\n${arcs.map(a => `- ${a}`).join("\n")}` : "",
+            ``,
+            `## Épisodes`,
+            ...eps.map(ep => [
+              `### ÉP ${ep.number} — ${ep.title}`,
+              ep.logline ? `*${ep.logline}*` : "",
+              ``,
+              ep.summary,
+              ep.emotionalEvolution ? `\n**Arc émotionnel :** ${ep.emotionalEvolution}` : "",
+              ep.cliffhanger ? `\n**Cliffhanger :** ${ep.cliffhanger}` : "",
+              ``
+            ].filter(Boolean).join("\n")),
+          ].join("\n");
+          format = "markdown";
+          filename += "_bible_serie.md";
+        }
+        break;
+      }
+      case "season-arc-json": {
+        const [s] = await db.select().from(seriesTable).where(eq(seriesTable.projectId, id));
+        const arcData = {
+          project: { title: project.title, genre: project.genre, tone: project.tone },
+          format: s?.format,
+          seasonConcept: s?.seasonConcept,
+          longArcs: s?.longArcs,
+          episodes: (s?.episodes as Array<{ number: number; title: string; summary: string; cliffhanger?: string; emotionalEvolution?: string }> | null)?.map(ep => ({
+            number: ep.number,
+            title: ep.title,
+            emotionalArc: ep.emotionalEvolution,
+            cliffhanger: ep.cliffhanger,
+          })),
+          progressiveRevelations: s?.progressiveRevelations,
+        };
+        content = JSON.stringify(arcData, null, 2);
+        filename += "_arc_saison.json";
+        break;
+      }
       case "complete": {
         const [matrix] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, id));
         const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, id));
@@ -1281,6 +1333,125 @@ router.post("/projects/:id/director-mode", async (req, res) => {
 // ---------------------------------------------------------------------------
 // Auto-link skills from project vision
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Film Data
+// ---------------------------------------------------------------------------
+
+router.get("/projects/:id/film-data", async (req, res) => {
+  try {
+    const [row] = await db.select().from(filmDataTable).where(eq(filmDataTable.projectId, req.params.id));
+    if (!row) return res.status(404).json({ error: "Not found" });
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+router.put("/projects/:id/film-data", async (req, res) => {
+  try {
+    const [row] = await db.update(filmDataTable).set({ ...req.body, updatedAt: new Date() })
+      .where(eq(filmDataTable.projectId, req.params.id)).returning();
+    if (!row) return res.status(404).json({ error: "Not found" });
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+router.post("/projects/:id/generate-film-data", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Développement du concept cinématographique...", "Enregistrement..."],
+        async () => {
+          const [matrixRow] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const data = await generateFilmData(project, matrixRow ?? null, skills);
+          const existing = await db.select().from(filmDataTable).where(eq(filmDataTable.projectId, req.params.id));
+          let row;
+          if (existing.length > 0) {
+            [row] = await db.update(filmDataTable).set({ ...data, updatedAt: new Date() }).where(eq(filmDataTable.projectId, req.params.id)).returning();
+          } else {
+            [row] = await db.insert(filmDataTable).values({ projectId: req.params.id, ...data }).returning();
+          }
+          return row;
+        }
+      );
+    } catch (err) { req.log.error({ err }); if (!res.headersSent) res.status(500).json({ error: "Internal server error" }); }
+  })();
+});
+
+// ---------------------------------------------------------------------------
+// Film Scenes — Scènes Jouables
+// ---------------------------------------------------------------------------
+
+router.get("/projects/:id/film-scenes", async (req, res) => {
+  try {
+    const rows = await db.select().from(filmScenesTable)
+      .where(eq(filmScenesTable.projectId, req.params.id))
+      .orderBy(asc(filmScenesTable.sceneNumber));
+    res.json(rows);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+router.patch("/projects/:id/film-scenes/:sceneId", async (req, res) => {
+  try {
+    const [row] = await db.update(filmScenesTable)
+      .set({ ...req.body, updatedAt: new Date() })
+      .where(and(eq(filmScenesTable.id, req.params.sceneId), eq(filmScenesTable.projectId, req.params.id)))
+      .returning();
+    if (!row) return res.status(404).json({ error: "Not found" });
+    res.json(row);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+router.delete("/projects/:id/film-scenes/:sceneId", async (req, res) => {
+  try {
+    await db.delete(filmScenesTable)
+      .where(and(eq(filmScenesTable.id, req.params.sceneId), eq(filmScenesTable.projectId, req.params.id)));
+    res.status(204).send();
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
+
+router.post("/projects/:id/generate-film-scenes", (req, res) => {
+  void (async () => {
+    try {
+      const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+      if (!project) { res.status(404).json({ error: "Not found" }); return; }
+      const skills = await getSkillsContext(req.params.id);
+      await sseRun(req, res,
+        ["Lecture du projet...", "Génération des scènes jouables...", "Analyse dramaturgique...", "Enregistrement..."],
+        async () => {
+          const [matrixRow] = await db.select().from(narrativeMatricesTable).where(eq(narrativeMatricesTable.projectId, req.params.id));
+          const [coreRow] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, req.params.id));
+          const scenes = await generatePlayableScenes(project, matrixRow ?? null, coreRow ?? null, skills);
+          // Delete existing scenes for this project and re-insert
+          await db.delete(filmScenesTable).where(eq(filmScenesTable.projectId, req.params.id));
+          const inserted = [];
+          for (const scene of scenes) {
+            const [row] = await db.insert(filmScenesTable).values({ projectId: req.params.id, ...scene }).returning();
+            inserted.push(row);
+          }
+          req.log.info({ projectId: req.params.id, count: inserted.length }, "Film scenes generated");
+          return inserted;
+        }
+      );
+    } catch (err) { req.log.error({ err }); if (!res.headersSent) res.status(500).json({ error: "Internal server error" }); }
+  })();
+});
+
+router.post("/projects/:id/check-scene-hpsa", async (req, res) => {
+  try {
+    const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, req.params.id));
+    if (!project) return res.status(404).json({ error: "Not found" });
+    const { sceneDescription, context } = req.body as { sceneDescription?: string; context?: string };
+    if (!sceneDescription || sceneDescription.trim().length < 20) {
+      return res.status(400).json({ error: "Description de scène trop courte — minimum 20 caractères." });
+    }
+    const result = await checkSceneHpsa(project, sceneDescription.trim(), context);
+    req.log.info({ projectId: req.params.id }, "Scene HPSA check done");
+    res.json(result);
+  } catch (err) { req.log.error({ err }); res.status(500).json({ error: "Internal server error" }); }
+});
 
 // POST /api/projects/:id/auto-link-skills
 router.post("/projects/:id/auto-link-skills", async (req, res) => {
