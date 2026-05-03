@@ -4,6 +4,7 @@ import projectsRouter from "./projects.js";
 import skillsRouter from "./skills.js";
 import researchLabRouter from "./researchLab.js";
 import adminRouter from "./admin.js";
+import adminDataRouter from "./adminData.js";
 import manuscriptsRouter from "./manuscripts.js";
 import { adminAuthMiddleware } from "../middleware/adminAuth.js";
 
@@ -18,5 +19,6 @@ router.use(manuscriptsRouter);
 // Admin-protected
 router.use(adminAuthMiddleware, skillsRouter);
 router.use(adminAuthMiddleware, researchLabRouter);
+router.use(adminAuthMiddleware, adminDataRouter);
 
 export default router;

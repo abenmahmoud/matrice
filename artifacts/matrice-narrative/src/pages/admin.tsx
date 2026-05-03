@@ -6,10 +6,12 @@ import {
   FlaskConical, Zap, BookOpen, Globe2, Clock, Sparkles, LogOut,
   Lock, Eye, EyeOff, Trash2, Shield, RefreshCw, CheckCircle2, Circle,
   ChevronDown, ChevronUp, TrendingUp, Calendar, Map, Check, Circle as CircleIcon,
-  ScanText
+  ScanText, Film, Database, Plus, Pencil, X, ToggleLeft, ToggleRight,
+  Loader2, BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdminAnalysesTab } from "@/components/AdminAnalysesTab";
+import { AiSkillsPanel, CinemaPanel, AiStatsPanel, SeedPanel } from "@/components/AdminAiTab";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -548,6 +550,10 @@ const TABS = [
   { key: "skills", label: "Skills", icon: Zap },
   { key: "entries", label: "Entrées", icon: BookOpen },
   { key: "analyses", label: "Analyses IA", icon: ScanText },
+  { key: "ai-skills", label: "Skills IA", icon: Sparkles },
+  { key: "cinema", label: "Cinéma", icon: Film },
+  { key: "ai-stats", label: "Stats IA", icon: BarChart3 },
+  { key: "seed", label: "Seed", icon: Database },
   { key: "roadmap", label: "Roadmap", icon: Map },
 ];
 
@@ -757,6 +763,18 @@ function AdminDashboard() {
 
           {/* TAB: ANALYSES IA */}
           {tab === "analyses" && <AdminAnalysesTab />}
+
+          {/* TAB: AI SKILLS */}
+          {tab === "ai-skills" && <AiSkillsPanel adminHeaders={adminHeaders} />}
+
+          {/* TAB: CINEMA */}
+          {tab === "cinema" && <CinemaPanel adminHeaders={adminHeaders} />}
+
+          {/* TAB: AI STATS */}
+          {tab === "ai-stats" && <AiStatsPanel adminHeaders={adminHeaders} />}
+
+          {/* TAB: SEED */}
+          {tab === "seed" && <SeedPanel adminHeaders={adminHeaders} />}
 
           {/* TAB: ROADMAP */}
           {tab === "roadmap" && <Roadmap />}
