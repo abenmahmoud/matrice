@@ -90,7 +90,7 @@ export type ResearchEntryData = {
 async function aiJson<T>(system: string, user: string, fallback: T): Promise<T> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5.4",
+      model: process.env.AI_MODEL ?? "gpt-4o",
       max_completion_tokens: 8192,
       response_format: { type: "json_object" },
       messages: [{ role: "system", content: system }, { role: "user", content: user }],

@@ -222,7 +222,7 @@ Sois PRÉCIS et HONNÊTE. La vérité utile, pas la flatterie stérile.`;
       send({ type: "progress", step: "L'IA analyse votre texte en profondeur...", percent: 40 });
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5.4",
+        model: process.env.AI_MODEL ?? "gpt-4o",
         max_completion_tokens: 10000,
         response_format: { type: "json_object" },
         messages: [

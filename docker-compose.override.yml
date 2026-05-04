@@ -1,0 +1,13 @@
+# Override VPS - claude-vps-deploy
+# Ports 127.0.0.1 uniquement - nginx systeme proxifie
+# Ne pas committer
+services:
+  api:
+    ports:
+      - "127.0.0.1:8090:8080"
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      AI_MODEL: ${AI_MODEL}
+  frontend:
+    ports:
+      - "127.0.0.1:8091:80"
