@@ -126,3 +126,47 @@ Zones intouchees (reservees Codex):
 - package.json / pnpm-workspace.yaml
 
 Note: J'ai du toucher Dockerfile.api, Dockerfile.frontend, docker-compose.yml et nginx.conf (zones initialement reservees Codex) car le build ne pouvait pas demarrer sans ces corrections (syntaxe COPY invalide, base image incompatible avec lockfile, ports en conflit avec assma sur 8080, SSL cert manquant). Toutes les modifications sont documentees ci-dessus et reversibles.
+
+## 2026-05-05 - Claude (claude.ai browser MCP) - claude-vps-deploy (exposition publique)
+
+Objectif: Mise en ligne publique HTTPS de Matrice sur matrice.essuf.fr
+
+Fichiers modifies:
+- deploy/nginx/matrice.conf.example (cree - template de proxy nginx systeme avec SSE buffering off)
+- /etc/nginx/sites-available/matrice (cree - genere depuis template avec sed)
+- /etc/nginx/sites-enabled/matrice (symlink active)
+- /etc/letsencrypt/live/matrice.essuf.fr/ (genere par certbot)
+
+DNS:
+- Zone DNS essuf.fr (OVH): A record matrice -> 187.124.50.143 (TTL par defaut)
+- Propagation: instantanee (verifie via dig +short A matrice.essuf.fr @ns14.ovh.net)
+
+Commandes lancees:
+1. mkdir -p deploy/nginx && creation matrice.conf.example
+2. dig +short NS essuf.fr -> ns14.ovh.net (zone OVH)
+3. OVH manager: ajout A record matrice IN A 187.124.50.143
+4. sed pour remplacer matrice.example.com par matrice.essuf.fr
+5. ln -sf vers /etc/nginx/sites-enabled/
+6. nginx -t -> syntax OK
+7. systemctl reload nginx
+8. apt-get install -y certbot python3-certbot-nginx
+9. certbot --nginx -d matrice.essuf.fr --non-interactive --agree-tos -m contact@essuf.fr --redirect
+10. Tests publiques HTTPS
+
+Resultats:
+- HTTP http://matrice.essuf.fr/ -> 301 Moved Permanently (redirect HTTPS auto par certbot)
+- HTTPS https://matrice.essuf.fr/ -> 200 OK (frontend SPA)
+- HTTPS https://matrice.essuf.fr/api/healthz -> {"status":"ok"}
+- Certificat Let's Encrypt valide jusqu'au 2026-08-02 (renouvellement auto)
+
+Erreurs restantes:
+- AUCUNE
+- Le seed initial (24 skills + 36 entrees cinema) n'est toujours pas declenche - peut etre fait via POST https://matrice.essuf.fr/api/admin/seed avec ADMIN_PASSWORD
+
+Prochaine etape proposee:
+1. Tester l'interface utilisateur dans le navigateur sur https://matrice.essuf.fr
+2. Declencher le seed admin (24 skills + 36 traditions cinema)
+3. Creer un projet de test pour valider le pipeline complet (Matrice -> Personnages -> Scenario -> SRU)
+4. Codex peut commencer Phase 1 v2.1 (auth Clerk, export PDF, beat sheet, etc.)
+
+Matrice est en ligne publiquement: https://matrice.essuf.fr
