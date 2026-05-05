@@ -1,11 +1,18 @@
 import type { NextFunction, Request, Response } from "express";
+import { generateAdminToken } from "../middleware/adminAuth.js";
 
 export type ProductMode = "private" | "commercial";
 export type ProductPlan = "private" | "free" | "pro";
+export type ViewerRole = "owner" | "public";
 
 export type ProductAccess = {
   mode: ProductMode;
   plan: ProductPlan;
+  viewer: {
+    role: ViewerRole;
+    authenticated: boolean;
+    source: "private-mode" | "admin-token" | "anonymous";
+  };
   isPrivate: boolean;
   isPaid: boolean;
   limits: {
@@ -32,15 +39,32 @@ function readPlan(): ProductPlan {
   return process.env["MATRICE_DEFAULT_PLAN"] === "pro" ? "pro" : "free";
 }
 
-export function getProductAccess(): ProductAccess {
+function hasValidAdminToken(req?: Request): boolean {
+  const adminPassword = process.env["ADMIN_PASSWORD"];
+  const token = req?.headers["x-admin-token"] as string | undefined;
+
+  if (!adminPassword || !token) return false;
+  return token === generateAdminToken(adminPassword);
+}
+
+export function getProductAccess(req?: Request): ProductAccess {
   const mode = readProductMode();
-  const plan = readPlan();
-  const isPrivate = mode === "private" || plan === "private";
+  const isOwnerByPrivateMode = mode === "private";
+  const isOwnerByAdminToken = hasValidAdminToken(req);
+  const viewer: ProductAccess["viewer"] = isOwnerByPrivateMode
+    ? { role: "owner", authenticated: true, source: "private-mode" }
+    : isOwnerByAdminToken
+      ? { role: "owner", authenticated: true, source: "admin-token" }
+      : { role: "public", authenticated: false, source: "anonymous" };
+
+  const plan: ProductPlan = viewer.role === "owner" ? "private" : readPlan();
+  const isPrivate = viewer.role === "owner";
   const isPaid = isPrivate || plan === "pro";
 
   return {
     mode,
     plan,
+    viewer,
     isPrivate,
     isPaid,
     limits: {
@@ -76,7 +100,7 @@ function isAdvancedGeneration(req: Request): boolean {
 }
 
 export function productAccessMiddleware(req: Request, res: Response, next: NextFunction): void {
-  const access = getProductAccess();
+  const access = getProductAccess(req);
 
   if (access.isPaid || !isAdvancedGeneration(req)) {
     next();

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useGetProject } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
+import { useAdmin } from "@/context/AdminContext";
 import {
   BookOpen, Brain, Users, Network, Globe2, Search, Activity,
   Book, Film, Tv, Presentation, Download, FileSearch,
@@ -23,6 +24,11 @@ type StatusMap = {
 type ProductAccess = {
   mode: "private" | "commercial";
   plan: "private" | "free" | "pro";
+  viewer: {
+    role: "owner" | "public";
+    authenticated: boolean;
+    source: "private-mode" | "admin-token" | "anonymous";
+  };
   isPrivate: boolean;
   isPaid: boolean;
   limits: { freeUnlockedModules: string[] };
@@ -248,6 +254,7 @@ function ExtraCard({ name, href, icon: Icon, desc, projectId }: {
 // ---------------------------------------------------------------------------
 export default function ProjectOverview() {
   const { id } = useParams<{ id: string }>();
+  const { adminHeaders, token } = useAdmin();
 
   const { data: project, isLoading: projectLoading } = useGetProject(id!, {
     query: { enabled: !!id, queryKey: [`/api/projects/${id}`] }
@@ -261,8 +268,8 @@ export default function ProjectOverview() {
   });
 
   const { data: access } = useQuery<ProductAccess>({
-    queryKey: ["/api/access"],
-    queryFn: () => fetch(`${BASE}/api/access`).then(r => r.json()) as Promise<ProductAccess>,
+    queryKey: ["/api/access", token ?? "anonymous"],
+    queryFn: () => fetch(`${BASE}/api/access`, { headers: adminHeaders() }).then(r => r.json()) as Promise<ProductAccess>,
     staleTime: 60_000,
   });
 

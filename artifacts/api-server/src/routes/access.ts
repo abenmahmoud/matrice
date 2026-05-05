@@ -3,8 +3,8 @@ import { getProductAccess } from "../lib/productAccess.js";
 
 const router: IRouter = Router();
 
-router.get("/access", (_req, res) => {
-  res.json(getProductAccess());
+router.get("/access", (req, res) => {
+  res.json(getProductAccess(req));
 });
 
 export default router;

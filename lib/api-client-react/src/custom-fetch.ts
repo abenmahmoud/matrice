@@ -10,6 +10,7 @@ export type AuthTokenGetter = () => Promise<string | null> | string | null;
 
 const NO_BODY_STATUS = new Set([204, 205, 304]);
 const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
+const MATRICE_ADMIN_TOKEN_KEY = "matrice_admin_token";
 
 // ---------------------------------------------------------------------------
 // Module-level configuration
@@ -355,6 +356,13 @@ export async function customFetch<T = unknown>(
     const token = await _authTokenGetter();
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
+    }
+  }
+
+  if (!headers.has("x-admin-token") && typeof localStorage !== "undefined") {
+    const adminToken = localStorage.getItem(MATRICE_ADMIN_TOKEN_KEY);
+    if (adminToken) {
+      headers.set("x-admin-token", adminToken);
     }
   }
 
