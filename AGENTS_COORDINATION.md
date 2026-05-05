@@ -170,3 +170,37 @@ Prochaine etape proposee:
 4. Codex peut commencer Phase 1 v2.1 (auth Clerk, export PDF, beat sheet, etc.)
 
 Matrice est en ligne publiquement: https://matrice.essuf.fr
+
+## 2026-05-05 - Claude (claude.ai browser MCP) - claude-vps-deploy (seed admin)
+
+Objectif: Declencher seed initial (24 skills + 36 entrees cinema) via API admin
+
+Fichiers modifies: AUCUN code modifie, juste donnees inserees en DB
+
+Commandes lancees:
+1. POST https://matrice.essuf.fr/api/admin/login {password} -> {token: "da2aef..."}  (200)
+2. GET  https://matrice.essuf.fr/api/admin/verify avec x-admin-token -> {valid: true} (200)
+3. POST https://matrice.essuf.fr/api/admin/seed avec x-admin-token + body '{}' -> {message: "Seed complete", skills: 24, cinema: 36} (200)
+4. SELECT count(*) sur ai_skills, cinema_knowledge, projects en DB
+5. curl -sI https://matrice.essuf.fr/admin -> 200 OK (page admin SPA)
+
+IMPORTANT: Premier appel POST /api/admin/seed sans body avait crashe (500) car la route fait `const { force = false } = req.body` et req.body est undefined si Content-Type:application/json sans body. Solution: envoyer au minimum un body JSON vide '{}'. Bug a corriger cote API (Codex): destructurer req.body ?? {} pour eviter le crash.
+
+Resultats DB:
+```
+         t        | count
+ -----------------+-------
+  ai_skills       |    24
+  cinema_knowledge |    36
+  projects        |     1   <- projet test deja cree par utilisateur
+```
+
+Decouverte annexe: les logs API montrent qu'un projet a deja ete cree avec pipeline complet (auto-link-skills, generate-matrix 23s, matrix retrieval). L'app fonctionne en bout en bout dans le navigateur.
+
+Erreurs restantes:
+- Bug mineur API: POST /api/admin/seed crash 500 si appele sans body. A corriger par Codex: `const { force = false } = (req.body ?? {}) as { force?: boolean }`. Documente ici, non bloquant.
+
+Prochaine etape proposee:
+- Codex: corriger le destructurer de req.body sur /api/admin/seed (et auditer les autres routes pour le meme pattern)
+- BraveHeart: utiliser l'app sur https://matrice.essuf.fr et tester le pipeline complet
+- Codex: commencer Phase 1 v2.1 (auth Clerk multi-utilisateurs, export PDF natif, beat sheet, editeur de prose Atelier Roman)
