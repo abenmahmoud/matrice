@@ -160,6 +160,17 @@ Objectif: faire du dashboard un vrai centre de decision personnel.
 - Le bloc memoire privee prepare les futures regles creatives, references fortes
   et motifs recurrents.
 
+## Phase 8 - Memoire Creative Privee V1
+
+Objectif: commencer a stocker la sensibilite creative du proprietaire.
+
+- Table `creative_memory_entries` pour les regles, interdits, references, motifs,
+  criteres qualite et direction artistique.
+- API `/api/memory` reservee au proprietaire.
+- Page `/memory` pour ajouter, modifier, filtrer et supprimer les entrees.
+- Navigation globale vers la memoire privee.
+- Prochaine etape: injecter cette memoire dans les prompts IA.
+
 ## Methode De Travail
 
 Chaque bloc suit le meme rythme:

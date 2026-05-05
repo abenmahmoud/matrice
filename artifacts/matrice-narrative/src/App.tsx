@@ -37,6 +37,7 @@ import SequencierPage from "./pages/sequencier";
 import NoteIntentionPage from "./pages/note-intention";
 import FilmScenesPage from "./pages/film-scenes";
 import PrismePage from "./pages/prisme";
+import MemoryPage from "./pages/memory";
 import NotFound from "./pages/not-found";
 
 const queryClient = new QueryClient({
@@ -48,6 +49,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/memory" component={MemoryPage} />
       <Route path="/analyse" component={AnalysePage} />
       <Route path="/projects/new" component={NewProject} />
       <Route path="/projects/:id/matrix" component={MatrixPage} />
