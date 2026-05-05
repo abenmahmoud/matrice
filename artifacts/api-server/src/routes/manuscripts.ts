@@ -11,6 +11,7 @@ import {
 } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { defaultAiModel } from "../lib/aiConfig.js";
+import { appendCreativeMemoryContext } from "../services/creativeMemoryContext.js";
 
 const router: IRouter = Router();
 
@@ -227,7 +228,7 @@ Sois PRÉCIS et HONNÊTE. La vérité utile, pas la flatterie stérile.`;
         max_completion_tokens: 10000,
         response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: appendCreativeMemoryContext(systemPrompt) },
           { role: "user", content: userPrompt },
         ],
       });

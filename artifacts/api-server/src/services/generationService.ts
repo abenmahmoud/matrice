@@ -6,6 +6,7 @@
 
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { defaultAiModel } from "../lib/aiConfig.js";
+import { appendCreativeMemoryContext } from "./creativeMemoryContext.js";
 
 type Project = {
   id: string;
@@ -92,6 +93,10 @@ async function aiJson<T>(
   opts?: { temperature?: number; maxTokens?: number }
 ): Promise<T> {
   try {
+    const systemContent = skillsContext
+      ? `${systemPrompt}\n\n### SKILLS NARRATIFS ACTIFS - integre imperativement ces techniques dans ta generation :\n${skillsContext}`
+      : systemPrompt;
+
     const response = await openai.chat.completions.create({
       model: defaultAiModel,
       max_completion_tokens: opts?.maxTokens ?? 8192,
@@ -100,9 +105,7 @@ async function aiJson<T>(
       messages: [
         {
           role: "system",
-          content: skillsContext
-            ? `${systemPrompt}\n\n### SKILLS NARRATIFS ACTIFS — intègre impérativement ces techniques dans ta génération :\n${skillsContext}`
-            : systemPrompt,
+          content: appendCreativeMemoryContext(systemContent),
         },
         { role: "user", content: userPrompt },
       ],
@@ -1797,7 +1800,7 @@ RÈGLES ABSOLUES :
 5. Si la question touche ta blessure ou ton secret, tu détournes, tu minimises, tu fuis élégamment.`;
 
   const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
-    { role: "system", content: system },
+    { role: "system", content: appendCreativeMemoryContext(system) },
     ...history.slice(-8).map(h => ({ role: h.role as "user" | "assistant", content: h.content })),
     { role: "user", content: message },
   ];

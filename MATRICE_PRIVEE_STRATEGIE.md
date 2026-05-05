@@ -171,6 +171,17 @@ Objectif: commencer a stocker la sensibilite creative du proprietaire.
 - Navigation globale vers la memoire privee.
 - Prochaine etape: injecter cette memoire dans les prompts IA.
 
+## Phase 9 - Generations Conscientes De La Memoire V1
+
+Objectif: faire respecter la memoire privee dans les generations IA sans fuite
+vers le futur public commercial.
+
+- Les entrees actives de `/memory` sont chargees pour les requetes IA.
+- La memoire est injectee dans le prompt systeme central `aiJson()`.
+- Le dialogue personnage et l'analyse manuscrit recoivent aussi le contexte.
+- Le chargement est request-scoped et seulement si `viewer.role === "owner"`.
+- En mode commercial public, aucune note privee n'est chargee ni envoyee a l'IA.
+
 ## Methode De Travail
 
 Chaque bloc suit le meme rythme:

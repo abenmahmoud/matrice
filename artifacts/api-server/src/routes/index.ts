@@ -10,6 +10,7 @@ import memoryRouter from "./memory.js";
 import { adminAuthMiddleware } from "../middleware/adminAuth.js";
 import accessRouter from "./access.js";
 import { productAccessMiddleware } from "../lib/productAccess.js";
+import { creativeMemoryContextMiddleware } from "../services/creativeMemoryContext.js";
 
 const router: IRouter = Router();
 
@@ -18,6 +19,7 @@ router.use(healthRouter);
 router.use(adminRouter);
 router.use(accessRouter);
 router.use(memoryRouter);
+router.use(creativeMemoryContextMiddleware);
 router.use(productAccessMiddleware);
 router.use(projectsRouter);
 router.use(manuscriptsRouter);
