@@ -149,6 +149,17 @@ d'un fournisseur d'authentification.
 - `MATRICE_AUTH_PROVIDER=admin-token` documente la separation actuelle; `clerk`
   reste la prochaine etape comptes clients.
 
+## Phase 7 - Cockpit Prive Evolutif
+
+Objectif: faire du dashboard un vrai centre de decision personnel.
+
+- Le focus du moment choisit le projet prioritaire, pas seulement le plus recent.
+- Les projets sont filtrables par recherche, format et etape.
+- Une zone de priorites privees indique quoi reprendre ensuite.
+- La bibliotheque active distingue fondations, structure, finalisation et archives.
+- Le bloc memoire privee prepare les futures regles creatives, references fortes
+  et motifs recurrents.
+
 ## Methode De Travail
 
 Chaque bloc suit le meme rythme:

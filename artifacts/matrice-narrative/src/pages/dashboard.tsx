@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { useMemo, useState } from "react";
 import { useGetDashboardSummary, useListProjects, type Project } from "@workspace/api-client-react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -14,14 +15,19 @@ import {
   Activity,
   Gauge,
   Library,
-  Sparkles,
   Target,
   Clock3,
   FileText,
   BrainCircuit,
+  Search,
+  SlidersHorizontal,
+  Flame,
+  Archive,
+  CheckCircle2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +44,22 @@ function formatConfig(formatName: string) {
 
 function clampProgress(value: number | undefined) {
   return Math.min(100, Math.max(0, Math.round(value ?? 0)));
+}
+
+function projectStage(project: Project) {
+  const pct = clampProgress(project.progression);
+  if (pct >= 100) return "archive";
+  if (pct >= 70) return "finalisation";
+  if (pct >= 35) return "structure";
+  return "fondations";
+}
+
+function privatePriority(project: Project) {
+  const pct = clampProgress(project.progression);
+  const updatedAt = project.updatedAt ? new Date(project.updatedAt).getTime() : 0;
+  const daysIdle = updatedAt ? Math.max(0, (Date.now() - updatedAt) / 86_400_000) : 30;
+  const activeWeight = pct >= 100 ? -40 : 40 - pct * 0.25;
+  return Math.round(activeWeight + Math.min(daysIdle, 14));
 }
 
 function getNextGesture(project?: Project) {
@@ -124,6 +146,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   const cfg = formatConfig(project.targetFormat);
   const Icon = cfg.icon;
   const pct = clampProgress(project.progression);
+  const stage = projectStage(project);
 
   return (
     <motion.div
@@ -145,7 +168,9 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               <Icon className="w-3 h-3" />
               {project.targetFormat}
             </div>
-            <span className="text-[10px] text-white/20">{format(new Date(project.updatedAt), "d MMM", { locale: fr })}</span>
+            <span className="rounded-full border border-white/[0.06] bg-white/[0.025] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-white/22">
+              {stage}
+            </span>
           </div>
 
           <h3 className="mt-5 line-clamp-2 text-lg font-bold font-serif leading-tight text-white/85 transition-colors group-hover:text-white">
@@ -167,6 +192,8 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           </div>
 
           <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-white/22 transition-colors group-hover:text-white/55">
+            <span>{format(new Date(project.updatedAt), "d MMM", { locale: fr })}</span>
+            <span className="text-white/12">/</span>
             Ouvrir <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
           </div>
         </div>
@@ -176,15 +203,45 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 }
 
 export default function Dashboard() {
+  const [search, setSearch] = useState("");
+  const [formatFilter, setFormatFilter] = useState("all");
+  const [stageFilter, setStageFilter] = useState("active");
   const { data: projects = [], isLoading } = useListProjects();
   const { data: summary } = useGetDashboardSummary();
-  const focusProject = projects[0];
+  const formats = useMemo(
+    () => Array.from(new Set(projects.map((project) => project.targetFormat).filter(Boolean))),
+    [projects],
+  );
+  const filteredProjects = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+
+    return projects.filter((project) => {
+      const matchesSearch =
+        !needle ||
+        [project.title, project.rawIdea, project.genre, project.tone, project.targetFormat]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(needle));
+      const matchesFormat = formatFilter === "all" || project.targetFormat === formatFilter;
+      const matchesStage =
+        stageFilter === "all" ||
+        (stageFilter === "active" && projectStage(project) !== "archive") ||
+        projectStage(project) === stageFilter;
+
+      return matchesSearch && matchesFormat && matchesStage;
+    });
+  }, [formatFilter, projects, search, stageFilter]);
+  const priorityProjects = useMemo(
+    () => [...projects].sort((a, b) => privatePriority(b) - privatePriority(a)).slice(0, 4),
+    [projects],
+  );
+  const focusProject = priorityProjects[0] ?? projects[0];
   const nextGesture = getNextGesture(focusProject);
   const NextIcon = nextGesture.icon;
   const averageProgress = clampProgress(summary?.averageProgression);
   const topGenre = summary?.byGenre?.[0]?.genre ?? projects[0]?.genre ?? "Non défini";
   const topFormat = summary?.byFormat?.[0]?.format ?? projects[0]?.targetFormat ?? "Non défini";
   const activeProjects = projects.filter((project) => clampProgress(project.progression) < 100).length;
+  const sleepingProjects = projects.filter((project) => privatePriority(project) >= 42).length;
 
   return (
     <AppLayout>
@@ -271,8 +328,8 @@ export default function Dashboard() {
                 <section className="grid grid-cols-2 gap-3">
                   <StatTile icon={Library} label="Projets" value={`${summary?.totalProjects ?? projects.length}`} detail={`${activeProjects} actif${activeProjects > 1 ? "s" : ""}`} />
                   <StatTile icon={Activity} label="Moyenne" value={`${averageProgress}%`} detail="Progression globale" tone="blue" />
-                  <StatTile icon={Sparkles} label="Genre" value={topGenre} detail="Territoire dominant" tone="emerald" />
-                  <StatTile icon={Layers} label="Format" value={topFormat} detail="Forme dominante" tone="amber" />
+                  <StatTile icon={Flame} label="A reprendre" value={`${sleepingProjects}`} detail="Priorites privees" tone="emerald" />
+                  <StatTile icon={Layers} label="Format" value={topFormat} detail={topGenre} tone="amber" />
                 </section>
               </div>
 
@@ -290,12 +347,73 @@ export default function Dashboard() {
                       </Button>
                     </Link>
                   </div>
+                  <div className="mb-5 grid gap-3 lg:grid-cols-[1fr_180px_180px]">
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+                      <Input
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Rechercher un projet, genre, ton..."
+                        className="h-10 rounded-xl border-white/[0.08] bg-white/[0.025] pl-9 text-white/75 placeholder:text-white/22"
+                      />
+                    </div>
+                    <select
+                      value={formatFilter}
+                      onChange={(event) => setFormatFilter(event.target.value)}
+                      className="h-10 rounded-xl border border-white/[0.08] bg-[#0d0d14] px-3 text-sm text-white/60 outline-none"
+                    >
+                      <option value="all">Tous formats</option>
+                      {formats.map((formatName) => (
+                        <option key={formatName} value={formatName}>{formatName}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={stageFilter}
+                      onChange={(event) => setStageFilter(event.target.value)}
+                      className="h-10 rounded-xl border border-white/[0.08] bg-[#0d0d14] px-3 text-sm text-white/60 outline-none"
+                    >
+                      <option value="active">Actifs</option>
+                      <option value="all">Tous</option>
+                      <option value="fondations">Fondations</option>
+                      <option value="structure">Structure</option>
+                      <option value="finalisation">Finalisation</option>
+                      <option value="archive">Archives</option>
+                    </select>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                    {projects.map((project, index) => <ProjectCard key={project.id} project={project} index={index} />)}
+                    {filteredProjects.length > 0 ? (
+                      filteredProjects.map((project, index) => <ProjectCard key={project.id} project={project} index={index} />)
+                    ) : (
+                      <div className="col-span-full rounded-xl border border-dashed border-white/[0.08] bg-white/[0.015] p-8 text-center">
+                        <SlidersHorizontal className="mx-auto h-7 w-7 text-white/20" />
+                        <p className="mt-3 text-sm font-semibold text-white/55">Aucun projet dans cette vue</p>
+                        <p className="mt-1 text-xs text-white/25">Elargis les filtres ou cree une nouvelle vision.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 <aside className="space-y-4">
+                  <div className="rounded-xl border border-amber-500/15 bg-amber-600/[0.035] p-5">
+                    <div className="mb-4 flex items-center gap-2">
+                      <Flame className="h-4 w-4 text-amber-300/65" />
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200/40">Priorites privees</p>
+                    </div>
+                    <div className="space-y-3">
+                      {priorityProjects.map((project) => (
+                        <Link key={project.id} href={getNextGesture(project).href}>
+                          <div className="group rounded-lg border border-white/[0.045] bg-black/10 p-3 transition-colors hover:bg-white/[0.035] cursor-pointer">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="line-clamp-1 text-sm font-medium text-white/65 group-hover:text-white/85">{project.title}</p>
+                              <span className="text-[10px] font-bold text-amber-200/55">{clampProgress(project.progression)}%</span>
+                            </div>
+                            <p className="mt-1 text-[11px] text-white/24">{getNextGesture(project).label}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="rounded-xl border border-white/[0.06] bg-white/[0.018] p-5">
                     <div className="flex items-center gap-2 mb-4">
                       <Clock3 className="w-4 h-4 text-white/35" />
@@ -318,6 +436,20 @@ export default function Dashboard() {
                     <p className="mt-3 text-sm leading-relaxed text-white/38">
                       Prochain bloc durable: ajouter une couche personnelle pour tes règles, références, motifs et critères de qualité.
                     </p>
+                  </div>
+                  <div className="rounded-xl border border-violet-500/15 bg-black/10 p-4">
+                    <div className="grid gap-2">
+                      {[
+                        { icon: CheckCircle2, label: "Regles creatives" },
+                        { icon: Archive, label: "References fortes" },
+                        { icon: BrainCircuit, label: "Motifs recurrents" },
+                      ].map((item) => (
+                        <div key={item.label} className="flex items-center gap-2 rounded-lg border border-violet-400/[0.08] bg-violet-600/[0.025] px-3 py-2">
+                          <item.icon className="h-3.5 w-3.5 text-violet-300/45" />
+                          <span className="text-xs text-white/36">{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </aside>
               </section>

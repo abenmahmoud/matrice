@@ -385,3 +385,79 @@ Prochaine etape proposee:
 - Codex: revoir la branche + merger dans main apres validation BraveHeart
 - BraveHeart: tester l'UI (project-overview.tsx + useGenerateSSE.ts modifies cote frontend) sur https://matrice.essuf.fr
 - main reste a 0854b40 / v0.2-paywall-foundation, PAS de merge avant validation explicite
+
+## 2026-05-05 - Claude (claude.ai browser MCP) - integration/private-cockpit-v04-vps
+
+Objectif: Audit + tests sur VPS du dashboard cockpit prive v0.4 (Codex codex-private-cockpit-v04).
+
+Fichiers modifies par Codex (2, 149 ins / 6 del):
+- MATRICE_PRIVEE_STRATEGIE.md (+11)
+- artifacts/matrice-narrative/src/pages/dashboard.tsx (+144/-6) [refonte cockpit]
+
+Diff purement frontend, aucun changement backend.
+
+Architecture cockpit v0.4 (lignes du fichier source):
+- L49 `projectStage(project)`: derive l etape selon progression
+  - >= 100 -> archive
+  - >= 70 -> finalisation
+  - >= 35 -> structure
+  - < 35 -> fondations
+- L57 `privatePriority(project)`: score combinant progression + jours d inactivite (max 14)
+  - weight = pct >= 100 ? -40 : 40 - pct * 0.25
+  - return weight + min(daysIdle, 14)
+- L207 `formatFilter` (default "all")
+- L208 `stageFilter` (default "active" = exclut archive)
+- L212 options format derivees dynamiquement de targetFormat distincts
+- L215 `filteredProjects` useMemo: applique search + format + stage
+- L234 top 4 projets prioritaires: sort par privatePriority desc, slice(0,4)
+- L243 activeProjects.count = projects avec progression < 100
+- L244 sleepingProjects.count = projects avec privatePriority >= 42
+- L356 placeholder: "Rechercher un projet, genre, ton..."
+
+Resultats tests sur https://matrice.essuf.fr:
+
+TEST 1 - Build Docker:
+- `docker compose up -d --build --force-recreate api frontend` => OK, aucun warning de typecheck/build
+- 3 containers Up apres recreation
+
+TEST 2 - /dashboard charge:
+- GET /dashboard => HTTP 200, content-type=text/html (750 bytes shell SPA)
+- Bundle JS frais: /assets/index-D7D0zfhl.js (1.4 MB)
+
+TEST 3 - Strings UI v0.4 dans le bundle deploye:
+- 'fondations': 4 occurrences (stage)
+- 'finalisation': 2 (stage)
+- 'archive': 4 (stage)
+- 'structure': 47 (stage + composants)
+- 'Rechercher': 2 (placeholder)
+- 'Tous formats': 1 (option filtre)
+- 'En cours': 1 (option stage filter)
+- 'Archive': 1 (label option)
+- 'Priorit': 34 (labels priorite/cards)
+Note: noms de fonctions (projectStage, privatePriority, etc.) absents car minifies. Les strings literales prouvent que la logique est embarquee.
+
+TEST 4 - Donnees API coherentes avec le cockpit:
+- 2 projets en DB: "seven" (Film long metrage, prog=35) et "L'ile infernale" (Roman, prog=50)
+- Simulation Python de la logique cockpit:
+  - seven => stage=structure, priority=31
+  - L ile infernale => stage=structure, priority=28
+  - activeProjects.count=2, sleepingProjects.count=0 (aucun en hibernation)
+  - formatFilter options: ["all", "Film long metrage", "Roman"]
+
+TEST 5 - Backend intact (pas de regression):
+- /api/healthz => {"status":"ok"}
+- /api/access => mode=private, viewer.role=owner, isPaid=true (v0.3 preserve)
+
+Verdict: cockpit v0.4 VALIDE en production. Aucun fix VPS necessaire.
+
+Securite:
+- ls /opt/matrice/.env* ne montre que .env (prive) + .env.example (public)
+- Aucun .env.backup laisse trainer (pas eu besoin de modifier .env, donc aucun backup cree)
+- git status --short est vide (= identique a origin/codex-private-cockpit-v04)
+
+Branche d'integration: integration/private-cockpit-v04-vps (= origin/codex-private-cockpit-v04)
+
+Prochaine etape proposee:
+- BraveHeart: ouvrir https://matrice.essuf.fr/dashboard dans le navigateur pour valider visuellement (recherche, filtres, tri prioritaire)
+- Codex: revoir + merger dans main apres validation BraveHeart
+- main reste a 4ad70d2 / v0.3-owner-public-access, PAS de merge avant validation explicite
