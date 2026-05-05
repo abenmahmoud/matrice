@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import {
   BookOpen, Brain, Users, Network, Globe2, Search, Activity,
   Book, Film, Tv, Presentation, Download, FileSearch,
-  ArrowRight, Sparkles, CheckCircle2, Circle, Loader2, Wand2, BookText
+  ArrowRight, Sparkles, CheckCircle2, Circle, Loader2, Wand2, BookText, LockKeyhole
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -18,6 +18,15 @@ type StatusMap = {
   matrix: boolean; emotionalCore: boolean; characters: boolean;
   relationships: boolean; world: boolean; research: boolean;
   hpsa: boolean; book: boolean; screenplay: boolean; series: boolean; pitch: boolean;
+};
+
+type ProductAccess = {
+  mode: "private" | "commercial";
+  plan: "private" | "free" | "pro";
+  isPrivate: boolean;
+  isPaid: boolean;
+  limits: { freeUnlockedModules: string[] };
+  paywall: { title: string; message: string; cta: string };
 };
 
 // ---------------------------------------------------------------------------
@@ -158,18 +167,22 @@ function ProgressArc({ pct }: { pct: number }) {
 // ---------------------------------------------------------------------------
 // Module Card
 // ---------------------------------------------------------------------------
-function ModuleCard({ name, href, icon: Icon, desc, done, projectId, phase }: {
+function ModuleCard({ name, href, icon: Icon, desc, done, projectId, phase, locked, paywallCta }: {
   name: string; href: string; icon: React.ElementType;
   desc: string; done: boolean; projectId: string;
+  locked?: boolean;
+  paywallCta?: string;
   phase: typeof PHASES[0];
 }) {
   return (
-    <Link href={`/projects/${projectId}/${href}`}>
+    <Link href={locked ? `/projects/${projectId}` : `/projects/${projectId}/${href}`}>
       <div className={cn(
         "group relative flex flex-col gap-3 p-5 rounded-2xl border transition-all cursor-pointer overflow-hidden",
-        done
-          ? `${phase.bg} ${phase.border} ring-1 ${phase.ring}`
-          : "bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/[0.12]"
+        locked
+          ? "bg-white/[0.015] border-white/[0.06] opacity-80"
+          : done
+            ? `${phase.bg} ${phase.border} ring-1 ${phase.ring}`
+            : "bg-white/[0.02] border-white/[0.07] hover:bg-white/[0.04] hover:border-white/[0.12]"
       )}>
         {/* Status indicator */}
         <div className="flex items-center justify-between">
@@ -179,9 +192,11 @@ function ModuleCard({ name, href, icon: Icon, desc, done, projectId, phase }: {
           )}>
             <Icon className={cn("w-4.5 h-4.5", done ? phase.accent : "text-white/30")} style={{ width: 18, height: 18 }} />
           </div>
-          {done
-            ? <CheckCircle2 className={cn("w-4 h-4", phase.accent)} />
-            : <Circle className="w-4 h-4 text-white/15" />
+          {locked
+            ? <LockKeyhole className="w-4 h-4 text-amber-300/70" />
+            : done
+              ? <CheckCircle2 className={cn("w-4 h-4", phase.accent)} />
+              : <Circle className="w-4 h-4 text-white/15" />
           }
         </div>
 
@@ -194,10 +209,10 @@ function ModuleCard({ name, href, icon: Icon, desc, done, projectId, phase }: {
         {/* CTA */}
         <div className={cn(
           "flex items-center gap-1.5 text-xs font-semibold mt-auto pt-1 transition-all",
-          done ? phase.accent : "text-white/25 group-hover:text-white/45"
+          locked ? "text-amber-300/75" : done ? phase.accent : "text-white/25 group-hover:text-white/45"
         )}>
-          {done ? "Ouvrir" : "Générer"}
-          <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+          {locked ? (paywallCta ?? "Debloquer") : done ? "Ouvrir" : "Generer"}
+          {locked ? <LockKeyhole className="w-3 h-3" /> : <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />}
         </div>
       </div>
     </Link>
@@ -245,6 +260,12 @@ export default function ProjectOverview() {
     staleTime: 10_000,
   });
 
+  const { data: access } = useQuery<ProductAccess>({
+    queryKey: ["/api/access"],
+    queryFn: () => fetch(`${BASE}/api/access`).then(r => r.json()) as Promise<ProductAccess>,
+    staleTime: 60_000,
+  });
+
   if (projectLoading || statusLoading) {
     return (
       <AppLayout>
@@ -273,6 +294,8 @@ export default function ProjectOverview() {
   const totalCount = ALL_MODULE_KEYS.length;
   const completionPct = Math.round((completedCount / totalCount) * 100);
   const nextStep = getNextStep(safeStatus);
+  const isCommercialFree = access?.mode === "commercial" && !access.isPaid;
+  const unlockedModules = access?.limits.freeUnlockedModules ?? [];
 
   const visualMoods = (project as unknown as { visualMoods?: string[] }).visualMoods ?? [];
   const spark = project.rawIdea ?? "";
@@ -384,6 +407,21 @@ export default function ProjectOverview() {
             </div>
           )}
 
+          {isCommercialFree && access && (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-6 rounded-2xl bg-amber-500/[0.08] border border-amber-400/20">
+              <div className="w-10 h-10 rounded-full bg-amber-400/15 flex items-center justify-center flex-shrink-0">
+                <LockKeyhole className="w-5 h-5 text-amber-300" />
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-amber-100">{access.paywall.title}</p>
+                <p className="text-sm text-white/40 mt-0.5">{access.paywall.message}</p>
+              </div>
+              <button className="px-4 py-2 rounded-xl bg-amber-300 text-black text-sm font-bold hover:bg-amber-200 transition-colors">
+                {access.paywall.cta}
+              </button>
+            </div>
+          )}
+
           {PHASES.map((phase) => (
             <div key={phase.n}>
               {/* Phase header */}
@@ -423,6 +461,8 @@ export default function ProjectOverview() {
                     done={safeStatus[mod.key]}
                     projectId={id!}
                     phase={phase}
+                    locked={isCommercialFree && !unlockedModules.includes(mod.href)}
+                    paywallCta={access?.paywall.cta}
                   />
                 ))}
                 {phase.extraModules?.map(mod => (
