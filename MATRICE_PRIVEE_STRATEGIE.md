@@ -116,6 +116,24 @@ Critere de succes:
 
 - Une future version vendable peut etre creee sans fuite de contenu personnel.
 
+## Phase 6.1 - Verrouillage Abonnement Progressif
+
+Objectif: preparer une edition commerciale sans bloquer l'instance privee.
+
+- `MATRICE_PRODUCT_MODE=private`: tout reste ouvert pour le proprietaire.
+- `MATRICE_PRODUCT_MODE=commercial`: les fondations montrent la valeur, puis les
+  modules avances declenchent un verrou d'abonnement.
+- Parcours gratuit initial: Matrice Narrative et Noyau Emotionnel.
+- Parcours premium: personnages, structure, analyse, ecriture, pitch et outils IA
+  avances.
+- Le backend doit refuser les generations avancees avec `402 PAYWALL_REQUIRED`.
+- Le frontend doit montrer les modules premium comme verrouilles, mais visibles.
+
+Critere de succes:
+
+- La vente future est preparee sans Stripe ni auth obligatoires maintenant.
+- Le VPS prive continue de fonctionner en acces complet.
+
 ## Methode De Travail
 
 Chaque bloc suit le meme rythme:
