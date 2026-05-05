@@ -11,12 +11,13 @@ import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, Pola
 import { motion } from "framer-motion";
 
 type TraditionMatch = { name: string; match: number; justification: string };
+type SruCommentKey = "etincelleComment" | "vibrationComment" | "profondeurComment" | "maitriseComment";
 
 const AXES = [
   {
     key: "etincelle",
     label: "Étincelle",
-    commentKey: "etincelleComment",
+    commentKey: "etincelleComment" as SruCommentKey,
     icon: "✨",
     color: "text-amber-400",
     barColor: "bg-amber-400",
@@ -29,7 +30,7 @@ const AXES = [
   {
     key: "vibration",
     label: "Vibration",
-    commentKey: "vibrationComment",
+    commentKey: "vibrationComment" as SruCommentKey,
     icon: "⚡",
     color: "text-emerald-400",
     barColor: "bg-emerald-400",
@@ -42,7 +43,7 @@ const AXES = [
   {
     key: "profondeur",
     label: "Profondeur",
-    commentKey: "profondeurComment",
+    commentKey: "profondeurComment" as SruCommentKey,
     icon: "🌊",
     color: "text-blue-400",
     barColor: "bg-blue-400",
@@ -55,7 +56,7 @@ const AXES = [
   {
     key: "maitrise",
     label: "Maîtrise",
-    commentKey: "maitriseComment",
+    commentKey: "maitriseComment" as SruCommentKey,
     icon: "🎬",
     color: "text-violet-400",
     barColor: "bg-violet-400",
@@ -283,7 +284,7 @@ export default function PrismePage() {
               key={axe.key}
               axe={axe}
               score={scores[axe.key as keyof typeof scores]}
-              comment={(sru as Record<string, unknown>)[axe.commentKey] as string ?? ""}
+              comment={sru[axe.commentKey] ?? ""}
             />
           ))}
         </div>
