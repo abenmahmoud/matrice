@@ -266,3 +266,57 @@ Resolution des 8 conflits:
 - AGENTS_COORDINATION.md: concatenation manuelle (preambule Codex + journal Claude integral)
 
 Stack production sur https://matrice.essuf.fr reste fonctionnelle (3 containers Up, healthz=200, 24 skills + 36 cinema seedes).
+
+## 2026-05-05 - Claude (claude.ai browser MCP) - integration/monetisation-progress-lock-vps
+
+Objectif: Audit + tests sur VPS de la V1 verrouillage abonnement (Codex codex-monetisation-progress-lock).
+
+Fichiers modifies (1 seul, pas de .env commit):
+- docker-compose.yml: ajout des 4 variables MATRICE_* manquantes au bloc api environment (avec defaults sains)
+
+Decouverte critique:
+Codex a defini MATRICE_PRODUCT_MODE et MATRICE_DEFAULT_PLAN dans .env.example et productAccess.ts mais a OUBLIE de les declarer dans docker-compose.yml. Resultat: les variables n'etaient pas passees au container, donc le mode commercial ne pouvait pas etre active. Fix applique:
+```yaml
+environment:
+  ...
+  AI_MODEL: ${AI_MODEL:-gpt-4o}
+  MATRICE_PRODUCT_MODE: ${MATRICE_PRODUCT_MODE:-private}
+  MATRICE_DEFAULT_PLAN: ${MATRICE_DEFAULT_PLAN:-free}
+  MATRICE_FREE_PROJECT_LIMIT: ${MATRICE_FREE_PROJECT_LIMIT:-1}
+  MATRICE_FREE_PROGRESSION_CAP: ${MATRICE_FREE_PROGRESSION_CAP:-35}
+```
+Les defaults garantissent le mode private si rien n'est defini dans .env (= comportement actuel sur VPS).
+
+Resultats tests:
+
+TEST 1 - MODE PRIVATE (default, pas de variables dans .env):
+- GET /api/access => mode=private, plan=private, isPrivate=true, isPaid=true ✓
+- POST /projects/:id/generate-matrix => HTTP 200 (matrice generee) ✓
+- POST /projects/:id/director-mode => HTTP 400 "Passage trop court" (PAS un 402 ! le middleware a laisse passer comme attendu en private) ✓
+=> Aucun blocage en mode private, rien n'est paywalled.
+
+TEST 2 - MODE COMMERCIAL/FREE (.env: MATRICE_PRODUCT_MODE=commercial + MATRICE_DEFAULT_PLAN=free):
+- GET /api/access => mode=commercial, plan=free, isPrivate=false, isPaid=false, freeUnlockedModules=[matrix, emotional-core] ✓
+- POST /projects/:id/generate-matrix => HTTP 200 (free module passe) ✓
+- POST /projects/:id/generate-emotional-core => HTTP 200 (free module passe) ✓
+- POST /projects/:id/director-mode => HTTP 402 + body PAYWALL_REQUIRED complet ✓
+- POST /projects/:id/generate-five-pillars => HTTP 402 + body PAYWALL_REQUIRED ✓
+- POST /manuscripts/analyze => HTTP 402 + body PAYWALL_REQUIRED ✓
+=> Modules gratuits accessibles, modules avances bloques avec body paywall complet.
+
+Verdict: V1 verrouillage abonnement VALIDEE.
+
+Restauration etat production:
+- .env restaure (sans MATRICE_*, donc mode private)
+- .env.backup supprime (ne jamais le laisser trainer, contient les secrets)
+- /api/access verifie => mode=private, isPaid=true ✓
+- 3 containers Up, https://matrice.essuf.fr healthz=200 ✓
+
+Branche d'integration: integration/monetisation-progress-lock-vps
+- Base: origin/codex-monetisation-progress-lock
+- Patch additionnel: docker-compose.yml (env passing fix)
+
+Prochaine etape proposee:
+- Codex: revoir le merge dans main apres validation BraveHeart
+- BraveHeart: tester l'UI de paywall sur https://matrice.essuf.fr/projects/{id} en mode commercial (project-overview.tsx a ete modifie)
+- main reste sur v0.1-private-vps (f13aafd) - PAS de merge avant validation explicite
