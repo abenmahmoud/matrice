@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 
+const ADMIN_TOKEN_KEY = "matrice_admin_token";
+
 export type GenerationEvent =
   | { type: "progress"; step: string; percent: number }
   | { type: "done"; data: unknown }
@@ -31,7 +33,11 @@ export function useGenerateSSE(onDone?: (data: unknown) => void) {
       try {
         const res = await fetch(url, {
           method,
-          headers: { Accept: "text/event-stream", "Content-Type": "application/json" },
+          headers: {
+            Accept: "text/event-stream",
+            "Content-Type": "application/json",
+            ...(localStorage.getItem(ADMIN_TOKEN_KEY) ? { "x-admin-token": localStorage.getItem(ADMIN_TOKEN_KEY)! } : {}),
+          },
           signal: abortRef.current.signal,
         });
 

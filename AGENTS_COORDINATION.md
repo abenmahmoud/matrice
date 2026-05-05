@@ -320,3 +320,68 @@ Prochaine etape proposee:
 - Codex: revoir le merge dans main apres validation BraveHeart
 - BraveHeart: tester l'UI de paywall sur https://matrice.essuf.fr/projects/{id} en mode commercial (project-overview.tsx a ete modifie)
 - main reste sur v0.1-private-vps (f13aafd) - PAS de merge avant validation explicite
+
+## 2026-05-05 - Claude (claude.ai browser MCP) - integration/owner-public-access-vps
+
+Objectif: Audit + tests sur VPS de la separation owner/public (Codex codex-owner-public-access).
+
+Fichiers modifies par Codex (7, 74 ins / 9 del):
+- .env.example (+5)
+- MATRICE_PRIVEE_STRATEGIE.md (+15)
+- artifacts/api-server/src/lib/productAccess.ts (+32/-4) [ajout viewer concept]
+- artifacts/api-server/src/routes/access.ts (+4/-2) [passe req au getProductAccess]
+- artifacts/matrice-narrative/src/hooks/useGenerateSSE.ts (+8/-1)
+- artifacts/matrice-narrative/src/pages/project-overview.tsx (+11/-2)
+- lib/api-client-react/src/custom-fetch.ts (+8) [injecte x-admin-token]
+
+Architecture viewer (Codex):
+```ts
+const isOwnerByPrivateMode = mode === "private";
+const isOwnerByAdminToken = hasValidAdminToken(req);
+const viewer = isOwnerByPrivateMode ? { role: "owner", source: "private-mode" }
+              : isOwnerByAdminToken ? { role: "owner", source: "admin-token" }
+              : { role: "public", authenticated: false, source: "anonymous" };
+const plan = viewer.role === "owner" ? "private" : readPlan();
+const isPrivate = viewer.role === "owner";
+const isPaid = isPrivate || plan === "pro";
+```
+
+Resultats tests sur https://matrice.essuf.fr:
+
+TEST 1 - MODE PRIVATE (default):
+- GET /api/access => mode=private, plan=private, viewer.role=owner, viewer.source=private-mode, isPaid=true. OK
+
+TEST 2 - MODE COMMERCIAL SANS TOKEN (public):
+- GET /api/access => mode=commercial, plan=free, viewer.role=public, viewer.source=anonymous, isPaid=false. OK
+
+TEST 3 - MODE COMMERCIAL AVEC x-admin-token VALIDE:
+- GET /api/access -H x-admin-token: $TOKEN => mode=commercial, plan=private, viewer.role=owner, viewer.source=admin-token, isPaid=true. OK
+
+TEST 3.b - MODE COMMERCIAL AVEC token invalide:
+- GET /api/access -H x-admin-token: bogus => viewer.role=public, isPaid=false. OK (rejet propre du token bidon)
+
+TEST 4 - COMMERCIAL public + director-mode (advanced):
+- POST /director-mode => HTTP 402 PAYWALL_REQUIRED + body complet (viewer.role=public). OK
+
+TEST 5 - COMMERCIAL public + matrix (free):
+- POST /generate-matrix => HTTP 200. OK
+
+TEST 6 - COMMERCIAL avec admin-token + director-mode:
+- POST /director-mode -H x-admin-token: $TOKEN => HTTP 400 "Passage trop court" (PAS un 402, le middleware a laisse passer comme owner, c'est la validation metier qui rejette le body vide). OK
+
+TEST 7 - COMMERCIAL avec token invalide + director-mode:
+- POST /director-mode -H x-admin-token: bogus => HTTP 402 PAYWALL_REQUIRED. OK
+
+Verdict: Separation owner/public VALIDEE. Aucun fix VPS necessaire (docker-compose.yml deja correct depuis v0.2-paywall-foundation, mes 4 vars MATRICE_* sont conservees).
+
+Securite:
+- .env backup cree pendant les tests, restaure et supprime apres
+- ls /opt/matrice/.env* ne montre que .env (prive) et .env.example (public)
+- git status --short est vide sur la branche d'integration (= identique a origin/codex-owner-public-access, juste un rebuild docker)
+
+Branche d'integration: integration/owner-public-access-vps (= origin/codex-owner-public-access, aucun commit additionnel necessaire)
+
+Prochaine etape proposee:
+- Codex: revoir la branche + merger dans main apres validation BraveHeart
+- BraveHeart: tester l'UI (project-overview.tsx + useGenerateSSE.ts modifies cote frontend) sur https://matrice.essuf.fr
+- main reste a 0854b40 / v0.2-paywall-foundation, PAS de merge avant validation explicite

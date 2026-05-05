@@ -134,6 +134,21 @@ Critere de succes:
 - La vente future est preparee sans Stripe ni auth obligatoires maintenant.
 - Le VPS prive continue de fonctionner en acces complet.
 
+## Phase 6.2 - Separation Proprietaire / Public
+
+Objectif: preparer les comptes utilisateurs sans rendre le VPS prive dependant
+d'un fournisseur d'authentification.
+
+- En mode `private`, le proprietaire reste reconnu automatiquement.
+- En mode `commercial`, le token admin existant identifie le proprietaire.
+- Un visiteur sans token est traite comme `public` et reste sur le plan gratuit.
+- Les reponses `/api/access` exposent `viewer.role` pour que l'interface sache
+  differencier owner/public.
+- Les appels API generes et les generations SSE propagent le token admin stocke
+  dans le navigateur.
+- `MATRICE_AUTH_PROVIDER=admin-token` documente la separation actuelle; `clerk`
+  reste la prochaine etape comptes clients.
+
 ## Methode De Travail
 
 Chaque bloc suit le meme rythme:
