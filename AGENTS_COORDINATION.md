@@ -461,3 +461,99 @@ Prochaine etape proposee:
 - BraveHeart: ouvrir https://matrice.essuf.fr/dashboard dans le navigateur pour valider visuellement (recherche, filtres, tri prioritaire)
 - Codex: revoir + merger dans main apres validation BraveHeart
 - main reste a 4ad70d2 / v0.3-owner-public-access, PAS de merge avant validation explicite
+
+## 2026-05-05 - Claude (claude.ai browser MCP) - integration/private-memory-v05-vps
+
+Objectif: Audit + tests sur VPS de la memoire creative privee v0.5 (Codex codex-private-memory-v05).
+
+Fichiers modifies par Codex (8, 309 ins / 1 del):
+- MATRICE_PRIVEE_STRATEGIE.md (+11)
+- artifacts/api-server/src/routes/index.ts (+2) [cablage memory router]
+- artifacts/api-server/src/routes/memory.ts (+93) [NOUVEAU CRUD route]
+- artifacts/matrice-narrative/src/App.tsx (+2) [route /memory]
+- artifacts/matrice-narrative/src/components/layout/AppLayout.tsx (+3/-1) [lien sidebar]
+- artifacts/matrice-narrative/src/pages/memory.tsx (+182) [NOUVELLE page]
+- lib/db/src/schema/index.ts (+1) [export schema]
+- lib/db/src/schema/memory.ts (+16) [NOUVEAU schema Drizzle creative_memory_entries]
+
+Schema DB:
+```ts
+creative_memory_entries:
+  id text PK (UUID auto via crypto.randomUUID())
+  category text NOT NULL
+  title text NOT NULL
+  content text NOT NULL DEFAULT ''
+  tags jsonb<string[]> NOT NULL DEFAULT []
+  priority integer NOT NULL DEFAULT 50
+  is_active boolean NOT NULL DEFAULT true
+  created_at, updated_at timestamp NOT NULL DEFAULT now()
+```
+
+Routes API (toutes derriere router.use(ownerOnly) middleware):
+- L19 GET /memory (list, ordered by desc(priority), desc(updatedAt))
+- L32 POST /memory (create, requires category + title)
+- L65 PATCH /memory/:id (update)
+- L83 DELETE /memory/:id (delete)
+
+Procedure synchro DB:
+Le container API ne contient pas le code source de lib/db. Postgres n'est pas expose sur le host.
+Solution: container Node temporaire dans le reseau matrice_default avec DATABASE_URL=postgres://matrice:$PGPWD@postgres:5432/matrice_narrative
+```bash
+PGPWD=$(grep ^POSTGRES_PASSWORD /opt/matrice/.env | cut -d= -f2)
+docker run --rm --network matrice_default -v /opt/matrice:/app -w /app/lib/db \
+  -e DATABASE_URL="postgres://matrice:$PGPWD@postgres:5432/matrice_narrative" \
+  node:22-slim sh -c 'corepack enable && corepack prepare pnpm@10 --activate && \
+  pnpm install --silent --ignore-scripts && pnpm push'
+```
+=> [√] Changes applied. Table creative_memory_entries creee (verifie via psql \d).
+
+Note: pnpm install cree des node_modules dans lib/* mais ils sont gitignores donc git status --short reste propre.
+
+Resultats tests sur https://matrice.essuf.fr:
+
+TEST 1 - PRIVATE - GET /api/memory (vide):
+- []HTTP 200. OK
+
+TEST 2 - PRIVATE - POST /api/memory:
+- {"category":"theme","title":"Test Memory v0.5","content":"Premiere entree test","tags":["test","audit"],"priority":75}
+- HTTP 200, retourne entry complete avec ID 3a68d766-77ee-429e-b559-2ae50fd87291. OK
+
+TEST 3 - PRIVATE - GET /api/memory:
+- count=1, entree visible. OK
+
+TEST 4 - PRIVATE - PATCH /api/memory/:id:
+- {"title":"Test Memory v0.5 [MODIFIE]","priority":90}
+- HTTP 200, title et priority modifies, updated_at change. OK
+
+TEST 5 - COMMERCIAL public sans token - GET /api/memory:
+- HTTP 403 + body {"error":"OWNER_REQUIRED","viewer":{"role":"public"},...}
+- Le middleware ownerOnly bloque correctement. OK
+
+TEST 5b - COMMERCIAL public sans token - POST /api/memory:
+- HTTP 403 + body OWNER_REQUIRED. OK
+
+TEST 6 - PRIVATE restaure - DELETE /api/memory/:id:
+- HTTP 204 (No Content). OK
+
+TEST 7 - PRIVATE - GET /api/memory apres DELETE:
+- count=0. OK
+
+TEST 8 - Page /memory cote frontend:
+- GET /memory => HTTP 200 (shell SPA 750 bytes)
+- Bundle frais: /assets/index-_h0lTP1H.js (1.43 MB)
+- Strings UI v0.5 dans le bundle: '/memory':5, 'Memoire':5, 'Memoire creative':1, 'category':46, 'priority':18. OK
+
+Verdict: memoire creative v0.5 VALIDEE. Aucun fix VPS necessaire (mais necessite la synchro DB Drizzle decrite ci-dessus).
+
+Securite:
+- .env backup cree pendant les tests, restaure et supprime apres
+- ls /opt/matrice/.env* ne montre que .env (prive) et .env.example (public)
+- git status --short est vide (= identique a origin/codex-private-memory-v05)
+- node_modules crees par drizzle push sont gitignores
+
+Branche d'integration: integration/private-memory-v05-vps (= origin/codex-private-memory-v05, aucun commit code additionnel)
+
+Prochaine etape proposee:
+- BraveHeart: ouvrir https://matrice.essuf.fr/memory pour valider visuellement (creation/edition/suppression d'entrees memoire)
+- Codex: revoir + merger dans main apres validation BraveHeart
+- main reste a bb2cfb7 / v0.4-private-cockpit, PAS de merge avant validation explicite
