@@ -5,6 +5,7 @@
  */
 
 import { openai } from "@workspace/integrations-openai-ai-server";
+import { defaultAiModel } from "../lib/aiConfig.js";
 
 type Project = {
   id: string;
@@ -92,7 +93,7 @@ async function aiJson<T>(
 ): Promise<T> {
   try {
     const response = await openai.chat.completions.create({
-      model: process.env.AI_MODEL ?? "gpt-4o",
+      model: defaultAiModel,
       max_completion_tokens: opts?.maxTokens ?? 8192,
       response_format: { type: "json_object" },
       ...(opts?.temperature !== undefined ? { temperature: opts.temperature } : {}),
@@ -1802,7 +1803,7 @@ RÈGLES ABSOLUES :
   ];
 
   try {
-    const res = await openai.chat.completions.create({ model: process.env.AI_MODEL ?? "gpt-4o", messages, temperature: 0.92, max_tokens: 400 });
+    const res = await openai.chat.completions.create({ model: defaultAiModel, messages, temperature: 0.92, max_tokens: 400 });
     return res.choices[0]?.message?.content ?? "(silence)";
   } catch {
     return "(Le personnage garde le silence pour l'instant.)";

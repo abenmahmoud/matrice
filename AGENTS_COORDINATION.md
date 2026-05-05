@@ -1,4 +1,52 @@
-# Journal de Coordination Multi-Agents — Matrice Narrative
+# AGENTS COORDINATION - Matrice
+
+Ce fichier sert de journal de coordination entre Codex, Claude Code et le
+createur du projet. Chaque agent doit ajouter une entree courte avant ou apres
+un bloc de travail significatif.
+
+## Regles
+
+- Ne jamais travailler directement sur `main`.
+- Ne jamais modifier ou revert le travail d'un autre agent sans accord.
+- Toujours verifier `git status` avant modification.
+- Garder Replit utilisable tant que le VPS n'est pas valide.
+- Ne jamais committer `.env`, secrets, cles API, archives ou backups.
+- Preferer des variables d'environnement aux valeurs hardcodees.
+- Si le VPS a deja Nginx sur 80/443, ne pas binder les conteneurs Matrice sur
+  80/443 directement; utiliser un port localhost et un reverse proxy.
+
+## 2026-05-05 - Codex - codex-fondations-durables-matrice
+
+Objectif:
+Stabiliser les fondations locales et preparer l'integration avec le travail VPS
+de Claude.
+
+Fichiers touches:
+- `.gitignore`
+- `.dockerignore`
+- `Dockerfile.api`
+- `Dockerfile.frontend`
+- `package.json`
+- `MATRICE_PRIVEE_STRATEGIE.md`
+- `artifacts/matrice-narrative/src/components/EditableField.tsx`
+- `artifacts/matrice-narrative/src/pages/prisme.tsx`
+- `artifacts/matrice-narrative/src/pages/dashboard.tsx`
+
+Commandes verifiees:
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck`
+- `corepack pnpm --filter @workspace/api-server run typecheck`
+- `corepack pnpm run typecheck:libs`
+- `git diff --check`
+
+Risques:
+- Build Docker non valide localement car Docker Desktop/Linux engine n'est pas
+  lance sur la machine Windows.
+- Claude travaille sur le VPS sur une branche separee; attention aux conflits
+  sur Docker, compose, modeles IA et documentation.
+
+Prochaine etape:
+Fusionner proprement le travail Claude VPS avec ces fondations, en gardant une
+architecture Replit + VPS durable.
 
 ## 2026-05-04 - Claude (claude.ai browser MCP) - claude-vps-deploy
 
@@ -204,3 +252,17 @@ Prochaine etape proposee:
 - Codex: corriger le destructurer de req.body sur /api/admin/seed (et auditer les autres routes pour le meme pattern)
 - BraveHeart: utiliser l'app sur https://matrice.essuf.fr et tester le pipeline complet
 - Codex: commencer Phase 1 v2.1 (auth Clerk multi-utilisateurs, export PDF natif, beat sheet, editeur de prose Atelier Roman)
+
+## 2026-05-05 - Claude (claude.ai browser MCP) - integration/matrice-private-vps
+
+Merge de origin/codex-fondations-durables-matrice dans claude-vps-deploy.
+
+Resolution des 8 conflits:
+- Dockerfile.api, Dockerfile.frontend: --theirs (Codex node:22-slim, identique a la version production)
+- artifacts/api-server/src/services/generationService.ts, researchLabService.ts: --theirs (Codex centralise via lib/aiConfig.ts -> defaultAiModel)
+- artifacts/api-server/src/routes/manuscripts.ts: --theirs (idem)
+- docker-compose.yml: --theirs (Codex parametrise via ${API_HOST_BIND:-127.0.0.1}:${API_HOST_PORT:-8090}:8080 + ADMIN_PASSWORD + AI_MODEL:${AI_MODEL:-gpt-4o})
+- deploy/nginx/matrice.conf.example: --theirs (Codex)
+- AGENTS_COORDINATION.md: concatenation manuelle (preambule Codex + journal Claude integral)
+
+Stack production sur https://matrice.essuf.fr reste fonctionnelle (3 containers Up, healthz=200, 24 skills + 36 cinema seedes).

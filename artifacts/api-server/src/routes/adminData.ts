@@ -102,7 +102,7 @@ router.post("/admin/seed", async (req, res) => {
   try {
     const existingSkills = await db.select({ id: aiSkillsTable.id }).from(aiSkillsTable).limit(1);
     const existingCinema = await db.select({ id: cinemaKnowledgeTable.id }).from(cinemaKnowledgeTable).limit(1);
-    const { force = false } = req.body as { force?: boolean };
+    const { force = false } = (req.body ?? {}) as { force?: boolean };
 
     if (!force && existingSkills.length > 0 && existingCinema.length > 0) {
       return res.json({ message: "Données déjà présentes — utilisez force:true pour réinitialiser", seeded: false });

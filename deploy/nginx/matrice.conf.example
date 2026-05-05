@@ -1,35 +1,30 @@
-# Matrice Narrative - nginx systeme reverse proxy
-# Copier vers /etc/nginx/sites-available/matrice
-# Remplacer matrice.example.com par le domaine final
-# Activer: ln -s /etc/nginx/sites-available/matrice /etc/nginx/sites-enabled/
-# Tester: nginx -t && systemctl reload nginx
-# SSL: certbot --nginx -d matrice.example.com
+# System Nginx reverse proxy for Matrice on the VPS.
+#
+# Usage:
+# 1. Replace `matrice.example.com` with the chosen private subdomain.
+# 2. Copy to `/etc/nginx/sites-available/matrice`.
+# 3. Enable with `ln -s /etc/nginx/sites-available/matrice /etc/nginx/sites-enabled/matrice`.
+# 4. Validate with `nginx -t`.
+# 5. Reload with `systemctl reload nginx`.
+# 6. Add TLS with `certbot --nginx -d matrice.example.com`.
 
 server {
     listen 80;
-    listen [::]:80;
     server_name matrice.example.com;
 
-    # certbot --nginx ajoutera la redirection 301 -> https automatiquement
-    # et le bloc listen 443 ssl avec les certificats Let's Encrypt
+    client_max_body_size 25m;
 
-    # API backend - container Docker matrice-api-1
     location /api/ {
-        proxy_pass http://127.0.0.1:8090;
+        proxy_pass http://127.0.0.1:8090/api/;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 180s;
-        proxy_connect_timeout 30s;
-
-        # SSE streaming (generations IA longues)
-        proxy_buffering off;
-        proxy_cache off;
+        proxy_send_timeout 180s;
     }
 
-    # Frontend SPA - container Docker matrice-frontend-1 (nginx interne)
     location / {
         proxy_pass http://127.0.0.1:8091;
         proxy_http_version 1.1;
@@ -37,12 +32,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 180s;
+        proxy_send_timeout 180s;
     }
-
-    # Limites uploads (manuscripts longs - voir roadmap v3.0)
-    client_max_body_size 25M;
-
-    # Logs dedies
-    access_log /var/log/nginx/matrice.access.log;
-    error_log  /var/log/nginx/matrice.error.log;
 }

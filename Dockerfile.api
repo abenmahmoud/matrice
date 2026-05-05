@@ -10,17 +10,11 @@ COPY lib/api-zod/package.json ./lib/api-zod/
 COPY lib/api-client-react/package.json ./lib/api-client-react/
 COPY lib/integrations-openai-ai-server/package.json ./lib/integrations-openai-ai-server/
 COPY artifacts/api-server/package.json ./artifacts/api-server/
-RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/lib/db/node_modules ./lib/db/node_modules
-COPY --from=deps /app/lib/api-spec/node_modules ./lib/api-spec/node_modules
-COPY --from=deps /app/lib/api-zod/node_modules ./lib/api-zod/node_modules
-COPY --from=deps /app/lib/api-client-react/node_modules ./lib/api-client-react/node_modules
-COPY --from=deps /app/lib/integrations-openai-ai-server/node_modules ./lib/integrations-openai-ai-server/node_modules
-COPY --from=deps /app/artifacts/api-server/node_modules ./artifacts/api-server/node_modules
+COPY --from=deps /app ./
 COPY tsconfig.base.json tsconfig.json ./
 COPY lib/ ./lib/
 COPY artifacts/api-server/ ./artifacts/api-server/
