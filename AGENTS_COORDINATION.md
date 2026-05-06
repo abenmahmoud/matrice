@@ -737,3 +737,59 @@ Prochaine etape proposee:
 - Codex: corriger le cablage memoryRouter (path /memory explicite + suppression du prefixe interne)
 - Apres fix: relancer audit complet (TEST 6 a 12)
 - BraveHeart: NE PAS valider ni merger v0.7 avant fix Codex
+## 2026-05-06 (suite) - Claude (claude.ai browser MCP) - integration/commercial-access-v07-vps APRES FIX 3d42775
+
+Codex a pousse le commit 3d42775 "Fix memory router scoping" qui applique exactement le fix propose:
+  - routes/index.ts: router.use(memoryRouter) -> router.use("/memory", memoryRouter)
+  - routes/memory.ts: paths internes /memory enleves (router.get("/"), router.post("/"), router.patch("/:id"), router.delete("/:id"))
+
+Apres rebuild Docker, re-execution complete des 12 tests prevus:
+
+TEST 1 PRIVATE owner intact: healthz OK, viewer=owner, GET /projects HTTP 200. OK
+TEST 2 COMMERCIAL anonyme GET /api/projects: HTTP 401 AUTH_REQUIRED (avant fix: 403 OWNER_REQUIRED). FIX VALIDE
+TEST 3 SIGNUP: HTTP 201, user audit2@test.local cree (id=832ef15d), token 132 chars. OK
+TEST 4 GET /api/projects avec user-token: HTTP 200 count=0 (avant fix: 403). FIX VALIDE
+TEST 5 GET /api/memory avec user-token: HTTP 403 OWNER_REQUIRED (memoire reste owner-only). OK
+TEST 6 user free POST /api/projects (1/1) avec body complet: HTTP 201, projet id=b755871f cree. OK
+  Note: la route exige TOUS les champs NOT NULL (rawIdea, inputType, genre, tone, targetFormat, temporalLogic, realityLevel, targetAudience, artisticAmbition). Body partiel retourne HTTP 500 "null value in column raw_idea violates not-null constraint". UX stricte mais pas un bug.
+TEST 7 user free POST 2eme projet: HTTP 402 FREE_PROJECT_LIMIT_REACHED. OK
+TEST 8 user free generate-matrix 1/2: HTTP 200 13.27s. OK
+TEST 9 user free generate-matrix 2/2: HTTP 200 16.57s. OK
+TEST 9b user free generate-matrix 3/2: HTTP 402 FREE_GENERATION_LIMIT_REACHED. OK
+TEST 10 user free director-mode (module avance): HTTP 402 FREE_GENERATION_LIMIT_REACHED. OK
+TEST 11a admin login: ADMIN_TOKEN 64 chars. OK
+TEST 11b GET /admin/subscriptions/users avec x-admin-token: HTTP 200, count=1, user audit2@test.local visible (plan=free, generationsUsed=2, projectsCreated=1). OK
+TEST 11c PATCH /admin/subscriptions/users/$USER_ID body={"plan":"pro"}: HTTP 200, plan=pro confirme. OK
+TEST 12a /api/access avec user Pro token: plan=pro, isPaid=True, role=user. OK
+TEST 12b user Pro director-mode: HTTP 200 6.95s, sceneTitle="Le Poids du Silence", overallMood="Une tension silencieuse...". MODULE AVANCE DEBLOQUE
+TEST 12c user Pro generate-matrix supplementaire: HTTP 200 8.61s, nouvelle matrice generee. QUOTAS DEBLOQUES
+
+Verdict v0.7: VALIDE. Fix Codex 3d42775 resout entierement le bug bloquant. Cycle commercial complet (signup, quota free, paywall, admin upgrade, Pro debloque) fonctionne.
+
+Observations diverses:
+- Token JWT-like (132 chars) signe HMAC-SHA256 SESSION_SECRET, format payload.signature. Validation timingSafeEqual.
+- POST /admin/login retourne ADMIN_TOKEN 64 chars (different format, tres probablement aussi hash signe via SESSION_SECRET).
+- Schema app_users contient stripeCustomerId/stripeSubscriptionId nullable, pret pour integration Stripe.
+- Schema projects.owner_user_id text nullable: si null = projet legacy / admin / mode private; si rempli = projet user free/pro.
+- Middleware /projects/:id verifie ownership (owner_user_id == user.id) et retourne 404 "Not found" si miss-match. Bonne defense en profondeur.
+- creativeMemoryContextMiddleware n'a pas plante meme apres bascule commercial: viewer.role === "owner" ? buildContext() : "" continue de bien gater.
+
+Todo restant pour Codex/BraveHeart (non bloquant):
+- UX: rendre POST /api/projects plus permissif (defaults sur les champs NOT NULL, ou Zod validation explicite avec messages clairs au lieu de HTTP 500 sur null violation)
+- Phase 1 v2.1+: export PDF natif, beat sheet, editeur prose Atelier Roman
+- Integration Stripe complete (les champs DB sont prets)
+- BraveHeart: valider visuellement l'admin /admin onglet Abonnements et le flow signup/login dans le navigateur
+
+Securite finale (post-audit complet):
+- .env restaure depuis .env.backup, .env.backup supprime (ls /opt/matrice/.env* ne montre que .env et .env.example)
+- Mode private restaure: viewer.role=owner, isPaid=True
+- User test audit2@test.local supprime (DELETE 1)
+- Projet test b755871f supprime (DELETE 1)
+- git status --short: vide
+
+Branche d'integration: integration/commercial-access-v07-vps a 3d42775 (= origin/codex-commercial-access-v07)
+Main reste a 8a4c608 / v0.5-private-memory.
+
+Prochaine etape proposee:
+- BraveHeart: tester /admin (onglet Abonnements UI), tester signup/login dans navigateur sur https://matrice.essuf.fr en mode commercial pour validation visuelle
+- Apres validation: Codex peut merger v0.6 + v0.7 dans main, creer tags v0.6-memory-aware et v0.7-commercial-access
