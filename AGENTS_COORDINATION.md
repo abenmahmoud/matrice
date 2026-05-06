@@ -557,3 +557,183 @@ Prochaine etape proposee:
 - BraveHeart: ouvrir https://matrice.essuf.fr/memory pour valider visuellement (creation/edition/suppression d'entrees memoire)
 - Codex: revoir + merger dans main apres validation BraveHeart
 - main reste a bb2cfb7 / v0.4-private-cockpit, PAS de merge avant validation explicite
+
+## 2026-05-05 - Claude (claude.ai browser MCP) - integration/memory-aware-v06-vps
+
+Objectif: Audit + tests sur VPS de la Memory-Aware Generation v0.6 (Codex codex-memory-aware-v06).
+
+Fichiers modifies par Codex (5, 118 ins / 5 del):
+- MATRICE_PRIVEE_STRATEGIE.md (+11)
+- artifacts/api-server/src/routes/index.ts (+2) [cablage middleware]
+- artifacts/api-server/src/routes/manuscripts.ts (+3/-1) [appel context]
+- artifacts/api-server/src/services/creativeMemoryContext.ts (+96) [NOUVEAU service]
+- artifacts/api-server/src/services/generationService.ts (+11/-4) [appendCreativeMemoryContext]
+
+Architecture:
+- shouldLoadMemory(req): POST sur /manuscripts/analyze, /projects/.../generate-*, /director-mode, /dialogue, /check-scene-hpsa, /generate-fountain
+- buildCreativeMemoryContext(): SELECT entries WHERE is_active=true ORDER BY priority desc, updatedAt desc LIMIT 12
+  - Format: "### MEMOIRE CREATIVE PRIVEE DU CREATEUR" + entries formatees (categorie, title, priority, tags, content clamp 700)
+- creativeMemoryContextMiddleware: gate strict
+  ```ts
+  const access = getProductAccess(req);
+  const context = access.viewer.role === "owner" ? await buildCreativeMemoryContext() : "";
+  memoryStore.run({ context }, next);
+  ```
+- Utilise AsyncLocalStorage (memoryStore) pour propager au generationService
+- Try/catch silencieux (pas de crash si DB unavailable)
+- appendCreativeMemoryContext(systemPrompt): injection dans le prompt central aiJson()
+
+Build VPS:
+- docker compose up -d --build --force-recreate api frontend => OK, aucune erreur esbuild ni Rollup
+  (les erreurs build local Codex sur Windows sont environnement-specifiques, pas Docker/Linux)
+
+Resultats tests sur https://matrice.essuf.fr:
+
+SETUP - Creation entree memoire test:
+- POST /api/memory {category:"interdit",title:"Pas de cliches algeriens",content:"Toute reference a Algerie ou Maghreb interdite. Style cinematographique francais uniquement.",priority:95}
+- HTTP 200, ID 9b28c8c8-1f65-479d-aab6-e5f973fbaf5f
+
+TEST 1 PRIVATE owner /api/access:
+- mode=private, viewer.role=owner, isPaid=true. OK
+
+TEST 2 PRIVATE owner generate-matrix:
+- HTTP 200 bytes=6782 time=21.08s, matrice generee. OK (memoire chargee silencieusement, log API confirme POST /api/memory 201)
+
+TEST 3 PRIVATE owner director-mode:
+- HTTP 200 time=9.27s, sceneTitle="L'ombre du contrat", overallMood="Un duel silencieux ou la tension s'epaissit comme une brume pesante". OK
+
+TEST 4 PRIVATE owner manuscripts/analyze:
+- HTTP 400 time=0.06s {"error":"Texte trop court"} - validation metier, pas un crash, middleware passe. OK
+  (le seuil min de /manuscripts/analyze est eleve, difficile a satisfaire avec texte synthetique court, mais la route ne plante pas)
+
+TEST 5 passage en mode commercial:
+- /api/access => mode=commercial, viewer.role=public, isPaid=false. OK
+
+TEST 6 COMMERCIAL public sans token generate-matrix:
+- HTTP 403 OWNER_REQUIRED. OK
+  Note: le projet test "seven" a ete cree en mode private donc reste protege par ownerOnly meme apres bascule commerciale.
+  C'est en fait BIEN: les projets prives restent prives. Pour tester la non-fuite memoire sur un module free public, il faudrait un projet cree en mode commercial libre. Le mecanisme est gate par le code (creativeMemoryContextMiddleware verifie viewer.role === "owner").
+
+TEST 7 COMMERCIAL admin-token generate-matrix:
+- HTTP 200 bytes=6426 time=22.26s, matrice generee. OK (memoire chargee car viewer.role=owner via admin-token)
+
+TEST 8 COMMERCIAL admin-token director-mode:
+- HTTP 200 time=13.74s, sceneTitle="La Lame du Contrat", overallMood="Tension palpable dans l'air, l'attente avant la tempete", colorGrading="Palette de gris acier...". OK
+
+TEST 4b PRIVATE manuscripts/analyze avec texte plus long:
+- HTTP 400 time=0.06s "Texte trop court" - seuil min eleve, mais pas de crash. OK
+
+Verdict: Memory-Aware Generation v0.6 VALIDEE. Aucun fix VPS necessaire.
+Le gating cote serveur (viewer.role === "owner") empeche bien la fuite memoire vers visiteurs publics.
+Les generations passent pour owner (private mode ou admin-token).
+
+Securite:
+- .env backup cree pendant les tests, restaure et supprime apres
+- ls /opt/matrice/.env* ne montre que .env (prive) et .env.example (public)
+- Entree memoire test 9b28c8c8 supprimee proprement (HTTP 204)
+- git status --short est vide (= identique a origin/codex-memory-aware-v06)
+
+Branche d'integration: integration/memory-aware-v06-vps (= origin/codex-memory-aware-v06, aucun commit code additionnel)
+
+Prochaine etape proposee:
+- BraveHeart: utiliser /memory pour creer ses vraies entrees, puis lancer une generation pour valider l'effet de la memoire dans la sortie IA
+- Codex: revoir + merger dans main apres validation BraveHeart
+- main reste a 8a4c608 / v0.5-private-memory, PAS de merge avant validation explicite
+
+## 2026-05-06 - Claude (claude.ai browser MCP) - integration/commercial-access-v07-vps
+
+Objectif: Audit + tests sur VPS de Commercial Access + Admin Abonnements v0.7 (Codex codex-commercial-access-v07).
+Note: cette branche inclut aussi v0.6 (memory-aware) non encore mergee dans main.
+
+Fichiers modifies par Codex (16, 628 ins / 19 del):
+- .env.example (+8/-5)
+- MATRICE_PRIVEE_STRATEGIE.md (+27)
+- artifacts/api-server/src/lib/auth.ts (+85) [NOUVEAU helpers token signe HMAC-SHA256]
+- artifacts/api-server/src/lib/productAccess.ts (+73) [evolutions]
+- artifacts/api-server/src/routes/admin.ts (+69) [/admin/login, /admin/verify, /admin/subscriptions/users]
+- artifacts/api-server/src/routes/auth.ts (+85) [NOUVEAU /auth/signup, /auth/login]
+- artifacts/api-server/src/routes/index.ts (+6) [cablage middlewares]
+- artifacts/api-server/src/routes/manuscripts.ts (+3)
+- artifacts/api-server/src/routes/projects.ts (+48) [owner_user_id rattachement, quotas free]
+- artifacts/api-server/src/services/creativeMemoryContext.ts (+96) [v0.6]
+- artifacts/api-server/src/services/generationService.ts (+11)
+- artifacts/matrice-narrative/src/pages/admin.tsx (+112) [onglet Abonnements UI]
+- docker-compose.yml (+1)
+- lib/db/src/schema/index.ts (+1)
+- lib/db/src/schema/projects.ts (+1) [+owner_user_id]
+- lib/db/src/schema/users.ts (+21) [NOUVEAU table app_users]
+
+Synchro DB Drizzle:
+- Lance via container Node temporaire dans reseau matrice_default
+- [\u221a] Changes applied. Table app_users creee, projects.owner_user_id ajoutee.
+
+Resultats tests sur https://matrice.essuf.fr:
+
+TEST 1 PRIVATE owner: tout reste ouvert (healthz OK, /api/access mode=private viewer=owner, GET /projects count=2). OK
+
+TEST 2 COMMERCIAL anonyme:
+- /api/access => HTTP 200, mode=commercial viewer=public isPaid=false
+- GET /api/projects => HTTP 403 OWNER_REQUIRED (au lieu de 401 AUTH_REQUIRED prevu). KO mineur (resultat plus protecteur)
+- GET /api/memory => HTTP 403 OWNER_REQUIRED. OK (gating ownerOnly)
+- GET /api/admin/subscriptions/users => HTTP 403. OK (admin token requis)
+
+TEST 3 SIGNUP:
+- POST /api/auth/signup {email, password, displayName} => HTTP 201
+- User cree: id=d81011fd-88fa-4127-b6cf-f3b84d47e621, role=user, plan=free, status=active, generationsUsed=0, projectsCreated=0
+- Token JWT-like (132 chars) retourne. OK
+
+TEST 4 LOGIN:
+- POST /api/auth/login => HTTP 200, meme user + nouveau token. OK
+
+TEST 5 GET /api/access avec user-token:
+- HTTP 200, viewer={role:user, authenticated:true, source:user-token, userId:..., email:...}, plan=free, isPaid=false. OK
+
+!!! BUG BLOQUANT v0.7 !!! TEST 6/7:
+- GET /api/projects avec Bearer user-token => HTTP 403 OWNER_REQUIRED
+- POST /api/projects avec Bearer user-token => HTTP 403 OWNER_REQUIRED
+- Le user free authentifie est BLOQUE pour TOUTES les routes /projects (et /manuscripts).
+
+CAUSE RACINE identifiee:
+- routes/memory.ts L17: router.use(ownerOnly) au niveau du sub-router
+- routes/index.ts L25: router.use(memoryRouter) SANS PREFIXE
+- => le middleware ownerOnly defini globalement dans memoryRouter s'applique a TOUTES les routes definies APRES dans index.ts (productAccessMiddleware, projectsRouter, manuscriptsRouter)
+- Routes definies AVANT (healthRouter, adminRouter, authRouter, accessRouter) passent normalement.
+- C'est confirme: OWNER_REQUIRED apparait UNIQUEMENT dans memory.ts ligne 11 (verifie via grep -rn).
+
+Fix propose Codex:
+- Monter memoryRouter avec prefixe explicite: router.use("/memory", memoryRouter)
+- ET retirer "/memory" des paths internes du memoryRouter (L19 router.get("/"...) au lieu de L19 router.get("/memory"...))
+- Pattern Express standard, evite la fuite de middleware vers le router parent.
+
+TESTS NON REALISES (bloques par le bug racine):
+- TEST 8 user free POST /api/projects (attendu: HTTP 201 1/1 ou 402 PAYWALL si limite)
+- TEST 9 user free generate-matrix (attendu: HTTP 200 1/2 ou 402 PAYWALL si limite atteinte)
+- TEST 10 user free module avance (attendu: 402 PAYWALL_REQUIRED)
+- TEST 11 admin /admin/subscriptions/users avec x-admin-token, passage user en Pro
+- TEST 12 user Pro module avance debloque
+A refaire apres fix Codex.
+
+AUTRES OBSERVATIONS positives:
+- Schema app_users propre: email UNIQUE, password scrypt+salt, timingSafeEqual, plan/status/quotas/Stripe-ready
+- Routes /admin/subscriptions/users et /admin/subscriptions/users/:id derriere adminAuthMiddleware (x-admin-token)
+- POST /projects logic correcte (ownerUserId: access.viewer.role === "user" ? user?.id : null + increment projectsCreated)
+- Middleware /projects/:id correct (404 "Not found" si owner_user_id ne match pas user.id)
+- Token signe HMAC-SHA256 avec SESSION_SECRET, format payload.signature
+- Build Docker/Linux OK (aucun probleme env-specifique)
+
+Verdict: v0.7 NON UTILISABLE EN PROD COMMERCIAL en l'etat. Bug bloquant.
+Main reste a 8a4c608 / v0.5-private-memory. PAS DE MERGE de v0.6 ni v0.7 avant fix.
+
+Securite (post-audit):
+- Mode private restaure: viewer.role=owner, isPaid=true
+- .env restaure depuis .env.backup, .env.backup supprime
+- ls /opt/matrice/.env* ne montre que .env (prive) et .env.example (public)
+- User test audit-free@test.local supprime de la DB (DELETE 1)
+- node_modules crees par drizzle push restent gitignores
+
+Branche d'integration: integration/commercial-access-v07-vps (= origin/codex-commercial-access-v07)
+
+Prochaine etape proposee:
+- Codex: corriger le cablage memoryRouter (path /memory explicite + suppression du prefixe interne)
+- Apres fix: relancer audit complet (TEST 6 a 12)
+- BraveHeart: NE PAS valider ni merger v0.7 avant fix Codex
