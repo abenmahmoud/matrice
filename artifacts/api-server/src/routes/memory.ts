@@ -16,7 +16,7 @@ function ownerOnly(req: Request, res: Response, next: NextFunction): void {
 
 router.use(ownerOnly);
 
-router.get("/memory", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const entries = await db
       .select()
@@ -29,7 +29,7 @@ router.get("/memory", async (req, res) => {
   }
 });
 
-router.post("/memory", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const body = req.body as {
       category?: string;
@@ -62,7 +62,7 @@ router.post("/memory", async (req, res) => {
   }
 });
 
-router.patch("/memory/:id", async (req, res) => {
+router.patch("/:id", async (req, res) => {
   try {
     const [entry] = await db
       .update(creativeMemoryEntriesTable)
@@ -80,7 +80,7 @@ router.patch("/memory/:id", async (req, res) => {
   }
 });
 
-router.delete("/memory/:id", async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     await db.delete(creativeMemoryEntriesTable).where(eq(creativeMemoryEntriesTable.id, req.params.id));
     res.status(204).send();

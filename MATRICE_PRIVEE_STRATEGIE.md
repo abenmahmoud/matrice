@@ -171,6 +171,33 @@ Objectif: commencer a stocker la sensibilite creative du proprietaire.
 - Navigation globale vers la memoire privee.
 - Prochaine etape: injecter cette memoire dans les prompts IA.
 
+## Phase 9 - Generations Conscientes De La Memoire V1
+
+Objectif: faire respecter la memoire privee dans les generations IA sans fuite
+vers le futur public commercial.
+
+- Les entrees actives de `/memory` sont chargees pour les requetes IA.
+- La memoire est injectee dans le prompt systeme central `aiJson()`.
+- Le dialogue personnage et l'analyse manuscrit recoivent aussi le contexte.
+- Le chargement est request-scoped et seulement si `viewer.role === "owner"`.
+- En mode commercial public, aucune note privee n'est chargee ni envoyee a l'IA.
+
+## Phase 10 - Acces Commercial, Comptes Et Quotas V1
+
+Objectif: empecher l'usage gratuit anonyme et donner au proprietaire un controle
+manuel des abonnements avant Stripe.
+
+- Comptes locaux email/mot de passe avec token signe par `SESSION_SECRET`.
+- En mode `commercial`, les anonymes recoivent `401 AUTH_REQUIRED` sur les API
+  utiles.
+- Les comptes `free` ont un nombre limite de projets et generations gratuites.
+- Les modules avances restent bloques par `402 PAYWALL_REQUIRED` tant que le
+  compte n'est pas `pro` ou `owner`.
+- Les projets crees en mode commercial sont rattaches au compte utilisateur.
+- L'admin peut voir les comptes, passer un utilisateur en Pro, suspendre un compte
+  et remettre les quotas a zero.
+- Stripe viendra ensuite mettre a jour ces memes champs via webhook.
+
 ## Methode De Travail
 
 Chaque bloc suit le meme rythme:

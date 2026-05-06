@@ -5,11 +5,13 @@ import {
   charactersTable, relationshipsTable, worldDataTable, researchDataTable,
   hpsaScoresTable, bookOutlinesTable, screenplaysTable, seriesTable, pitchDocumentsTable,
   narrativeSkillsTable, projectSkillsTable,
-  filmDataTable, filmScenesTable,
+  filmDataTable, filmScenesTable, appUsersTable,
   sruScoresTable, cinemaKnowledgeTable
 } from "@workspace/db";
 import { getSkillsContextString } from "../services/skillsInjectionService.js";
 import { eq, and, asc } from "drizzle-orm";
+import { getAuthUser } from "../lib/auth.js";
+import { getProductAccess } from "../lib/productAccess.js";
 import {
   generateNarrativeMatrix, generateEmotionalCore, generateEmotionalPath,
   generateCharacters, generateRelationships, generateWorldAndTimeline,
@@ -125,7 +127,11 @@ async function sseRun(
 // GET /api/projects
 router.get("/projects", async (req, res) => {
   try {
-    const projects = await db.select().from(projectsTable).orderBy(projectsTable.updatedAt);
+    const access = getProductAccess(req);
+    const user = getAuthUser(req);
+    const projects = access.mode === "commercial" && access.viewer.role === "user" && user
+      ? await db.select().from(projectsTable).where(eq(projectsTable.ownerUserId, user.id)).orderBy(projectsTable.updatedAt)
+      : await db.select().from(projectsTable).orderBy(projectsTable.updatedAt);
     res.json(projects.reverse());
   } catch (err) {
     req.log.error({ err }, "Failed to list projects");
@@ -136,6 +142,13 @@ router.get("/projects", async (req, res) => {
 // POST /api/projects
 router.post("/projects", async (req, res) => {
   try {
+    const access = getProductAccess(req);
+    const user = getAuthUser(req);
+    if (access.mode === "commercial" && access.viewer.role === "user" && user && !access.isPaid && user.projectsCreated >= access.limits.freeProjectLimit) {
+      res.status(402).json({ error: "FREE_PROJECT_LIMIT_REACHED", access });
+      return;
+    }
+
     const body = req.body;
     const [project] = await db.insert(projectsTable).values({
       title: body.title,
@@ -152,11 +165,42 @@ router.post("/projects", async (req, res) => {
       cinematicReferences: body.cinematicReferences ?? "",
       inspirationSources: body.inspirationSources ?? "",
       manuscriptExcerpt: body.manuscriptExcerpt ?? "",
+      ownerUserId: access.viewer.role === "user" ? user?.id : null,
       progression: 5,
     }).returning();
+    if (user && access.viewer.role === "user") {
+      await db.update(appUsersTable)
+        .set({ projectsCreated: user.projectsCreated + 1, updatedAt: new Date() })
+        .where(eq(appUsersTable.id, user.id));
+    }
     res.status(201).json(project);
   } catch (err) {
     req.log.error({ err }, "Failed to create project");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.use("/projects/:id", async (req, res, next) => {
+  try {
+    const access = getProductAccess(req);
+    const user = getAuthUser(req);
+    if (access.mode !== "commercial" || access.viewer.role !== "user" || !user) {
+      next();
+      return;
+    }
+
+    const [project] = await db
+      .select({ ownerUserId: projectsTable.ownerUserId })
+      .from(projectsTable)
+      .where(eq(projectsTable.id, req.params.id))
+      .limit(1);
+    if (!project || project.ownerUserId !== user.id) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+    next();
+  } catch (err) {
+    req.log.error({ err }, "Failed to check project ownership");
     res.status(500).json({ error: "Internal server error" });
   }
 });
