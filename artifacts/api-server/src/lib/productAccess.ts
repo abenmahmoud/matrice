@@ -1,9 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
+import { db, appUsersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
+import { getAuthUser } from "./auth.js";
 import { generateAdminToken } from "../middleware/adminAuth.js";
 
 export type ProductMode = "private" | "commercial";
 export type ProductPlan = "private" | "free" | "pro";
-export type ViewerRole = "owner" | "public";
+export type ViewerRole = "owner" | "user" | "public";
 
 export type ProductAccess = {
   mode: ProductMode;
@@ -11,13 +14,16 @@ export type ProductAccess = {
   viewer: {
     role: ViewerRole;
     authenticated: boolean;
-    source: "private-mode" | "admin-token" | "anonymous";
+    source: "private-mode" | "admin-token" | "user-token" | "anonymous";
+    userId?: string;
+    email?: string;
   };
   isPrivate: boolean;
   isPaid: boolean;
   limits: {
     freeProjectLimit: number;
     freeProgressionCap: number;
+    freeGenerationLimit: number;
     freeUnlockedModules: string[];
   };
   paywall: {
@@ -51,13 +57,23 @@ export function getProductAccess(req?: Request): ProductAccess {
   const mode = readProductMode();
   const isOwnerByPrivateMode = mode === "private";
   const isOwnerByAdminToken = hasValidAdminToken(req);
+  const user = req ? getAuthUser(req) : null;
   const viewer: ProductAccess["viewer"] = isOwnerByPrivateMode
     ? { role: "owner", authenticated: true, source: "private-mode" }
     : isOwnerByAdminToken
       ? { role: "owner", authenticated: true, source: "admin-token" }
-      : { role: "public", authenticated: false, source: "anonymous" };
+      : user
+        ? {
+          role: user.role === "owner" ? "owner" : "user",
+          authenticated: true,
+          source: "user-token",
+          userId: user.id,
+          email: user.email,
+        }
+        : { role: "public", authenticated: false, source: "anonymous" };
 
-  const plan: ProductPlan = viewer.role === "owner" ? "private" : readPlan();
+  const userPlan = user?.plan === "pro" ? "pro" : "free";
+  const plan: ProductPlan = viewer.role === "owner" ? "private" : user ? userPlan : readPlan();
   const isPrivate = viewer.role === "owner";
   const isPaid = isPrivate || plan === "pro";
 
@@ -70,6 +86,7 @@ export function getProductAccess(req?: Request): ProductAccess {
     limits: {
       freeProjectLimit: Number(process.env["MATRICE_FREE_PROJECT_LIMIT"] ?? 1),
       freeProgressionCap: Number(process.env["MATRICE_FREE_PROGRESSION_CAP"] ?? 35),
+      freeGenerationLimit: Number(process.env["MATRICE_FREE_GENERATION_LIMIT"] ?? 2),
       freeUnlockedModules,
     },
     paywall: {
@@ -81,8 +98,23 @@ export function getProductAccess(req?: Request): ProductAccess {
   };
 }
 
-function isAdvancedGeneration(req: Request): boolean {
+export function isGenerationRequest(req: Request): boolean {
   if (req.method !== "POST") return false;
+
+  const path = req.path;
+  if (path === "/manuscripts/analyze") return true;
+  if (!path.startsWith("/projects/")) return false;
+
+  return (
+    /^\/projects\/[^/]+\/generate-/.test(path) ||
+    /^\/projects\/[^/]+\/director-mode$/.test(path) ||
+    /^\/projects\/[^/]+\/characters\/[^/]+\/dialogue$/.test(path) ||
+    /^\/projects\/[^/]+\/check-scene-hpsa$/.test(path)
+  );
+}
+
+function isAdvancedGeneration(req: Request): boolean {
+  if (!isGenerationRequest(req)) return false;
 
   const path = req.path;
   if (path === "/manuscripts/analyze") return true;
@@ -99,10 +131,35 @@ function isAdvancedGeneration(req: Request): boolean {
   );
 }
 
-export function productAccessMiddleware(req: Request, res: Response, next: NextFunction): void {
+export async function productAccessMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   const access = getProductAccess(req);
 
-  if (access.isPaid || !isAdvancedGeneration(req)) {
+  if (access.mode === "commercial" && !access.viewer.authenticated) {
+    res.status(401).json({ error: "AUTH_REQUIRED", access });
+    return;
+  }
+
+  if (access.isPaid || !isGenerationRequest(req)) {
+    next();
+    return;
+  }
+
+  const user = getAuthUser(req);
+  if (user && user.generationsUsed >= access.limits.freeGenerationLimit) {
+    res.status(402).json({
+      error: "FREE_GENERATION_LIMIT_REACHED",
+      access,
+    });
+    return;
+  }
+
+  if (!isAdvancedGeneration(req)) {
+    if (user) {
+      await db
+        .update(appUsersTable)
+        .set({ generationsUsed: user.generationsUsed + 1, updatedAt: new Date() })
+        .where(eq(appUsersTable.id, user.id));
+    }
     next();
     return;
   }

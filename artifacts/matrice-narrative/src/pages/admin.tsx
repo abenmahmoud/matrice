@@ -7,7 +7,7 @@ import {
   Lock, Eye, EyeOff, Trash2, Shield, RefreshCw, CheckCircle2, Circle,
   ChevronDown, ChevronUp, TrendingUp, Calendar, Map, Check, Circle as CircleIcon,
   ScanText, Film, Database, Plus, Pencil, X, ToggleLeft, ToggleRight,
-  Loader2, BarChart3
+  Loader2, BarChart3, Users, CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdminAnalysesTab } from "@/components/AdminAnalysesTab";
@@ -43,6 +43,18 @@ type Stats = {
   coverageMatrix: Record<string, Record<string, boolean>>;
 };
 type Taxonomy = { eras: Era[]; cultures: Culture[]; mediums: Medium[]; researchTypes: ResearchType[]; universalThemes: string[]; narrativeEmotions: string[]; universalArchetypes: string[] };
+type SubscriptionUser = {
+  id: string;
+  email: string;
+  displayName: string;
+  role: "user" | "owner";
+  plan: "free" | "pro";
+  status: "active" | "suspended";
+  generationsUsed: number;
+  projectsCreated: number;
+  stripeCustomerId?: string | null;
+  createdAt: string;
+};
 
 // ---------------------------------------------------------------------------
 // Login
@@ -542,6 +554,100 @@ function GenBar({ state }: { state: { isGenerating: boolean; progress: number; s
   );
 }
 
+function AdminSubscriptionsPanel({ adminHeaders }: { adminHeaders: () => HeadersInit }) {
+  const { toast } = useToast();
+  const [users, setUsers] = useState<SubscriptionUser[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    const res = await fetch(`${BASE}/api/admin/subscriptions/users`, { headers: adminHeaders() });
+    if (res.ok) setUsers(await res.json() as SubscriptionUser[]);
+    setLoading(false);
+  }, [adminHeaders]);
+
+  useEffect(() => { void loadUsers(); }, [loadUsers]);
+
+  const updateUser = async (id: string, body: Record<string, unknown>) => {
+    setSavingId(id);
+    const res = await fetch(`${BASE}/api/admin/subscriptions/users/${id}`, {
+      method: "PATCH",
+      headers: adminHeaders(),
+      body: JSON.stringify(body),
+    });
+    setSavingId(null);
+    if (!res.ok) {
+      toast({ title: "Mise a jour refusee", variant: "destructive" });
+      return;
+    }
+    const updated = await res.json() as SubscriptionUser;
+    setUsers(prev => prev.map(user => user.id === id ? { ...user, ...updated } : user));
+    toast({ title: "Compte mis a jour", description: updated.email });
+  };
+
+  if (loading) return <div className="flex items-center gap-3 text-sm text-white/40"><Loader2 className="w-4 h-4 animate-spin" />Chargement abonnements...</div>;
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-bold flex items-center gap-2"><CreditCard className="w-5 h-5 text-violet-300" />Abonnements</h2>
+          <p className="text-sm text-white/30 mt-0.5">{users.length} compte{users.length > 1 ? "s" : ""} inscrit{users.length > 1 ? "s" : ""}</p>
+        </div>
+        <Button onClick={() => void loadUsers()} size="sm" variant="outline"><RefreshCw className="w-4 h-4 mr-2" />Rafraichir</Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {[
+          { label: "Free", value: users.filter(u => u.plan === "free").length },
+          { label: "Pro", value: users.filter(u => u.plan === "pro").length },
+          { label: "Suspendus", value: users.filter(u => u.status === "suspended").length },
+        ].map(item => (
+          <div key={item.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
+            <p className="text-xs text-white/25 uppercase tracking-wider">{item.label}</p>
+            <p className="text-2xl font-bold mt-1">{item.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {users.length === 0 ? (
+        <div className="text-center py-16 border border-white/[0.06] rounded-2xl">
+          <Users className="w-10 h-10 text-white/10 mx-auto mb-3" />
+          <p className="text-sm text-white/30">Aucun utilisateur inscrit pour le moment.</p>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-white/[0.06] overflow-hidden">
+          {users.map(user => (
+            <div key={user.id} className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 p-4 border-b border-white/[0.06] last:border-b-0 bg-white/[0.02]">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-medium text-white truncate">{user.email}</p>
+                  <span className={cn("text-xs px-2 py-0.5 rounded-full border", user.plan === "pro" ? "bg-green-500/15 text-green-300 border-green-500/25" : "bg-white/5 text-white/45 border-white/10")}>{user.plan.toUpperCase()}</span>
+                  <span className={cn("text-xs px-2 py-0.5 rounded-full border", user.status === "active" ? "bg-violet-500/15 text-violet-300 border-violet-500/25" : "bg-red-500/15 text-red-300 border-red-500/25")}>{user.status}</span>
+                  {user.role === "owner" && <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-500/15 text-amber-300 border-amber-500/25">OWNER</span>}
+                </div>
+                <p className="text-xs text-white/30 mt-1">
+                  {user.projectsCreated} projet{user.projectsCreated > 1 ? "s" : ""} - {user.generationsUsed} generation{user.generationsUsed > 1 ? "s" : ""} - inscrit le {new Date(user.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 items-center">
+                <Button size="sm" variant={user.plan === "pro" ? "secondary" : "outline"} disabled={savingId === user.id} onClick={() => void updateUser(user.id, { plan: user.plan === "pro" ? "free" : "pro" })}>
+                  {user.plan === "pro" ? "Repasser Free" : "Passer Pro"}
+                </Button>
+                <Button size="sm" variant="outline" disabled={savingId === user.id} onClick={() => void updateUser(user.id, { resetUsage: true })}>Reset quota</Button>
+                <Button size="sm" variant="outline" disabled={savingId === user.id} onClick={() => void updateUser(user.id, { status: user.status === "active" ? "suspended" : "active" })}>
+                  {user.status === "active" ? "Suspendre" : "Reactiver"}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Dashboard
 // ---------------------------------------------------------------------------
@@ -553,6 +659,7 @@ const TABS = [
   { key: "ai-skills", label: "Skills IA", icon: Sparkles },
   { key: "cinema", label: "Cinéma", icon: Film },
   { key: "ai-stats", label: "Stats IA", icon: BarChart3 },
+  { key: "subscriptions", label: "Abonnements", icon: CreditCard },
   { key: "seed", label: "Seed", icon: Database },
   { key: "roadmap", label: "Roadmap", icon: Map },
 ];
@@ -772,6 +879,9 @@ function AdminDashboard() {
 
           {/* TAB: AI STATS */}
           {tab === "ai-stats" && <AiStatsPanel adminHeaders={adminHeaders} />}
+
+          {/* TAB: ABONNEMENTS */}
+          {tab === "subscriptions" && <AdminSubscriptionsPanel adminHeaders={adminHeaders} />}
 
           {/* TAB: SEED */}
           {tab === "seed" && <SeedPanel adminHeaders={adminHeaders} />}

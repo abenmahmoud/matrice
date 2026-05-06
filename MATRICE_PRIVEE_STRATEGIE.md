@@ -182,6 +182,22 @@ vers le futur public commercial.
 - Le chargement est request-scoped et seulement si `viewer.role === "owner"`.
 - En mode commercial public, aucune note privee n'est chargee ni envoyee a l'IA.
 
+## Phase 10 - Acces Commercial, Comptes Et Quotas V1
+
+Objectif: empecher l'usage gratuit anonyme et donner au proprietaire un controle
+manuel des abonnements avant Stripe.
+
+- Comptes locaux email/mot de passe avec token signe par `SESSION_SECRET`.
+- En mode `commercial`, les anonymes recoivent `401 AUTH_REQUIRED` sur les API
+  utiles.
+- Les comptes `free` ont un nombre limite de projets et generations gratuites.
+- Les modules avances restent bloques par `402 PAYWALL_REQUIRED` tant que le
+  compte n'est pas `pro` ou `owner`.
+- Les projets crees en mode commercial sont rattaches au compte utilisateur.
+- L'admin peut voir les comptes, passer un utilisateur en Pro, suspendre un compte
+  et remettre les quotas a zero.
+- Stripe viendra ensuite mettre a jour ces memes champs via webhook.
+
 ## Methode De Travail
 
 Chaque bloc suit le meme rythme:
