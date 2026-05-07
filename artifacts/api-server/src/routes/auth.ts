@@ -2,10 +2,11 @@ import { Router, type IRouter } from "express";
 import { db, appUsersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { createAuthActionToken, createUserToken, getAuthUser, hashPassword, verifyPassword } from "../lib/auth.js";
-import { sendVerificationEmail } from "../services/emailService.js";
+import { sendPasswordResetEmail, sendVerificationEmail } from "../services/emailService.js";
 
 const router: IRouter = Router();
 const VERIFICATION_RESEND_COOLDOWN_MS = 1000 * 60;
+const PASSWORD_RESET_TTL_MS = 1000 * 60 * 60;
 
 function publicUser(user: typeof appUsersTable.$inferSelect) {
   return {
@@ -192,6 +193,90 @@ router.post("/auth/resend-verification", async (req, res) => {
     res.json({ ok: true, emailDelivery });
   } catch (err) {
     req.log.error({ err }, "Failed to resend verification email");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/auth/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body as { email?: string };
+    const normalizedEmail = email?.trim().toLowerCase();
+    if (!normalizedEmail) {
+      res.status(400).json({ error: "EMAIL_REQUIRED" });
+      return;
+    }
+
+    const [user] = await db.select().from(appUsersTable).where(eq(appUsersTable.email, normalizedEmail)).limit(1);
+    if (!user || user.status !== "active") {
+      res.json({ ok: true });
+      return;
+    }
+
+    const [updatedUser] = await db
+      .update(appUsersTable)
+      .set({
+        passwordResetToken: createAuthActionToken(),
+        passwordResetExpiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
+        updatedAt: new Date(),
+      })
+      .where(eq(appUsersTable.id, user.id))
+      .returning();
+
+    if (!updatedUser.passwordResetToken) {
+      res.status(500).json({ error: "RESET_TOKEN_NOT_CREATED" });
+      return;
+    }
+
+    const emailDelivery = await sendPasswordResetEmail({
+      to: updatedUser.email,
+      displayName: updatedUser.displayName,
+      token: updatedUser.passwordResetToken,
+    });
+
+    if (emailDelivery.status === "failed") {
+      req.log.warn({ emailDelivery }, "Password reset email delivery failed");
+    }
+
+    res.json({ ok: true, emailDelivery });
+  } catch (err) {
+    req.log.error({ err }, "Failed to request password reset");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/auth/reset-password", async (req, res) => {
+  try {
+    const { token, password } = req.body as { token?: string; password?: string };
+    if (!token || !password || password.length < 8) {
+      res.status(400).json({ error: "TOKEN_AND_PASSWORD_REQUIRED" });
+      return;
+    }
+
+    const [user] = await db
+      .select()
+      .from(appUsersTable)
+      .where(eq(appUsersTable.passwordResetToken, token))
+      .limit(1);
+
+    if (!user || !user.passwordResetExpiresAt || user.passwordResetExpiresAt <= new Date()) {
+      res.status(400).json({ error: "INVALID_OR_EXPIRED_TOKEN" });
+      return;
+    }
+
+    const [updatedUser] = await db
+      .update(appUsersTable)
+      .set({
+        passwordHash: hashPassword(password),
+        passwordResetToken: null,
+        passwordResetExpiresAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(appUsersTable.id, user.id))
+      .returning();
+
+    res.json({ user: publicUser(updatedUser), token: updatedUser.isEmailVerified ? createUserToken(updatedUser) : null });
+  } catch (err) {
+    req.log.error({ err }, "Failed to reset password");
     res.status(500).json({ error: "Internal server error" });
   }
 });

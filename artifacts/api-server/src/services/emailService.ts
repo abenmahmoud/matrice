@@ -57,6 +57,10 @@ function verifyUrl(token: string): string {
   return `${publicBaseUrl()}/verify-email?token=${encodeURIComponent(token)}`;
 }
 
+function resetUrl(token: string): string {
+  return `${publicBaseUrl()}/reset-password?token=${encodeURIComponent(token)}`;
+}
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
@@ -93,6 +97,40 @@ export async function sendVerificationEmail(input: {
           <h1 style="font-size:26px;line-height:1.2;margin:0 0 16px">Confirme ton email</h1>
           <p style="color:#cbd5e1;font-size:15px;line-height:1.7;margin:0 0 22px">Bonjour ${htmlName}, ton compte est presque pret. Confirme ton email pour activer l'acces a ton espace createur.</p>
           <a href="${url}" style="display:inline-block;background:#8b5cf6;color:#fff;text-decoration:none;border-radius:999px;padding:13px 20px;font-weight:700">Confirmer mon email</a>
+          <p style="color:#94a3b8;font-size:13px;line-height:1.7;margin:24px 0 0">Si le bouton ne fonctionne pas, copie ce lien dans ton navigateur :<br><span style="word-break:break-all;color:#ddd6fe">${url}</span></p>
+        </div>
+      </div>
+    `,
+  });
+}
+
+export async function sendPasswordResetEmail(input: {
+  to: string;
+  displayName: string;
+  token: string;
+}): Promise<EmailDelivery> {
+  const url = resetUrl(input.token);
+  const name = input.displayName || "createur";
+  const htmlName = escapeHtml(name);
+
+  return sendEmail({
+    to: input.to,
+    subject: "Reinitialise ton mot de passe Matrice Narrative",
+    text: [
+      `Bonjour ${name},`,
+      "",
+      "Tu peux reinitialiser ton mot de passe avec ce lien valable 1 heure :",
+      url,
+      "",
+      "Si tu n'as pas demande cette action, ignore cet email.",
+    ].join("\n"),
+    html: `
+      <div style="font-family:Inter,Arial,sans-serif;background:#09090e;color:#f8fafc;padding:32px">
+        <div style="max-width:560px;margin:0 auto;background:#10101a;border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:28px">
+          <p style="color:#c4b5fd;font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin:0 0 18px">Matrice Narrative</p>
+          <h1 style="font-size:26px;line-height:1.2;margin:0 0 16px">Reinitialise ton mot de passe</h1>
+          <p style="color:#cbd5e1;font-size:15px;line-height:1.7;margin:0 0 22px">Bonjour ${htmlName}, ce lien est valable 1 heure.</p>
+          <a href="${url}" style="display:inline-block;background:#8b5cf6;color:#fff;text-decoration:none;border-radius:999px;padding:13px 20px;font-weight:700">Choisir un nouveau mot de passe</a>
           <p style="color:#94a3b8;font-size:13px;line-height:1.7;margin:24px 0 0">Si le bouton ne fonctionne pas, copie ce lien dans ton navigateur :<br><span style="word-break:break-all;color:#ddd6fe">${url}</span></p>
         </div>
       </div>

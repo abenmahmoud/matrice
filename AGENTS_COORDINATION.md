@@ -941,3 +941,27 @@ Verification locale:
 Attention VPS / prod:
 - Migration Drizzle requise avant rebuild prod pour ajouter les 5 colonnes `app_users`.
 - Verification visuelle encore a faire cote VPS/Linux.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 4)
+
+Ticket 4 - Forgot/reset password:
+- Backend:
+  - `POST /api/auth/forgot-password` cree un token reset valable 1 heure et tente l'envoi Resend.
+  - Reponse anti-enumeration: email inconnu => `{ ok: true }`.
+  - `POST /api/auth/reset-password` valide token + expiration, met a jour le hash scrypt et nettoie le token.
+  - Si l'utilisateur etait deja verifie, le reset retourne un bearer token; sinon il remet seulement le mot de passe.
+- Email:
+  - Template reset ajoute dans `emailService.ts`.
+  - Meme fallback Resend que verification email (`onboarding@resend.dev` tant que domaine non verifie).
+- Frontend:
+  - Page `/forgot-password` ajoutee.
+  - Page `/reset-password` ajoutee.
+  - Lien "Mot de passe oublie ?" ajoute sur `/signup`.
+- Aucun changement Stripe, aucun changement owner/memoire privee.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.

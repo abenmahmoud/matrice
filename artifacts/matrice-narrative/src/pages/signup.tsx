@@ -162,6 +162,9 @@ export default function SignupPage() {
                   placeholder="8 caracteres minimum"
                 />
               </label>
+              <Link href={`${BASE}/forgot-password`} className="block text-right text-sm text-white/45 transition hover:text-white">
+                Mot de passe oublie ?
+              </Link>
 
               {state.status === "error" && (
                 <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100">
