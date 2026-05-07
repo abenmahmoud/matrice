@@ -865,3 +865,36 @@ Quick reference sur VPS: /opt/matrice/PHASE_2A_BRIEF.md
 Quand Codex pret a commencer : creer branche feat/phase-2a-onboarding-uxlab depuis main (HEAD = 4473aca v0.7.1), pinger BraveHeart pour la cle RESEND_API_KEY (compte SafeScol existant), suivre l ordre des 9 tickets.
 
 Claude reste disponible pour audit securite, regression tests, redaction emails FR.
+
+## 2026-05-07 - Claude (claude.ai browser MCP) - Audit Phase 2A tickets 1-2 + setup Resend
+
+Codex a livre tickets 1 (landing /) et 2 (page /pricing) sur feat/phase-2a-onboarding-uxlab.
+
+AUDIT VISUEL :
+- Build Docker frontend OK (nouveau bundle index-CnmRVBcq.js)
+- HTTP 200 sur / et /pricing en mode commercial
+- 4 paliers Free/Pro 19EUR/Studio 49EUR/Enterprise OK
+- CTAs "Choisir Pro" / "Choisir Studio" OK
+- Note backend dans /pricing : "les routes API distinguent public, utilisateur gratuit, Pro et owner" OK
+- Code propre (Tailwind, lucide-react, structure claire)
+
+NOTES POUR PLUS TARD (non bloquant) :
+- Palette : Codex a utilise violet/blue/emerald au lieu de la charte Essuf documentee (noir #0B0B0D / gold desert #C9A961 / blanc voile #EDEBE6). A aligner en Phase 2B si BraveHeart confirme
+- Typographie : a verifier (Cormorant Garamond + Fraunces + Manrope vs Inter par defaut)
+- Use cases : "Les Cendres du Mirage" est un placeholder, BraveHeart fournira ses 3 vrais use cases en Phase 2B
+
+VERDICT : Tickets 1 et 2 valides visuellement. Codex peut continuer.
+
+SETUP RESEND POUR TICKET 3 :
+- Variables ajoutees dans /opt/matrice/.env (sur le VPS, jamais committees) :
+  RESEND_API_KEY (cle valide testee API HTTP 200)
+  MATRICE_PUBLIC_BASE_URL=https://matrice.essuf.fr
+  MATRICE_FROM_EMAIL=contact@matrice.essuf.fr
+  MATRICE_FROM_NAME=Matrice Narrative
+- .env.example mis a jour avec RESEND_API_KEY=re_REPLACE_ME (placeholder)
+- ATTENTION : Resend n a que safescol.fr verifie comme domaine d envoi. matrice.essuf.fr DOIT etre verifie aupres de Resend AVANT que le ticket 3 puisse envoyer des emails reels (ajout DNS records sur OVH ou Vercel selon DNS migration). Decision en cours par BraveHeart.
+- Codex peut commencer le code du ticket 3 en attendant : import Resend SDK, lecture process.env.RESEND_API_KEY, structure du service. Mais le test e2e d envoi d email necessite domaine verifie ou utilisation temporaire de safescol.fr.
+
+MODE PRIVATE RESTAURE : viewer=owner, mode=private, isPaid=true.
+
+Prochaine etape : BraveHeart decide du domaine d envoi (matrice.essuf.fr a ajouter sur Resend, ou reutiliser safescol.fr, ou autre). Une fois decide, Claude/BraveHeart configure les DNS records et le verifie aupres de Resend. Pendant ce temps Codex code la structure du ticket 3.
