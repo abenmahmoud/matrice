@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
 import { ArrowRight, CheckCircle2, Loader2, MailWarning, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { setUserToken } from "@/lib/userAuth";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-const USER_TOKEN_KEY = "matrice_user_token";
 
 type VerifyState =
   | { status: "checking" }
@@ -29,7 +29,7 @@ export default function VerifyEmailPage() {
         return;
       }
 
-      localStorage.setItem(USER_TOKEN_KEY, payload.token);
+      setUserToken(payload.token);
       setState({ status: "success" });
     }
 
@@ -65,8 +65,8 @@ export default function VerifyEmailPage() {
               Ton compte est active. Tu peux commencer ton premier projet narratif.
             </p>
             <Button asChild className="mt-8 bg-violet-500 text-white hover:bg-violet-400">
-              <Link href={`${BASE}/projects/new`}>
-                Creer un projet
+              <Link href={`${BASE}/onboarding`}>
+                Configurer mon espace
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

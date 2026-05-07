@@ -965,3 +965,24 @@ Verification a faire avant commit:
 - `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
 - `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
 - `git diff --check` OK.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 5)
+
+Ticket 5 - Onboarding wizard 3 ecrans:
+- Backend:
+  - `POST /api/auth/onboarding/complete` ajoute pour marquer `onboarding_completed_at`.
+  - Endpoint protege par bearer user token; retourne 401 `AUTH_REQUIRED` sans token.
+  - `AuthenticatedUser` expose maintenant `onboardingCompletedAt`.
+- Frontend:
+  - Helper `src/lib/userAuth.ts` ajoute pour stocker/lire le bearer token utilisateur.
+  - Page `/onboarding` ajoutee avec 3 ecrans: format, objectif, rythme.
+  - `/verify-email` redirige maintenant vers `/onboarding` apres confirmation.
+  - `/reset-password` reutilise le helper token.
+- Pas de changement sur memoire privee, owner gating, Stripe ou modules experimentaux.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.

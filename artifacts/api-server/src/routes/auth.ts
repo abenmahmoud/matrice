@@ -115,6 +115,27 @@ router.get("/auth/me", (req, res) => {
   res.json({ user });
 });
 
+router.post("/auth/onboarding/complete", async (req, res) => {
+  try {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: "AUTH_REQUIRED" });
+      return;
+    }
+
+    const [user] = await db
+      .update(appUsersTable)
+      .set({ onboardingCompletedAt: new Date(), updatedAt: new Date() })
+      .where(eq(appUsersTable.id, authUser.id))
+      .returning();
+
+    res.json({ user: publicUser(user) });
+  } catch (err) {
+    req.log.error({ err }, "Failed to complete onboarding");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.get("/auth/verify-email", async (req, res) => {
   try {
     const token = typeof req.query.token === "string" ? req.query.token : "";

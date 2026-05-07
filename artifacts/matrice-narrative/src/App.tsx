@@ -11,6 +11,7 @@ import SignupPage from "./pages/signup";
 import VerifyEmailPage from "./pages/verify-email";
 import ForgotPasswordPage from "./pages/forgot-password";
 import ResetPasswordPage from "./pages/reset-password";
+import OnboardingPage from "./pages/onboarding";
 import Dashboard from "./pages/dashboard";
 import NewProject from "./pages/new-project";
 import MatrixPage from "./pages/matrix";
@@ -58,6 +59,7 @@ function Router() {
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
+      <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/memory" component={MemoryPage} />
       <Route path="/analyse" component={AnalysePage} />

@@ -14,6 +14,7 @@ export type AuthenticatedUser = Pick<
   | "generationsUsed"
   | "projectsCreated"
   | "isEmailVerified"
+  | "onboardingCompletedAt"
 >;
 
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30;
@@ -80,6 +81,7 @@ async function resolveUserFromToken(token: string | null): Promise<Authenticated
       generationsUsed: user.generationsUsed,
       projectsCreated: user.projectsCreated,
       isEmailVerified: user.isEmailVerified,
+      onboardingCompletedAt: user.onboardingCompletedAt,
     };
   } catch {
     return null;

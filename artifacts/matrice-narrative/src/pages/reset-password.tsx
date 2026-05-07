@@ -3,9 +3,9 @@ import { Link } from "wouter";
 import { ArrowRight, CheckCircle2, KeyRound, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { setUserToken } from "@/lib/userAuth";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-const USER_TOKEN_KEY = "matrice_user_token";
 
 export default function ResetPasswordPage() {
   const token = useMemo(() => new URLSearchParams(window.location.search).get("token") ?? "", []);
@@ -31,7 +31,7 @@ export default function ResetPasswordPage() {
     }
 
     if (payload.token) {
-      localStorage.setItem(USER_TOKEN_KEY, payload.token);
+      setUserToken(payload.token);
     }
     setStatus("success");
   }
