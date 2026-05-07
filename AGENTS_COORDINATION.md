@@ -966,6 +966,22 @@ Verification a faire avant commit:
 - `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
 - `git diff --check` OK.
 
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 9)
+
+Ticket 9 - Validation Zod `POST /api/projects`:
+- `POST /api/projects` valide maintenant le payload avec `insertProjectSchema.safeParse`.
+- Reponse invalide: HTTP 400 `INVALID_PROJECT_INPUT` avec `issues[]` lisibles.
+- Remplace les anciens crashs DB 500 quand `rawIdea`, `title`, `genre`, `tone` ou `targetFormat` manquaient.
+- Pas de nouvelle dependance: reutilisation du schema Drizzle/Zod exporte par `@workspace/db`.
+- Logique quota Free et ownership inchangee.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+
 ## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 8)
 
 Ticket 8 - Modeles IA par plan:
