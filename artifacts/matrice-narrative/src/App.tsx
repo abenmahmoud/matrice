@@ -15,6 +15,7 @@ import ForgotPasswordPage from "./pages/forgot-password";
 import ResetPasswordPage from "./pages/reset-password";
 import OnboardingPage from "./pages/onboarding";
 import AccessRedirectPage from "./pages/access-redirect";
+import ExperimentalModulesPage from "./pages/experimental-modules";
 import Dashboard from "./pages/dashboard";
 import NewProject from "./pages/new-project";
 import MatrixPage from "./pages/matrix";
@@ -68,6 +69,7 @@ function Router() {
       <Route path="/auth-required" component={AccessRedirectPage} />
       <Route path="/upgrade" component={AccessRedirectPage} />
       <Route path="/forbidden" component={AccessRedirectPage} />
+      <Route path="/experimental-modules" component={ExperimentalModulesPage} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/memory" component={MemoryPage} />
       <Route path="/analyse" component={AnalysePage} />

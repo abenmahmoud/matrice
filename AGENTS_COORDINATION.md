@@ -966,6 +966,28 @@ Verification a faire avant commit:
 - `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
 - `git diff --check` OK.
 
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 7)
+
+Ticket 7 - Systeme `experimental_modules`:
+- DB:
+  - Nouvelle table `experimental_modules` ajoutee au schema Drizzle.
+  - Colonnes: `slug`, `name`, `description`, `minimum_plan`, `is_owner_only`, `is_enabled`, timestamps.
+- Backend:
+  - Route `GET /api/experimental-modules` liste les modules avec un bool `available` calcule selon viewer/plan.
+  - `POST /api/experimental-modules` et `PATCH /api/experimental-modules/:id` reserves owner.
+  - Gating: owner voit tout; module `is_owner_only` reste bloque pour users; sinon acces par rang Free/Pro/Studio/Enterprise.
+- Frontend:
+  - Page `/experimental-modules` ajoutee.
+  - Navigation dashboard ajoute un lien "Modules experimentaux".
+- Aucune modification sur `creative_memory_entries` ni sur le gating owner existant.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+
 ## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 6)
 
 Ticket 6 - Redirects propres 401/402/403:

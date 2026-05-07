@@ -6,3 +6,4 @@ export * from "./manuscripts";
 export * from "./admin";
 export * from "./memory";
 export * from "./users";
+export * from "./experimentalModules";
