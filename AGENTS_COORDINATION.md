@@ -887,3 +887,18 @@ Verification locale:
 Suite:
 - Commit ticket 1.
 - Continuer ticket 2 `/pricing`.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 2)
+
+Ticket 2 - Pricing public `/pricing`:
+- Nouvelle page `artifacts/matrice-narrative/src/pages/pricing.tsx`.
+- Route `/pricing` cablee dans `App.tsx`.
+- 4 paliers conformes au brief: Free, Pro 19 EUR, Studio 49 EUR, Enterprise sur devis.
+- Page explicite sur les limites serveur, la separation owner/public et le fait que le Lab prive proprietaire reste hors offre commerciale.
+- Aucun Stripe, aucun backend, aucune migration DB dans ce ticket.
+- CTA prepares vers `/projects/new` en attendant le vrai signup du ticket 3; Enterprise pointe vers `/admin` temporairement pour usage owner/admin.
+
+Verification a faire avant commit:
+- Typecheck frontend.
+- `git diff --check`.
+- Verification visuelle toujours a refaire cote environnement capable de lancer Vite (blocage Rollup optionnel Windows local).

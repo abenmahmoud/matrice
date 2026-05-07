@@ -6,6 +6,7 @@ import { Router as WouterRouter } from "wouter";
 import { AdminProvider } from "@/context/AdminContext";
 
 import Home from "./pages/home";
+import PricingPage from "./pages/pricing";
 import Dashboard from "./pages/dashboard";
 import NewProject from "./pages/new-project";
 import MatrixPage from "./pages/matrix";
@@ -48,6 +49,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/pricing" component={PricingPage} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/memory" component={MemoryPage} />
       <Route path="/analyse" component={AnalysePage} />
