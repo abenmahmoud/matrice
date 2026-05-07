@@ -2,272 +2,327 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowRight, Sparkles, BrainCircuit, Activity, BookOpen, Download,
-  Wand2, Users, Globe2, Film, Presentation, Network, CheckCircle2
+  ArrowRight,
+  BrainCircuit,
+  CheckCircle2,
+  ChevronRight,
+  Clapperboard,
+  FileText,
+  Layers3,
+  LockKeyhole,
+  PenLine,
+  ShieldCheck,
+  Sparkles,
 } from "lucide-react";
 
-const PIPELINE = [
-  { n: "I", label: "Fondations", color: "text-violet-300", border: "border-violet-500/30", bg: "bg-violet-600/10", modules: ["Matrice Narrative", "Noyau Émotionnel"] },
-  { n: "II", label: "Structure", color: "text-blue-300", border: "border-blue-500/30", bg: "bg-blue-600/10", modules: ["Personnages", "Relations & Tensions", "Monde & Temporalité"] },
-  { n: "III", label: "Analyse", color: "text-amber-300", border: "border-amber-500/30", bg: "bg-amber-600/10", modules: ["Scores H.P.S.A.", "Notes de Recherche"] },
-  { n: "IV", label: "Écriture", color: "text-emerald-300", border: "border-emerald-500/30", bg: "bg-emerald-600/10", modules: ["Atelier Livre", "Atelier Scénario", "Atelier Série"] },
-  { n: "V", label: "Publication", color: "text-rose-300", border: "border-rose-500/30", bg: "bg-rose-600/10", modules: ["Dossier de Pitch", "Exports"] },
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+const CREATIVE_FLOW = [
+  {
+    title: "Clarifier",
+    text: "Transformez une intuition, une scene ou une note brute en matrice narrative lisible.",
+    icon: BrainCircuit,
+  },
+  {
+    title: "Structurer",
+    text: "Personnages, conflits, arc emotionnel, monde, temporalite et promesse de genre.",
+    icon: Layers3,
+  },
+  {
+    title: "Ecrire",
+    text: "Passez du plan au texte avec des ateliers dedies au roman, au scenario et a la serie.",
+    icon: PenLine,
+  },
+  {
+    title: "Presenter",
+    text: "Pitch, note d'intention, scenes jouables et exports pour producteurs, editeurs ou labs.",
+    icon: FileText,
+  },
 ];
 
-const EXAMPLE_LOGLINE = "Dans une Algérie post-indépendance où les djinns ont signé un traité de non-ingérence avec l'État, une juriste spécialisée en droit surnaturel doit défendre un djinn accusé de meurtre — tout en sachant que la vraie coupable est sa propre mère.";
-
-const EXAMPLE_THEMES = ["Identité & Héritage", "Justice vs Vérité", "Monde visible / Invisible", "Trauma intergénérationnel"];
-
-const FEATURES = [
-  { icon: Wand2, title: "31 modules IA", desc: "De la logline au script en passant par les relations entre personnages — tout est généré, structuré, exportable." },
-  { icon: BrainCircuit, title: "Noyau Émotionnel", desc: "L'arc intérieur du protagoniste. Blessures, désirs profonds, masques, transformations." },
-  { icon: Activity, title: "Scores H.P.S.A.", desc: "Humour, Pleur, Suspense, Attractivité — 7 dimensions analysées avec diagnostics précis." },
-  { icon: Users, title: "Personnages vivants", desc: "Profondeur psychologique, contradictions, arcs narratifs, dialectique visuelle entre personnages." },
-  { icon: Globe2, title: "Monde & Temporalité", desc: "Univers, lois invisibles, timeline, couches temporelles, géopolitique fictive." },
-  { icon: Presentation, title: "Prêt pour les pros", desc: "Dossier de pitch, note d'intention, exports PDF/Fountain — prêt pour éditeurs et producteurs." },
+const PLAN_PREVIEW = [
+  { name: "Free", detail: "Decouverte limitee", price: "0 EUR" },
+  { name: "Pro", detail: "Createur individuel", price: "19 EUR" },
+  { name: "Studio", detail: "Usage intensif", price: "49 EUR" },
+  { name: "Enterprise", detail: "Equipes & sur-mesure", price: "Devis" },
 ];
 
+const PROOF_POINTS = [
+  "Memoire creative privee",
+  "Paywall serveur et quotas",
+  "Admin abonnements",
+  "Mode proprietaire isole",
+  "Pipeline narratif complet",
+  "Pret pour Stripe en Phase 2C",
+];
+
+function ProductPreview() {
+  return (
+    <div className="relative mx-auto w-full max-w-[560px]">
+      <div className="absolute -inset-8 bg-violet-600/15 blur-[90px]" />
+      <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#10101a] shadow-2xl shadow-black/40">
+        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-violet-300/70">Cockpit createur</p>
+            <p className="mt-1 text-sm text-white/45">Projet actif : Les Cendres du Mirage</p>
+          </div>
+          <div className="flex gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-violet-400/70" />
+            <span className="h-2.5 w-2.5 rounded-full bg-blue-400/50" />
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/50" />
+          </div>
+        </div>
+
+        <div className="grid gap-0 md:grid-cols-[180px_1fr]">
+          <div className="border-b border-white/[0.08] bg-black/20 p-4 md:border-b-0 md:border-r">
+            {["Matrice", "Noyau", "Personnages", "Scenes", "Pitch"].map((item, index) => (
+              <div
+                key={item}
+                className={`mb-2 flex items-center justify-between rounded-lg px-3 py-2 text-xs ${
+                  index === 0 ? "bg-violet-500/18 text-violet-100" : "text-white/40"
+                }`}
+              >
+                <span>{item}</span>
+                {index < 2 && <CheckCircle2 className="h-3.5 w-3.5" />}
+              </div>
+            ))}
+          </div>
+
+          <div className="p-5">
+            <div className="mb-5">
+              <p className="text-xs uppercase tracking-[0.16em] text-white/28">Logline generee</p>
+              <p className="mt-2 font-serif text-xl leading-snug text-white/[0.88]">
+                Une realisatrice exilee reconstruit le film que son pere a brule, scene apres scene, jusqu'a decouvrir
+                que la derniere bobine accuse sa propre famille.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                ["Arc emotionnel", "74%"],
+                ["Originalite", "81%"],
+                ["Suspense", "68%"],
+                ["Pitch readiness", "Pro"],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-xl border border-white/[0.08] bg-white/[0.035] p-3">
+                  <p className="text-[11px] text-white/32">{label}</p>
+                  <p className="mt-1 text-lg font-semibold text-white/[0.82]">{value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 rounded-xl border border-violet-400/18 bg-violet-500/10 p-4">
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-violet-200">
+                <Sparkles className="h-3.5 w-3.5" />
+                Memoire creative active
+              </div>
+              <p className="text-xs leading-relaxed text-white/46">
+                Interdits, references, criteres qualite et direction artistique sont injectes dans les generations
+                seulement pour le proprietaire.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 export default function Home() {
   return (
-    <div className="min-h-[100dvh] bg-[#09090e] text-foreground flex flex-col relative overflow-hidden">
-      {/* Ambient light */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-[20%] -left-[10%] w-[55%] h-[55%] rounded-full bg-violet-600/8 blur-[140px]" />
-        <div className="absolute top-[40%] -right-[15%] w-[50%] h-[60%] rounded-full bg-indigo-600/6 blur-[160px]" />
-        <div className="absolute bottom-0 left-[30%] w-[40%] h-[30%] rounded-full bg-violet-600/4 blur-[120px]" />
-      </div>
-
-      {/* Header */}
-      <header className="py-5 px-8 border-b border-white/[0.05] relative z-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-lg font-serif font-bold tracking-[0.22em] text-primary uppercase">Matrice</h1>
-          <nav className="flex items-center gap-3">
+    <div className="min-h-[100dvh] bg-[#08080d] text-white">
+      <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#08080d]/[0.86] backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
+          <Link href="/">
+            <span className="font-serif text-lg font-bold uppercase tracking-[0.22em] text-violet-200">Matrice</span>
+          </Link>
+          <nav className="hidden items-center gap-7 text-sm text-white/48 md:flex">
+            <a href="#workflow" className="hover:text-white">Workflow</a>
+            <Link href="/pricing"><span className="cursor-pointer hover:text-white">Tarifs</span></Link>
+            <Link href="/admin"><span className="cursor-pointer hover:text-white">Admin</span></Link>
+          </nav>
+          <div className="flex items-center gap-2">
             <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm">
-                Tableau de bord
+              <Button variant="ghost" size="sm" className="hidden text-white/52 hover:text-white sm:inline-flex">
+                Connexion
               </Button>
             </Link>
             <Link href="/projects/new">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-5">
-                Créer un univers
+              <Button size="sm" className="rounded-full bg-violet-500 px-5 text-white hover:bg-violet-400">
+                Commencer <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-          </nav>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 relative z-10 flex flex-col">
+      <main>
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute left-1/2 top-[-180px] h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-violet-700/18 blur-[120px]" />
+            <div className="absolute bottom-0 right-[-10%] h-[360px] w-[420px] rounded-full bg-blue-600/10 blur-[120px]" />
+          </div>
 
-        {/* ── HERO ──────────────────────────────────── */}
-        <section className="flex flex-col items-center justify-center text-center px-6 pt-28 pb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease: "easeOut" }}
-            className="max-w-4xl mx-auto"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-8 tracking-wide">
-              <Sparkles className="w-3 h-3" />
-              Système d'exploitation créatif — Auteurs & Cinéastes
+          <div className="relative mx-auto grid min-h-[calc(100dvh-64px)] max-w-7xl items-center gap-14 px-5 py-16 md:grid-cols-[0.92fr_1.08fr] md:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, ease: "easeOut" }}
+              className="max-w-2xl"
+            >
+              <h1 className="font-serif text-5xl font-black leading-[0.95] tracking-tight text-white md:text-7xl">
+                Matrice Narrative
+              </h1>
+              <p className="mt-7 max-w-xl text-lg leading-8 text-white/54 md:text-xl">
+                L'atelier IA pour transformer une idee brute en univers fictionnel solide : matrice, personnages,
+                scenes, pitch et memoire creative, dans un workflow pense pour auteurs, scenaristes et producteurs.
+              </p>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <Link href="/projects/new">
+                  <Button size="lg" className="h-12 rounded-full bg-violet-500 px-7 text-base text-white hover:bg-violet-400">
+                    Creer mon premier projet <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="/pricing">
+                  <Button size="lg" variant="outline" className="h-12 rounded-full border-white/[0.12] bg-white/[0.03] px-7 text-base text-white/70 hover:bg-white/[0.06] hover:text-white">
+                    Voir les paliers
+                  </Button>
+                </Link>
+              </div>
+              <div className="mt-9 grid max-w-lg grid-cols-3 gap-4 border-t border-white/[0.08] pt-6">
+                {[
+                  ["31", "modules IA"],
+                  ["4", "paliers"],
+                  ["Owner", "lab prive"],
+                ].map(([value, label]) => (
+                  <div key={label}>
+                    <p className="font-serif text-2xl font-bold text-white/[0.88]">{value}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.12em] text-white/30">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 22, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.75, delay: 0.1, ease: "easeOut" }}
+            >
+              <ProductPreview />
+            </motion.div>
+          </div>
+        </section>
+
+        <section id="workflow" className="border-y border-white/[0.06] bg-white/[0.018] px-5 py-20 md:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-12 max-w-2xl">
+              <h2 className="font-serif text-3xl font-bold text-white md:text-5xl">Un workflow narratif, pas une boite a prompts.</h2>
+              <p className="mt-4 text-base leading-7 text-white/44">
+                Chaque module produit une piece utile du dossier creatif. Les decisions importantes restent visibles,
+                modifiables et reutilisables dans les etapes suivantes.
+              </p>
             </div>
-            <h2 className="text-5xl md:text-[72px] font-serif font-black mb-6 leading-[0.95] tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white via-white/90 to-white/50">
-              Transformez une idée brute en univers fictionnel.
-            </h2>
-            <p className="text-lg md:text-xl text-white/40 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
-              Le premier OS créatif conçu pour les conteurs exigeants. Matrice génère, structure et affine chaque dimension de votre œuvre — du concept à la publication.
+            <div className="grid gap-4 md:grid-cols-4">
+              {CREATIVE_FLOW.map((step, index) => (
+                <div key={step.title} className="rounded-2xl border border-white/[0.07] bg-[#101018] p-5">
+                  <div className="mb-5 flex items-center justify-between">
+                    <step.icon className="h-6 w-6 text-violet-300" />
+                    <span className="font-mono text-xs text-white/26">0{index + 1}</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-white/90">{step.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-white/42">{step.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="px-5 py-20 md:px-8">
+          <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <h2 className="font-serif text-3xl font-bold text-white md:text-5xl">Commercialisable sans sacrifier le lab prive.</h2>
+              <p className="mt-4 text-base leading-7 text-white/44">
+                La Phase 2A prepare l'onboarding public, tout en gardant le Lab BraveHeart separe : memoire creative,
+                modules experimentaux et modeles premium restent verrouilles par le role proprietaire.
+              </p>
+              <Link href="/pricing">
+                <Button className="mt-7 rounded-full bg-white text-black hover:bg-white/90">
+                  Explorer les offres <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {PROOF_POINTS.map((point) => (
+                <div key={point} className="flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.025] px-4 py-3 text-sm text-white/64">
+                  <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                  <span>{point}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-white/[0.06] bg-[#0d0d15] px-5 py-20 md:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+              <div>
+                <h2 className="font-serif text-3xl font-bold text-white md:text-5xl">Quatre paliers clairs.</h2>
+                <p className="mt-4 max-w-xl text-base leading-7 text-white/44">
+                  Free pour decouvrir, Pro pour creer, Studio pour produire, Enterprise pour accompagner une equipe.
+                </p>
+              </div>
+              <Link href="/pricing">
+                <Button variant="ghost" className="w-fit text-violet-200 hover:text-white">
+                  Detail des tarifs <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid gap-4 md:grid-cols-4">
+              {PLAN_PREVIEW.map((plan, index) => (
+                <div key={plan.name} className={`rounded-2xl border p-5 ${index === 1 ? "border-violet-400/35 bg-violet-500/10" : "border-white/[0.07] bg-white/[0.025]"}`}>
+                  <p className="text-lg font-semibold text-white">{plan.name}</p>
+                  <p className="mt-2 text-sm text-white/40">{plan.detail}</p>
+                  <p className="mt-6 font-serif text-2xl font-bold text-white/90">{plan.price}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="px-5 py-20 text-center md:px-8">
+          <div className="mx-auto max-w-2xl">
+            <LockKeyhole className="mx-auto mb-6 h-10 w-10 text-violet-300" />
+            <h2 className="font-serif text-3xl font-bold text-white md:text-5xl">Commencez avec une idee. Gardez le controle.</h2>
+            <p className="mt-5 text-base leading-7 text-white/44">
+              Matrice vous aide a avancer vite, mais les choix creatifs, les limites d'acces et le lab prive restent
+              sous votre controle.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link href="/projects/new">
-                <Button size="lg" className="h-13 px-9 text-base rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] transition-all shadow-[0_0_50px_-12px_hsl(var(--primary))]">
-                  Commencer maintenant <ArrowRight className="ml-2 w-4 h-4" />
+                <Button size="lg" className="h-12 rounded-full bg-violet-500 px-7 text-white hover:bg-violet-400">
+                  Demarrer maintenant <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/dashboard">
-                <Button size="lg" variant="ghost" className="h-13 px-7 text-base text-white/40 hover:text-white/70 hover:bg-white/[0.04]">
-                  Voir mes projets
+                <Button size="lg" variant="ghost" className="h-12 rounded-full px-7 text-white/56 hover:text-white">
+                  Aller au cockpit
                 </Button>
               </Link>
             </div>
-          </motion.div>
-        </section>
-
-        {/* ── LOGLINE SHOWCASE ──────────────────────── */}
-        <section className="py-20 px-6">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7 }}
-              className="relative rounded-3xl overflow-hidden border border-white/[0.07] bg-white/[0.02] backdrop-blur-sm"
-            >
-              {/* Glow */}
-              <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-32 bg-violet-600/15 blur-[60px] pointer-events-none" />
-
-              <div className="p-8 md:p-12 relative z-10">
-                {/* Label */}
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-6 h-6 rounded-lg bg-violet-600/20 border border-violet-500/30 flex items-center justify-center">
-                    <BookOpen className="w-3 h-3 text-violet-400" />
-                  </div>
-                  <span className="text-[10px] font-bold text-violet-400/70 uppercase tracking-[0.2em]">
-                    Matrice Narrative · Exemple généré
-                  </span>
-                  <div className="flex items-center gap-1 ml-auto">
-                    <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
-                    <span className="text-[10px] text-violet-400/50">Généré par IA</span>
-                  </div>
-                </div>
-
-                {/* Logline hero */}
-                <blockquote className="text-xl md:text-2xl font-serif text-white/85 leading-relaxed mb-8 border-l-2 border-violet-500/50 pl-6">
-                  "{EXAMPLE_LOGLINE}"
-                </blockquote>
-
-                {/* Themes */}
-                <div className="flex flex-wrap gap-2 mb-8">
-                  {EXAMPLE_THEMES.map(t => (
-                    <span key={t} className="text-xs px-3 py-1.5 rounded-full bg-violet-600/12 text-violet-300/80 border border-violet-500/20 font-medium">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Stats bar */}
-                <div className="grid grid-cols-3 gap-4 pt-6 border-t border-white/[0.05]">
-                  {[
-                    { label: "Modules IA", value: "31" },
-                    { label: "Tables de données", value: "25" },
-                    { label: "Formats d'export", value: "5" },
-                  ].map(s => (
-                    <div key={s.label} className="text-center">
-                      <p className="text-2xl font-serif font-black text-white/80">{s.value}</p>
-                      <p className="text-[10px] text-white/25 mt-0.5 uppercase tracking-wider">{s.label}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
           </div>
         </section>
-
-        {/* ── PIPELINE VISUEL ───────────────────────── */}
-        <section className="py-20 px-6 border-t border-white/[0.04]">
-          <div className="max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-14"
-            >
-              <p className="text-[10px] font-bold text-white/25 uppercase tracking-[0.25em] mb-3">Pipeline créatif</p>
-              <h3 className="text-3xl md:text-4xl font-serif font-bold text-white/85">
-                De l'idée à l'œuvre publiable
-              </h3>
-              <p className="text-sm text-white/30 mt-3 max-w-md mx-auto">
-                Cinq phases structurées, chacune alimentant la suivante. Matrice maintient la cohérence globale à chaque étape.
-              </p>
-            </motion.div>
-
-            <div className="flex flex-col md:flex-row gap-3">
-              {PIPELINE.map((phase, i) => (
-                <motion.div
-                  key={phase.n}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
-                  className={`flex-1 rounded-2xl border ${phase.border} ${phase.bg} p-5`}
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className={`text-[10px] font-black ${phase.color} border ${phase.border} rounded-full w-6 h-6 flex items-center justify-center`}>
-                      {phase.n}
-                    </div>
-                    <span className={`text-xs font-bold ${phase.color} uppercase tracking-wider`}>{phase.label}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {phase.modules.map(m => (
-                      <div key={m} className="flex items-center gap-2">
-                        <CheckCircle2 className={`w-3 h-3 ${phase.color} flex-shrink-0`} />
-                        <span className="text-[11px] text-white/45">{m}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── FEATURES GRID ─────────────────────────── */}
-        <section className="py-20 px-6 border-t border-white/[0.04]">
-          <div className="max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-14"
-            >
-              <p className="text-[10px] font-bold text-white/25 uppercase tracking-[0.25em] mb-3">Capacités</p>
-              <h3 className="text-3xl md:text-4xl font-serif font-bold text-white/85">
-                Ce que Matrice génère pour vous
-              </h3>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {FEATURES.map((f, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.06 }}
-                  className="group p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.035] hover:border-white/[0.1] transition-all"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/15 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
-                    <f.icon className="w-5 h-5 text-primary/70" />
-                  </div>
-                  <h4 className="text-sm font-bold text-white/80 mb-2">{f.title}</h4>
-                  <p className="text-xs text-white/30 leading-relaxed">{f.desc}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── CTA FINAL ─────────────────────────────── */}
-        <section className="py-24 px-6 border-t border-white/[0.04]">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="max-w-2xl mx-auto text-center"
-          >
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6">
-              <Film className="w-7 h-7 text-primary/60" />
-            </div>
-            <h3 className="text-3xl md:text-4xl font-serif font-bold text-white/90 mb-4">
-              Votre prochain univers commence ici.
-            </h3>
-            <p className="text-sm text-white/30 mb-10 leading-relaxed max-w-md mx-auto">
-              Décrivez votre idée en quelques phrases. Matrice construit les fondations de votre œuvre en moins d'une minute.
-            </p>
-            <Link href="/projects/new">
-              <Button size="lg" className="h-13 px-10 text-base rounded-full bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-[1.02] transition-all shadow-[0_0_50px_-12px_hsl(var(--primary))]">
-                Créer un univers <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </Link>
-          </motion.div>
-        </section>
-
-        {/* Footer */}
-        <footer className="border-t border-white/[0.04] py-8 px-8">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <span className="text-xs font-serif font-bold tracking-[0.2em] text-white/20 uppercase">Matrice</span>
-            <span className="text-xs text-white/15">Système d'exploitation créatif</span>
-          </div>
-        </footer>
       </main>
+
+      <footer className="border-t border-white/[0.06] px-5 py-8 md:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 text-sm text-white/28 md:flex-row md:items-center">
+          <span className="font-serif uppercase tracking-[0.2em]">Matrice Narrative</span>
+          <div className="flex gap-5">
+            <Link href="/pricing"><span className="cursor-pointer hover:text-white">Tarifs</span></Link>
+            <Link href="/admin"><span className="cursor-pointer hover:text-white">Admin</span></Link>
+            <a href={`${BASE}/api/healthz`} className="hover:text-white">Status</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

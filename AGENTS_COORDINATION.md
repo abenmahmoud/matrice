@@ -865,3 +865,25 @@ Quick reference sur VPS: /opt/matrice/PHASE_2A_BRIEF.md
 Quand Codex pret a commencer : creer branche feat/phase-2a-onboarding-uxlab depuis main (HEAD = 4473aca v0.7.1), pinger BraveHeart pour la cle RESEND_API_KEY (compte SafeScol existant), suivre l ordre des 9 tickets.
 
 Claude reste disponible pour audit securite, regression tests, redaction emails FR.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab
+
+Phase 2A demarree depuis main ba8a3b3 / tag v0.7.1.
+
+Ticket 1 - Landing publique `/`:
+- Home remplacee par une vraie landing commerciale Matrice Narrative.
+- H1 produit clair: "Matrice Narrative".
+- Navigation publique: Workflow, Tarifs, Admin, Connexion, Commencer.
+- Hero avec apercu produit code-native du cockpit createur.
+- Sections ajoutees: workflow narratif, separation commercial/Lab prive, apercu des 4 paliers, CTA final.
+- CTA prepares pour `/pricing` (ticket 2) et `/projects/new`.
+- Aucun changement backend, aucun changement sur `creative_memory_entries`, aucun changement sur le gating owner.
+
+Verification locale:
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `git diff --check` OK.
+- Verification visuelle dev server non terminee sur Windows local: Vite bloque sur le package optionnel Rollup `@rollup/rollup-win32-x64-msvc` mal resolu par npm/pnpm. A reverifier cote Linux/VPS ou apres reparation complete de `node_modules`.
+
+Suite:
+- Commit ticket 1.
+- Continuer ticket 2 `/pricing`.
