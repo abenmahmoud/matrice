@@ -60,3 +60,4 @@ ssl/
 *.pem
 *.key
 *.crt
+backups/

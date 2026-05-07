@@ -835,3 +835,33 @@ Verdict: ISOLATION COMPLETE. Chaque user ne voit que ses propres projets. Projet
 Prochaine etape: commit sur integration/commercial-access-v07-vps + tag v0.7.1-isolation-fix + push.
 
 Apres validation: merger dans main, creer tag v0.7.1, redeployer main en prod.
+
+## 2026-05-07 - Claude (claude.ai browser MCP) - Brief Phase 2A pour Codex
+
+Apres validation strategie avec BraveHeart (4 paliers Pro/Studio/Enterprise + Lab prive 3 dimensions + Resend pour email), brief Codex Phase 2A redige.
+
+Document detaille dans Notion: https://www.notion.so/359bf190fe948156924ee121003a45b9
+Quick reference sur VPS: /opt/matrice/PHASE_2A_BRIEF.md
+
+9 tickets a faire par Codex dans l ordre :
+1. Landing page publique /
+2. Page /pricing
+3. Flow signup + verify email (Resend)
+4. Flow forgot/reset password
+5. Onboarding wizard 3 ecrans
+6. Redirects 401/402/403 propres
+7. Systeme experimental_modules
+8. Cablage modeles IA par plan (haiku/sonnet/opus + override owner)
+9. Validation Zod POST /projects
+
+2 migrations DB :
+- app_users: 5 nouvelles colonnes
+- nouvelle table experimental_modules
+
+5 nouvelles variables env (RESEND, BASE_URL, FROM_EMAIL, FROM_NAME, AI_OVERRIDE).
+
+15 tests d acceptation globaux dont regression test isolation projets v0.7.1.
+
+Quand Codex pret a commencer : creer branche feat/phase-2a-onboarding-uxlab depuis main (HEAD = 4473aca v0.7.1), pinger BraveHeart pour la cle RESEND_API_KEY (compte SafeScol existant), suivre l ordre des 9 tickets.
+
+Claude reste disponible pour audit securite, regression tests, redaction emails FR.
