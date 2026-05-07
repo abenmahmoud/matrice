@@ -793,3 +793,45 @@ Main reste a 8a4c608 / v0.5-private-memory.
 Prochaine etape proposee:
 - BraveHeart: tester /admin (onglet Abonnements UI), tester signup/login dans navigateur sur https://matrice.essuf.fr en mode commercial pour validation visuelle
 - Apres validation: Codex peut merger v0.6 + v0.7 dans main, creer tags v0.6-memory-aware et v0.7-commercial-access
+
+## 2026-05-07 - Claude (claude.ai browser MCP) - SECURITY FIX isolation projets
+
+Bug critique identifie par BraveHeart : en mode commercial, un user authentifie pouvait potentiellement voir des projets d'autres users.
+
+DIAGNOSTIC:
+- 2 projets en DB (seven, L'ile infernale) avaient owner_user_id = NULL (crees en mode private avant v0.7)
+- routes/projects.ts GET /projects: ternaire ambigue qui rendait TOUS les projets si pas exactement (commercial + role=user + user authentifie)
+- routes/projects.ts middleware /projects/:id : bypass si pas exactement (commercial + role=user + user authentifie), pas de defense in depth contre projets owner_user_id=NULL
+
+DECISIONS BraveHeart:
+- Suppression des 2 projets legacy (sera recree via signup quand pret)
+- Solution pro durable
+
+ACTIONS REALISEES:
+1. Backup SQL des 2 projets + donnees liees (25 tables) -> /opt/matrice/backups/projects-2026-05-07-194652.sql (93k)
+2. DELETE FROM projects WHERE id IN (...) -> CASCADE auto sur les 24 tables filles (FK confdeltype='c')
+3. Refactor routes/projects.ts (32 ins / 13 del):
+   - GET /projects: switch explicite par role (owner -> tout, user -> ses projets, anonymous -> [])
+   - Middleware /projects/:id: defense in depth, owner bypasse, user check ownership avec check explicite owner_user_id===null, anonymous renvoie 401
+4. Rebuild Docker api OK
+5. Tests d'isolation complets:
+   - TEST 1 anonyme: HTTP 401 AUTH_REQUIRED OK
+   - TEST 2-5: signup Alice + Bob, Alice cree 2 projets, Bob cree 1 projet
+   - TEST CRITIQUE 1: Alice GET /projects -> count=2 (SES projets uniquement) OK
+   - TEST CRITIQUE 2: Bob GET /projects -> count=1 (SON projet uniquement) OK
+   - TEST CRITIQUE 3: Alice GET projet de Bob -> HTTP 404 Not found OK
+   - TEST CRITIQUE 4: Bob GET projet d'Alice -> HTTP 404 Not found OK
+   - TEST 10: restauration mode private, owner GET /projects voit count=3 (tous projets de tous users) OK
+6. Nettoyage : DELETE 3 projets + DELETE 2 users de test, restauration mode private
+7. Backup conserve dans /opt/matrice/backups/ pour eventuelle restauration manuelle
+
+CODE CHANGES:
+artifacts/api-server/src/routes/projects.ts +32 / -13
+  GET /projects (L131-145): logique explicite par role
+  Middleware /:id (L195-217): defense in depth + check explicite owner_user_id===null
+
+Verdict: ISOLATION COMPLETE. Chaque user ne voit que ses propres projets. Projets owner_user_id=NULL inaccessibles aux users (intentionnel: appartiennent au mode private/owner). Cross-user access = 404.
+
+Prochaine etape: commit sur integration/commercial-access-v07-vps + tag v0.7.1-isolation-fix + push.
+
+Apres validation: merger dans main, creer tag v0.7.1, redeployer main en prod.
