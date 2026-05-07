@@ -146,7 +146,7 @@ export default function Home() {
                 Connexion
               </Button>
             </Link>
-            <Link href="/projects/new">
+            <Link href="/signup">
               <Button size="sm" className="rounded-full bg-violet-500 px-5 text-white hover:bg-violet-400">
                 Commencer <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -177,9 +177,9 @@ export default function Home() {
                 scenes, pitch et memoire creative, dans un workflow pense pour auteurs, scenaristes et producteurs.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link href="/projects/new">
+                <Link href="/signup">
                   <Button size="lg" className="h-12 rounded-full bg-violet-500 px-7 text-base text-white hover:bg-violet-400">
-                    Creer mon premier projet <ArrowRight className="ml-2 h-4 w-4" />
+                    Creer mon compte <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <Link href="/pricing">
@@ -298,9 +298,9 @@ export default function Home() {
               sous votre controle.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-              <Link href="/projects/new">
+              <Link href="/signup">
                 <Button size="lg" className="h-12 rounded-full bg-violet-500 px-7 text-white hover:bg-violet-400">
-                  Demarrer maintenant <ArrowRight className="ml-2 h-4 w-4" />
+                  Creer mon compte <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/dashboard">

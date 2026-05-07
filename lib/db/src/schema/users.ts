@@ -13,6 +13,11 @@ export const appUsersTable = pgTable("app_users", {
   generationsUsed: integer("generations_used").notNull().default(0),
   projectsCreated: integer("projects_created").notNull().default(0),
   isEmailVerified: boolean("is_email_verified").notNull().default(false),
+  emailVerificationToken: text("email_verification_token"),
+  emailVerificationSentAt: timestamp("email_verification_sent_at"),
+  passwordResetToken: text("password_reset_token"),
+  passwordResetExpiresAt: timestamp("password_reset_expires_at"),
+  onboardingCompletedAt: timestamp("onboarding_completed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

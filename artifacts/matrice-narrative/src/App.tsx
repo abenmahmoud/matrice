@@ -7,6 +7,8 @@ import { AdminProvider } from "@/context/AdminContext";
 
 import Home from "./pages/home";
 import PricingPage from "./pages/pricing";
+import SignupPage from "./pages/signup";
+import VerifyEmailPage from "./pages/verify-email";
 import Dashboard from "./pages/dashboard";
 import NewProject from "./pages/new-project";
 import MatrixPage from "./pages/matrix";
@@ -50,6 +52,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/pricing" component={PricingPage} />
+      <Route path="/signup" component={SignupPage} />
+      <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/memory" component={MemoryPage} />
       <Route path="/analyse" component={AnalysePage} />

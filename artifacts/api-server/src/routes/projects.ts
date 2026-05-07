@@ -130,7 +130,7 @@ router.get("/projects", async (req, res) => {
     const access = getProductAccess(req);
     const user = getAuthUser(req);
     // SECURITY: filter projects strictly by viewer role to prevent leaking projects across users
-    let projects;
+    let projects: (typeof projectsTable.$inferSelect)[];
     if (access.viewer.role === "owner") {
       // Private mode OR admin token: see everything
       projects = await db.select().from(projectsTable).orderBy(projectsTable.updatedAt);

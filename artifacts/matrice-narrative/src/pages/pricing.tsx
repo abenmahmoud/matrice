@@ -20,7 +20,7 @@ const PLANS = [
     period: "pour tester",
     description: "Decouvrir Matrice avec un projet et les fondations narratives.",
     cta: "Commencer",
-    href: `${BASE}/projects/new`,
+    href: `${BASE}/signup`,
     featured: false,
     features: [
       "1 projet actif",
@@ -36,7 +36,7 @@ const PLANS = [
     period: "par mois",
     description: "Pour construire serieusement un roman, un scenario ou une bible de serie.",
     cta: "Choisir Pro",
-    href: `${BASE}/projects/new`,
+    href: `${BASE}/signup`,
     featured: true,
     features: [
       "Projets personnels illimites",
@@ -52,7 +52,7 @@ const PLANS = [
     period: "par mois",
     description: "Pour usage intensif, ateliers, producteurs independants et labs creatifs.",
     cta: "Choisir Studio",
-    href: `${BASE}/projects/new`,
+    href: `${BASE}/signup`,
     featured: false,
     features: [
       "Usage intensif",
@@ -118,7 +118,7 @@ export default function PricingPage() {
             <Link href={`${BASE}/admin`} className="transition hover:text-white">Admin</Link>
           </nav>
           <Button asChild className="bg-white text-black hover:bg-white/90">
-            <Link href={`${BASE}/projects/new`}>
+            <Link href={`${BASE}/signup`}>
               Commencer
               <ArrowRight className="h-4 w-4" />
             </Link>

@@ -902,3 +902,42 @@ Verification a faire avant commit:
 - Typecheck frontend.
 - `git diff --check`.
 - Verification visuelle toujours a refaire cote environnement capable de lancer Vite (blocage Rollup optionnel Windows local).
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 3)
+
+Ticket 3 - Signup + verification email Resend:
+- Schema `app_users` etendu avec les colonnes Phase 2A:
+  - `email_verification_token`
+  - `email_verification_sent_at`
+  - `password_reset_token`
+  - `password_reset_expires_at`
+  - `onboarding_completed_at`
+- Backend:
+  - `src/services/emailService.ts` ajoute pour envoyer via Resend REST API sans nouvelle dependance npm.
+  - `POST /api/auth/signup` cree un user Free non verifie, genere un token de verification et tente l'email.
+  - `GET /api/auth/verify-email?token=...` verifie le compte, nettoie le token et retourne le bearer token.
+  - `POST /api/auth/resend-verification` regenere et renvoie un token, avec cooldown 60s.
+  - `POST /api/auth/login` refuse les comptes non verifies avec `EMAIL_NOT_VERIFIED`.
+- Frontend:
+  - Page `/signup` ajoutee.
+  - Page `/verify-email` ajoutee.
+  - Landing/pricing redirigent les CTA publics vers `/signup`.
+- Env:
+  - `.env.example` documente `RESEND_API_KEY`, `MATRICE_PUBLIC_BASE_URL`, `MATRICE_FROM_EMAIL`, `MATRICE_FROM_NAME`.
+  - `docker-compose.yml` passe ces variables au container API.
+
+Notes Resend:
+- Domaine `matrice.essuf.fr` pas encore verifie cote Resend.
+- Fallback code: `MATRICE_FROM_EMAIL=onboarding@resend.dev`, utilisable pour tests Resend.
+- Si Resend refuse l'envoi, signup reste cree et renvoie `emailDelivery.status="failed"` pour ne pas bloquer les tests structurels.
+
+Verification locale:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox (esbuild spawn EPERM dans sandbox Windows).
+- `git diff --check` OK.
+
+Attention VPS / prod:
+- Migration Drizzle requise avant rebuild prod pour ajouter les 5 colonnes `app_users`.
+- Verification visuelle encore a faire cote VPS/Linux.

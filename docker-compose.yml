@@ -35,6 +35,10 @@ services:
       MATRICE_FREE_PROJECT_LIMIT: ${MATRICE_FREE_PROJECT_LIMIT:-1}
       MATRICE_FREE_PROGRESSION_CAP: ${MATRICE_FREE_PROGRESSION_CAP:-35}
       MATRICE_FREE_GENERATION_LIMIT: ${MATRICE_FREE_GENERATION_LIMIT:-2}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MATRICE_PUBLIC_BASE_URL: ${MATRICE_PUBLIC_BASE_URL:-https://matrice.essuf.fr}
+      MATRICE_FROM_EMAIL: ${MATRICE_FROM_EMAIL:-onboarding@resend.dev}
+      MATRICE_FROM_NAME: ${MATRICE_FROM_NAME:-Matrice Narrative}
     depends_on:
       postgres:
         condition: service_healthy

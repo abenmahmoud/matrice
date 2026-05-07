@@ -5,7 +5,15 @@ import { eq } from "drizzle-orm";
 
 export type AuthenticatedUser = Pick<
   AppUser,
-  "id" | "email" | "displayName" | "role" | "plan" | "status" | "generationsUsed" | "projectsCreated"
+  | "id"
+  | "email"
+  | "displayName"
+  | "role"
+  | "plan"
+  | "status"
+  | "generationsUsed"
+  | "projectsCreated"
+  | "isEmailVerified"
 >;
 
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30;
@@ -26,6 +34,10 @@ export function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(password, salt, 64).toString("hex");
   return `${salt}:${hash}`;
+}
+
+export function createAuthActionToken(): string {
+  return randomBytes(32).toString("base64url");
 }
 
 export function verifyPassword(password: string, storedHash: string): boolean {
@@ -67,6 +79,7 @@ async function resolveUserFromToken(token: string | null): Promise<Authenticated
       status: user.status,
       generationsUsed: user.generationsUsed,
       projectsCreated: user.projectsCreated,
+      isEmailVerified: user.isEmailVerified,
     };
   } catch {
     return null;
