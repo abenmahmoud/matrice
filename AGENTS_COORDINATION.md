@@ -966,6 +966,29 @@ Verification a faire avant commit:
 - `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
 - `git diff --check` OK.
 
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 8)
+
+Ticket 8 - Modeles IA par plan:
+- `ProductPlan` etendu a `free | pro | studio | enterprise | private`.
+- `isPaid` accepte maintenant Pro, Studio, Enterprise.
+- Admin subscriptions peut basculer un user en Free/Pro/Studio/Enterprise.
+- `aiConfig.ts` ajoute le routage modele:
+  - Free => `AI_MODEL_FREE` puis `AI_MODEL_MINI` puis `gpt-4o-mini`.
+  - Pro => `AI_MODEL_PRO` puis `AI_MODEL`.
+  - Studio => `AI_MODEL_STUDIO` puis `AI_MODEL`.
+  - Enterprise => `AI_MODEL_ENTERPRISE` puis `AI_MODEL_STUDIO` puis `AI_MODEL`.
+  - Owner => `AI_MODEL_OVERRIDE_OWNER` puis `AI_MODEL_OWNER` puis `AI_MODEL`.
+- `aiModelContextMiddleware` capture le viewer/plan par requete via `AsyncLocalStorage`.
+- `generationService`, `manuscripts`, `researchLabService` utilisent `getDefaultAiModel()` au moment de l'appel.
+- `.env.example` et `docker-compose.yml` documentent/passent les nouvelles variables modele.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+
 ## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 7)
 
 Ticket 7 - Systeme `experimental_modules`:

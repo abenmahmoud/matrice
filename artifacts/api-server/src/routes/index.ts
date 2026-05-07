@@ -13,6 +13,7 @@ import { adminAuthMiddleware } from "../middleware/adminAuth.js";
 import accessRouter from "./access.js";
 import { productAccessMiddleware } from "../lib/productAccess.js";
 import { authContextMiddleware } from "../lib/auth.js";
+import { aiModelContextMiddleware } from "../lib/aiConfig.js";
 import { creativeMemoryContextMiddleware } from "../services/creativeMemoryContext.js";
 
 const router: IRouter = Router();
@@ -24,6 +25,7 @@ router.use(authContextMiddleware);
 router.use(authRouter);
 router.use(accessRouter);
 router.use(experimentalModulesRouter);
+router.use(aiModelContextMiddleware);
 router.use("/memory", memoryRouter);
 router.use(creativeMemoryContextMiddleware);
 router.use(productAccessMiddleware);

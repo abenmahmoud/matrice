@@ -48,7 +48,7 @@ type SubscriptionUser = {
   email: string;
   displayName: string;
   role: "user" | "owner";
-  plan: "free" | "pro";
+  plan: "free" | "pro" | "studio" | "enterprise";
   status: "active" | "suspended";
   generationsUsed: number;
   projectsCreated: number;
@@ -602,6 +602,8 @@ function AdminSubscriptionsPanel({ adminHeaders }: { adminHeaders: () => Headers
         {[
           { label: "Free", value: users.filter(u => u.plan === "free").length },
           { label: "Pro", value: users.filter(u => u.plan === "pro").length },
+          { label: "Studio", value: users.filter(u => u.plan === "studio").length },
+          { label: "Enterprise", value: users.filter(u => u.plan === "enterprise").length },
           { label: "Suspendus", value: users.filter(u => u.status === "suspended").length },
         ].map(item => (
           <div key={item.label} className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
@@ -634,6 +636,12 @@ function AdminSubscriptionsPanel({ adminHeaders }: { adminHeaders: () => Headers
               <div className="flex flex-wrap gap-2 items-center">
                 <Button size="sm" variant={user.plan === "pro" ? "secondary" : "outline"} disabled={savingId === user.id} onClick={() => void updateUser(user.id, { plan: user.plan === "pro" ? "free" : "pro" })}>
                   {user.plan === "pro" ? "Repasser Free" : "Passer Pro"}
+                </Button>
+                <Button size="sm" variant={user.plan === "studio" ? "secondary" : "outline"} disabled={savingId === user.id} onClick={() => void updateUser(user.id, { plan: "studio" })}>
+                  Studio
+                </Button>
+                <Button size="sm" variant={user.plan === "enterprise" ? "secondary" : "outline"} disabled={savingId === user.id} onClick={() => void updateUser(user.id, { plan: "enterprise" })}>
+                  Enterprise
                 </Button>
                 <Button size="sm" variant="outline" disabled={savingId === user.id} onClick={() => void updateUser(user.id, { resetUsage: true })}>Reset quota</Button>
                 <Button size="sm" variant="outline" disabled={savingId === user.id} onClick={() => void updateUser(user.id, { status: user.status === "active" ? "suspended" : "active" })}>

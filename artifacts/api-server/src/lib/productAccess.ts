@@ -5,7 +5,7 @@ import { getAuthUser } from "./auth.js";
 import { generateAdminToken } from "../middleware/adminAuth.js";
 
 export type ProductMode = "private" | "commercial";
-export type ProductPlan = "private" | "free" | "pro";
+export type ProductPlan = "private" | "free" | "pro" | "studio" | "enterprise";
 export type ViewerRole = "owner" | "user" | "public";
 
 export type ProductAccess = {
@@ -42,7 +42,8 @@ function readProductMode(): ProductMode {
 function readPlan(): ProductPlan {
   const mode = readProductMode();
   if (mode === "private") return "private";
-  return process.env["MATRICE_DEFAULT_PLAN"] === "pro" ? "pro" : "free";
+  const plan = process.env["MATRICE_DEFAULT_PLAN"];
+  return plan === "pro" || plan === "studio" || plan === "enterprise" ? plan : "free";
 }
 
 function hasValidAdminToken(req?: Request): boolean {
@@ -72,10 +73,11 @@ export function getProductAccess(req?: Request): ProductAccess {
         }
         : { role: "public", authenticated: false, source: "anonymous" };
 
-  const userPlan = user?.plan === "pro" ? "pro" : "free";
+  const userPlan: ProductPlan =
+    user?.plan === "pro" || user?.plan === "studio" || user?.plan === "enterprise" ? user.plan : "free";
   const plan: ProductPlan = viewer.role === "owner" ? "private" : user ? userPlan : readPlan();
   const isPrivate = viewer.role === "owner";
-  const isPaid = isPrivate || plan === "pro";
+  const isPaid = isPrivate || plan === "pro" || plan === "studio" || plan === "enterprise";
 
   return {
     mode,

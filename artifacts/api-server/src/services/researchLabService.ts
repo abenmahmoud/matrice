@@ -1,5 +1,5 @@
 import { openai } from "@workspace/integrations-openai-ai-server";
-import { defaultAiModel } from "../lib/aiConfig.js";
+import { getDefaultAiModel } from "../lib/aiConfig.js";
 
 // ---------------------------------------------------------------------------
 // Taxonomies
@@ -91,7 +91,7 @@ export type ResearchEntryData = {
 async function aiJson<T>(system: string, user: string, fallback: T): Promise<T> {
   try {
     const response = await openai.chat.completions.create({
-      model: defaultAiModel,
+      model: getDefaultAiModel(),
       max_completion_tokens: 8192,
       response_format: { type: "json_object" },
       messages: [{ role: "system", content: system }, { role: "user", content: user }],
