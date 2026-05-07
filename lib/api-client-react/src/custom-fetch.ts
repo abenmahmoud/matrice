@@ -172,6 +172,23 @@ function buildErrorMessage(response: Response, data: unknown): string {
   return prefix;
 }
 
+function redirectPathForStatus(status: number): string | null {
+  if (status === 401) return "/auth-required";
+  if (status === 402) return "/upgrade";
+  if (status === 403) return "/forbidden";
+  return null;
+}
+
+function redirectForAccessStatus(status: number): void {
+  if (typeof window === "undefined") return;
+  const redirectPath = redirectPathForStatus(status);
+  if (!redirectPath) return;
+  if (window.location.pathname === redirectPath) return;
+
+  const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
+  window.location.assign(`${redirectPath}?next=${next}`);
+}
+
 export class ApiError<T = unknown> extends Error {
   readonly name = "ApiError";
   readonly status: number;
@@ -372,6 +389,7 @@ export async function customFetch<T = unknown>(
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);
+    redirectForAccessStatus(response.status);
     throw new ApiError(response, errorData, requestInfo);
   }
 

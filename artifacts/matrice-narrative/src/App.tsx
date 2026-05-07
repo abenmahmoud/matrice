@@ -1,9 +1,11 @@
 import { Switch, Route } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Router as WouterRouter } from "wouter";
 import { AdminProvider } from "@/context/AdminContext";
+import { getUserToken } from "@/lib/userAuth";
 
 import Home from "./pages/home";
 import PricingPage from "./pages/pricing";
@@ -12,6 +14,7 @@ import VerifyEmailPage from "./pages/verify-email";
 import ForgotPasswordPage from "./pages/forgot-password";
 import ResetPasswordPage from "./pages/reset-password";
 import OnboardingPage from "./pages/onboarding";
+import AccessRedirectPage from "./pages/access-redirect";
 import Dashboard from "./pages/dashboard";
 import NewProject from "./pages/new-project";
 import MatrixPage from "./pages/matrix";
@@ -50,6 +53,8 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
 });
 
+setAuthTokenGetter(() => getUserToken());
+
 function Router() {
   return (
     <Switch>
@@ -60,6 +65,9 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />
       <Route path="/onboarding" component={OnboardingPage} />
+      <Route path="/auth-required" component={AccessRedirectPage} />
+      <Route path="/upgrade" component={AccessRedirectPage} />
+      <Route path="/forbidden" component={AccessRedirectPage} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/memory" component={MemoryPage} />
       <Route path="/analyse" component={AnalysePage} />

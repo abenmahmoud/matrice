@@ -966,6 +966,26 @@ Verification a faire avant commit:
 - `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
 - `git diff --check` OK.
 
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 6)
+
+Ticket 6 - Redirects propres 401/402/403:
+- Frontend:
+  - Pages dediees ajoutees: `/auth-required`, `/upgrade`, `/forbidden`.
+  - `apiFetch` ajoute pour les fetch manuels: ajoute le bearer user token et redirige 401/402/403.
+  - Creation projet et generations fire-and-forget de `new-project.tsx` utilisent maintenant `apiFetch`.
+  - `@workspace/api-client-react` configure `setAuthTokenGetter(() => getUserToken())` dans `App.tsx`.
+- Lib api client:
+  - `customFetch` redirige maintenant les erreurs 401 => `/auth-required`, 402 => `/upgrade`, 403 => `/forbidden`.
+  - Le comportement existant admin token reste preserve.
+- Aucune modification backend, owner gating ou memoire privee.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+
 ## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 5)
 
 Ticket 5 - Onboarding wizard 3 ecrans:
