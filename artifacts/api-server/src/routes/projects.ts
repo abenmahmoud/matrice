@@ -129,9 +129,20 @@ router.get("/projects", async (req, res) => {
   try {
     const access = getProductAccess(req);
     const user = getAuthUser(req);
-    const projects = access.mode === "commercial" && access.viewer.role === "user" && user
-      ? await db.select().from(projectsTable).where(eq(projectsTable.ownerUserId, user.id)).orderBy(projectsTable.updatedAt)
-      : await db.select().from(projectsTable).orderBy(projectsTable.updatedAt);
+    // SECURITY: filter projects strictly by viewer role to prevent leaking projects across users
+    let projects;
+    if (access.viewer.role === "owner") {
+      // Private mode OR admin token: see everything
+      projects = await db.select().from(projectsTable).orderBy(projectsTable.updatedAt);
+    } else if (access.viewer.role === "user" && user) {
+      // Authenticated user: see ONLY projects they own (never NULL owner_user_id projects)
+      projects = await db.select().from(projectsTable)
+        .where(eq(projectsTable.ownerUserId, user.id))
+        .orderBy(projectsTable.updatedAt);
+    } else {
+      // Anonymous (already blocked by AUTH_REQUIRED upstream, defense in depth)
+      projects = [];
+    }
     res.json(projects.reverse());
   } catch (err) {
     req.log.error({ err }, "Failed to list projects");
@@ -184,21 +195,29 @@ router.use("/projects/:id", async (req, res, next) => {
   try {
     const access = getProductAccess(req);
     const user = getAuthUser(req);
-    if (access.mode !== "commercial" || access.viewer.role !== "user" || !user) {
+    // SECURITY: defense in depth - explicit role-based access check
+    // Owner (private mode or admin) bypasses (sees everything intentionally)
+    if (access.viewer.role === "owner") {
       next();
       return;
     }
-
-    const [project] = await db
-      .select({ ownerUserId: projectsTable.ownerUserId })
-      .from(projectsTable)
-      .where(eq(projectsTable.id, req.params.id))
-      .limit(1);
-    if (!project || project.ownerUserId !== user.id) {
-      res.status(404).json({ error: "Not found" });
+    // Authenticated user: must own the project (NULL owner = belongs to creator, never accessible to users)
+    if (access.viewer.role === "user" && user) {
+      const [project] = await db
+        .select({ ownerUserId: projectsTable.ownerUserId })
+        .from(projectsTable)
+        .where(eq(projectsTable.id, req.params.id))
+        .limit(1);
+      if (!project || project.ownerUserId === null || project.ownerUserId !== user.id) {
+        res.status(404).json({ error: "Not found" });
+        return;
+      }
+      next();
       return;
     }
-    next();
+    // Anonymous: blocked
+    res.status(401).json({ error: "AUTH_REQUIRED" });
+    return;
   } catch (err) {
     req.log.error({ err }, "Failed to check project ownership");
     res.status(500).json({ error: "Internal server error" });
