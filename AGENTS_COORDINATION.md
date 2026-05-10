@@ -1067,3 +1067,47 @@ Verification a faire avant commit:
 - `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
 - `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
 - `git diff --check` OK.
+## 2026-05-11 - Codex - feat/phase-2a-onboarding-uxlab acceptance VPS
+
+Phase 2A validee sur le VPS via SSH direct Codex.
+
+Contexte:
+- VPS: `/opt/matrice`
+- Branche deployee: `feat/phase-2a-onboarding-uxlab`
+- HEAD: `3135b4e fix(phase-2a): validate project creation input`
+- Conteneurs: `api`, `frontend`, `postgres` Up; Postgres healthy.
+
+Script ajoute:
+- `scripts/phase2a_acceptance_vps.py`
+- Le script bascule temporairement `.env` en mode commercial, recree l'API, lance le parcours d'acceptation, nettoie les donnees de test, puis restaure automatiquement `.env` et l'API en mode private.
+
+Resultat acceptance VPS:
+- 26 controles PASS / 0 FAIL.
+- Pages publiques OK: `/`, `/pricing`, `/signup`, `/onboarding`, `/forgot-password`, `/reset-password`, `/verify-email`, `/experimental-modules`.
+- Mode commercial public OK: `/api/access` retourne viewer public/free.
+- Anonyme bloque correctement sur `/api/projects`: HTTP 401 `AUTH_REQUIRED`.
+- Signup invalide rejete: HTTP 400.
+- Signup valide cree un user non verifie: HTTP 201.
+- Login avant verification bloque: HTTP 403 `EMAIL_NOT_VERIFIED`.
+- Verification email via token DB OK et retourne bearer token.
+- `/api/auth/me` OK avec bearer token.
+- Onboarding complete OK et remplit `onboardingCompletedAt`.
+- Forgot password anti-enumeration OK.
+- Reset password via token DB OK, login nouveau mot de passe OK.
+- `POST /api/projects` invalide retourne HTTP 400 `INVALID_PROJECT_INPUT` au lieu d'un crash 500.
+- Premier projet Free cree: HTTP 201.
+- Deuxieme projet Free bloque: HTTP 402 `FREE_PROJECT_LIMIT_REACHED`.
+- Admin login OK.
+- Creation module experimental par owner/admin OK.
+- User Free voit le module Studio indisponible.
+- Upgrade admin vers Studio OK.
+- User Studio devient `isPaid=true` et voit le module Studio disponible.
+
+Nuance email:
+- Les appels Resend retournent encore `emailDelivery.status=failed` car le domaine `matrice.essuf.fr` n'est pas verifie chez Resend.
+- Les flows applicatifs restent fonctionnels car les tests utilisent les tokens stockes en DB.
+- Decision produit en attente: finaliser Brevo ou verifier un domaine Resend avant tests e2e de vraie delivrabilite email.
+
+Etat final VPS:
+- Mode private restaure: `/api/access` retourne `mode=private`, `viewer.role=owner`, `isPaid=true`.
+- Aucune cle secrete commitee.
