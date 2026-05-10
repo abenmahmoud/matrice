@@ -1111,3 +1111,42 @@ Nuance email:
 Etat final VPS:
 - Mode private restaure: `/api/access` retourne `mode=private`, `viewer.role=owner`, `isPaid=true`.
 - Aucune cle secrete commitee.
+## 2026-05-11 - Codex - feat/email-provider-brevo
+
+Branche creee depuis `feat/phase-2a-onboarding-uxlab` apres validation VPS Phase 2A.
+
+Objectif:
+- Corriger durablement la delivrabilite email Matrice en ajoutant Brevo comme provider transactionnel.
+- Ne pas attendre la verification Resend de `matrice.essuf.fr`.
+
+Implementation:
+- `artifacts/api-server/src/services/emailService.ts`
+  - Ajout `EMAIL_PROVIDER=brevo|resend`.
+  - Provider par defaut actuel: si `EMAIL_PROVIDER=brevo`, appel API Brevo REST `https://api.brevo.com/v3/smtp/email`.
+  - Pas de nouvelle dependance npm: utilisation de `fetch`.
+  - Fallback Resend conserve si `EMAIL_PROVIDER` absent ou different de `brevo`.
+- `.env.example`
+  - Ajout `EMAIL_PROVIDER=brevo`.
+  - Ajout `BREVO_API_KEY=xkeysib_REPLACE_ME`.
+  - `MATRICE_FROM_EMAIL=contact@matrice.essuf.fr`.
+
+Important securite:
+- Ne jamais coller la cle Brevo dans le chat.
+- La vraie cle doit etre ajoutee directement dans `/opt/matrice/.env` sur le VPS.
+- Preferer une API key Brevo REST commencant par `xkeysib-...`, pas la cle SMTP `xsmtpsib-...`.
+
+Commande VPS recommandee apres creation/verif domaine Brevo:
+```bash
+cd /opt/matrice
+cp .env .env.backup-brevo
+nano .env
+# EMAIL_PROVIDER=brevo
+# BREVO_API_KEY=xkeysib-...
+# MATRICE_FROM_EMAIL=contact@matrice.essuf.fr
+# MATRICE_FROM_NAME=Matrice Narrative
+docker compose up -d --build --force-recreate api frontend
+```
+
+Note coordination Claude:
+- Claude peut aider BraveHeart dans l'interface Brevo + DNS OVH.
+- Codex gere le code, les tests, le deploy VPS et la verification API.

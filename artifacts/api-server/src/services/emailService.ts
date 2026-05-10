@@ -20,7 +20,22 @@ function fromAddress(): string {
   return `${name} <${email}>`;
 }
 
+function fromIdentity(): { email: string; name: string } {
+  return {
+    email: process.env["MATRICE_FROM_EMAIL"] ?? "onboarding@resend.dev",
+    name: process.env["MATRICE_FROM_NAME"] ?? "Matrice Narrative",
+  };
+}
+
 async function sendEmail(input: SendEmailInput): Promise<EmailDelivery> {
+  const provider = process.env["EMAIL_PROVIDER"]?.trim().toLowerCase() ?? "resend";
+  if (provider === "brevo") {
+    return sendBrevoEmail(input);
+  }
+  return sendResendEmail(input);
+}
+
+async function sendResendEmail(input: SendEmailInput): Promise<EmailDelivery> {
   const apiKey = process.env["RESEND_API_KEY"];
   if (!apiKey) {
     return { status: "skipped", reason: "missing-api-key" };
@@ -48,6 +63,44 @@ async function sendEmail(input: SendEmailInput): Promise<EmailDelivery> {
     }
 
     return { status: "sent", id: payload?.id ?? null };
+  } catch (err) {
+    return { status: "failed", message: err instanceof Error ? err.message : "Unknown email error" };
+  }
+}
+
+async function sendBrevoEmail(input: SendEmailInput): Promise<EmailDelivery> {
+  const apiKey = process.env["BREVO_API_KEY"];
+  if (!apiKey) {
+    return { status: "skipped", reason: "missing-api-key" };
+  }
+
+  try {
+    const sender = fromIdentity();
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender,
+        to: [{ email: input.to }],
+        subject: input.subject,
+        htmlContent: input.html,
+        textContent: input.text,
+      }),
+    });
+
+    const payload = (await response.json().catch(() => null)) as { messageId?: string; message?: string; code?: string } | null;
+    if (!response.ok) {
+      return {
+        status: "failed",
+        message: payload?.message ?? payload?.code ?? `Brevo HTTP ${response.status}`,
+      };
+    }
+
+    return { status: "sent", id: payload?.messageId ?? null };
   } catch (err) {
     return { status: "failed", message: err instanceof Error ? err.message : "Unknown email error" };
   }
