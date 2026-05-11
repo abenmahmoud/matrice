@@ -1150,3 +1150,27 @@ docker compose up -d --build --force-recreate api frontend
 Note coordination Claude:
 - Claude peut aider BraveHeart dans l'interface Brevo + DNS OVH.
 - Codex gere le code, les tests, le deploy VPS et la verification API.
+
+## 2026-05-11 - Codex - codex/hide-private-surface
+
+Objectif: nettoyer la surface publique pour que Matrice se presente comme un produit commercial coherent, sans exposer les libelles internes de l'instance personnelle.
+
+Changements:
+- Landing, pricing, signup, dashboard, memory, modules experimentaux et pages de blocage: remplacement des mentions publiques `owner`, `lab prive`, `proprietaire`, `memoire privee` par des termes produit neutres (`modules internes`, `droits avances`, `memoire creative`, `espaces separes`).
+- `/api/access`: ajout d'une serialization client qui masque le mode personnel dans la reponse publique tout en conservant `isPaid=true` pour ne pas casser l'usage complet de l'instance.
+- API reservee: erreurs 403 `OWNER_REQUIRED` remplacees par `ACCESS_FORBIDDEN` sur memory et experimental modules.
+
+Audit historique:
+- Le code produit est nettoye cote surface visible, mais l'historique Git et plusieurs docs internes contiennent encore des traces explicites des phases VPS/personnelles. Pour cacher cela au public de facon durable, la meilleure mesure est de garder ce repo GitHub prive ou de publier plus tard un repo/distribution clean sans historique interne.
+
+Verification locale:
+- `corepack pnpm --filter @workspace/api-server run build`: OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run build`: bloque sur le bug Rollup Windows `@rollup/rollup-win32-x64-msvc` deja connu; a verifier sur VPS/Linux.
+- `git diff --check`: OK.
+
+Verification VPS:
+- Branche `codex/hide-private-surface` deployee sur `/opt/matrice`.
+- Build Docker Linux API + frontend: OK.
+- VPS bascule en `MATRICE_PRODUCT_MODE=commercial` avec plan public `free`.
+- `/api/access` public: `mode=commercial`, `viewer.role=public`, `isPaid=false`.
+- `/api/projects` anonyme: HTTP 401 `AUTH_REQUIRED`.

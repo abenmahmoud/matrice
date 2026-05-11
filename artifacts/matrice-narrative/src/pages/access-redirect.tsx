@@ -15,14 +15,14 @@ const CONTENT = {
   "/upgrade": {
     icon: Sparkles,
     title: "Palier requis",
-    text: "Cette action est reservee aux plans payants ou a l'owner prive.",
+    text: "Cette action est reservee aux plans payants.",
     primary: "Voir les paliers",
     href: "/pricing",
   },
   "/forbidden": {
     icon: ShieldAlert,
     title: "Acces protege",
-    text: "Cette zone est reservee a son proprietaire ou a un role autorise.",
+    text: "Cette zone est reservee aux comptes autorises.",
     primary: "Retour dashboard",
     href: "/dashboard",
   },

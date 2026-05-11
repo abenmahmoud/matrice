@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-8 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
             <Mail className="h-6 w-6 text-emerald-300" />
             <p className="mt-3 text-sm leading-6 text-emerald-50">
-              Demande recue. Verifie ta boite email, ou l'expediteur Resend de test tant que le domaine n'est pas verifie.
+              Demande recue. Verifie ta boite email, ou l'expediteur transactionnel configure pour Matrice.
             </p>
           </div>
         ) : (

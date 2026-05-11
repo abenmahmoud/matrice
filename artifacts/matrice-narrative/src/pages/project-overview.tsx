@@ -23,11 +23,11 @@ type StatusMap = {
 
 type ProductAccess = {
   mode: "private" | "commercial";
-  plan: "private" | "free" | "pro";
+  plan: "private" | "free" | "pro" | "studio" | "enterprise";
   viewer: {
-    role: "owner" | "public";
+    role: "owner" | "user" | "public";
     authenticated: boolean;
-    source: "private-mode" | "admin-token" | "anonymous";
+    source: "private-mode" | "admin-token" | "user-token" | "server-policy" | "anonymous";
   };
   isPrivate: boolean;
   isPaid: boolean;

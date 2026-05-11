@@ -57,7 +57,7 @@ router.post("/experimental-modules", async (req, res) => {
   try {
     const access = getProductAccess(req);
     if (access.viewer.role !== "owner") {
-      res.status(403).json({ error: "OWNER_REQUIRED", access });
+      res.status(403).json({ error: "ACCESS_FORBIDDEN", access });
       return;
     }
 
@@ -98,7 +98,7 @@ router.patch("/experimental-modules/:id", async (req, res) => {
   try {
     const access = getProductAccess(req);
     if (access.viewer.role !== "owner") {
-      res.status(403).json({ error: "OWNER_REQUIRED", access });
+      res.status(403).json({ error: "ACCESS_FORBIDDEN", access });
       return;
     }
 

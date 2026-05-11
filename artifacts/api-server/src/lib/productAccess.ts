@@ -14,7 +14,7 @@ export type ProductAccess = {
   viewer: {
     role: ViewerRole;
     authenticated: boolean;
-    source: "private-mode" | "admin-token" | "user-token" | "anonymous";
+    source: "private-mode" | "admin-token" | "user-token" | "server-policy" | "anonymous";
     userId?: string;
     email?: string;
   };
@@ -97,6 +97,23 @@ export function getProductAccess(req?: Request): ProductAccess {
         "Vous avez atteint la partie avancée du parcours. Les fondations restent accessibles, les modules de structure, d'analyse et d'écriture sont réservés à l'abonnement.",
       cta: "Débloquer la suite",
     },
+  };
+}
+
+export function serializeProductAccessForClient(access: ProductAccess): ProductAccess {
+  if (access.mode !== "private") return access;
+
+  return {
+    ...access,
+    mode: "commercial",
+    plan: "studio",
+    viewer: {
+      role: "user",
+      authenticated: true,
+      source: "server-policy",
+    },
+    isPrivate: false,
+    isPaid: true,
   };
 }
 

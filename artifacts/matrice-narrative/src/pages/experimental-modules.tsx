@@ -36,7 +36,7 @@ export default function ExperimentalModulesPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/75">Lab experimental</p>
             <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">Modules actives par plan.</h1>
             <p className="mt-5 text-sm leading-7 text-white/55">
-              Cette page expose ce qui peut etre active pour Studio, Enterprise ou owner. Les modules owner-only
+              Cette page expose ce qui peut etre active pour Studio ou Enterprise. Les modules reserves
               restent invisibles a l'usage public meme quand la table existe.
             </p>
             <Button asChild className="mt-7 bg-violet-500 text-white hover:bg-violet-400">
@@ -50,7 +50,7 @@ export default function ExperimentalModulesPage() {
               <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6">
                 <FlaskConical className="h-7 w-7 text-violet-200" />
                 <h2 className="mt-5 text-xl font-semibold">Aucun module configure</h2>
-                <p className="mt-2 text-sm leading-6 text-white/50">L'owner pourra ajouter les modules experimentaux apres migration VPS.</p>
+                <p className="mt-2 text-sm leading-6 text-white/50">Les modules experimentaux pourront etre ajoutes depuis l'espace admin.</p>
               </div>
             )}
             {modules.map((module) => (
@@ -69,7 +69,7 @@ export default function ExperimentalModulesPage() {
                   {module.isOwnerOnly && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-violet-400/10 px-3 py-1 text-violet-200">
                       <LockKeyhole className="h-3 w-3" />
-                      Owner only
+                      Reserve
                     </span>
                   )}
                   {!module.isEnabled && <span className="rounded-full bg-red-400/10 px-3 py-1 text-red-100">Desactive</span>}

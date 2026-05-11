@@ -92,7 +92,7 @@ export default function SignupPage() {
           </p>
 
           <div className="mt-8 grid gap-3 text-sm text-white/65">
-            {["Email confirme avant connexion", "Quotas Free controles cote serveur", "Owner et Lab prive separes"].map((item) => (
+            {["Email confirme avant connexion", "Quotas Free controles cote serveur", "Espaces et offres clairement separes"].map((item) => (
               <div key={item} className="flex items-center gap-3">
                 <CheckCircle2 className="h-4 w-4 text-emerald-300" />
                 {item}
@@ -113,7 +113,7 @@ export default function SignupPage() {
                 Statut : <span className="text-violet-200">{state.delivery}</span>.
               </p>
               <p className="mt-4 text-sm leading-7 text-white/45">
-                Tant que le domaine Resend n'est pas verifie, l'envoi reel dependra de l'expediteur configure sur le VPS.
+                L'envoi reel dependra de l'expediteur configure sur le serveur.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button onClick={resend} className="bg-white text-black hover:bg-white/90">

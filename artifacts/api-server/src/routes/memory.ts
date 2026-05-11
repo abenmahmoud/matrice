@@ -8,7 +8,7 @@ const router: IRouter = Router();
 function ownerOnly(req: Request, res: Response, next: NextFunction): void {
   const access = getProductAccess(req);
   if (access.viewer.role !== "owner") {
-    res.status(403).json({ error: "OWNER_REQUIRED", access });
+    res.status(403).json({ error: "ACCESS_FORBIDDEN", access });
     return;
   }
   next();

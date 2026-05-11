@@ -54,7 +54,7 @@ function projectStage(project: Project) {
   return "fondations";
 }
 
-function privatePriority(project: Project) {
+function creativePriority(project: Project) {
   const pct = clampProgress(project.progression);
   const updatedAt = project.updatedAt ? new Date(project.updatedAt).getTime() : 0;
   const daysIdle = updatedAt ? Math.max(0, (Date.now() - updatedAt) / 86_400_000) : 30;
@@ -231,7 +231,7 @@ export default function Dashboard() {
     });
   }, [formatFilter, projects, search, stageFilter]);
   const priorityProjects = useMemo(
-    () => [...projects].sort((a, b) => privatePriority(b) - privatePriority(a)).slice(0, 4),
+    () => [...projects].sort((a, b) => creativePriority(b) - creativePriority(a)).slice(0, 4),
     [projects],
   );
   const focusProject = priorityProjects[0] ?? projects[0];
@@ -241,7 +241,7 @@ export default function Dashboard() {
   const topGenre = summary?.byGenre?.[0]?.genre ?? projects[0]?.genre ?? "Non défini";
   const topFormat = summary?.byFormat?.[0]?.format ?? projects[0]?.targetFormat ?? "Non défini";
   const activeProjects = projects.filter((project) => clampProgress(project.progression) < 100).length;
-  const sleepingProjects = projects.filter((project) => privatePriority(project) >= 42).length;
+  const sleepingProjects = projects.filter((project) => creativePriority(project) >= 42).length;
 
   return (
     <AppLayout>
@@ -249,7 +249,7 @@ export default function Dashboard() {
         <div className="border-b border-white/[0.05] bg-white/[0.01]">
           <div className="max-w-7xl mx-auto px-8 py-8 flex items-end justify-between gap-6">
             <div>
-              <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.25em] mb-2">Cockpit privé</p>
+              <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.25em] mb-2">Cockpit createur</p>
               <h1 className="text-3xl font-serif font-bold text-white/90">Matrice personnelle</h1>
               <p className="text-sm text-white/30 mt-1">
                 {isLoading ? "Chargement de l'atelier..." : `${projects.length} projet${projects.length > 1 ? "s" : ""} dans ton espace créatif`}
@@ -328,7 +328,7 @@ export default function Dashboard() {
                 <section className="grid grid-cols-2 gap-3">
                   <StatTile icon={Library} label="Projets" value={`${summary?.totalProjects ?? projects.length}`} detail={`${activeProjects} actif${activeProjects > 1 ? "s" : ""}`} />
                   <StatTile icon={Activity} label="Moyenne" value={`${averageProgress}%`} detail="Progression globale" tone="blue" />
-                  <StatTile icon={Flame} label="A reprendre" value={`${sleepingProjects}`} detail="Priorites privees" tone="emerald" />
+                  <StatTile icon={Flame} label="A reprendre" value={`${sleepingProjects}`} detail="Priorites de reprise" tone="emerald" />
                   <StatTile icon={Layers} label="Format" value={topFormat} detail={topGenre} tone="amber" />
                 </section>
               </div>
@@ -397,7 +397,7 @@ export default function Dashboard() {
                   <div className="rounded-xl border border-amber-500/15 bg-amber-600/[0.035] p-5">
                     <div className="mb-4 flex items-center gap-2">
                       <Flame className="h-4 w-4 text-amber-300/65" />
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200/40">Priorites privees</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200/40">Priorites de reprise</p>
                     </div>
                     <div className="space-y-3">
                       {priorityProjects.map((project) => (
@@ -432,7 +432,7 @@ export default function Dashboard() {
                   </div>
 
                   <div className="rounded-xl border border-violet-500/15 bg-violet-600/[0.04] p-5">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300/45">Mémoire privée</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300/45">Memoire creative</p>
                     <p className="mt-3 text-sm leading-relaxed text-white/38">
                       Prochain bloc durable: ajouter une couche personnelle pour tes règles, références, motifs et critères de qualité.
                     </p>

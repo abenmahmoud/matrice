@@ -48,10 +48,10 @@ const PLAN_PREVIEW = [
 ];
 
 const PROOF_POINTS = [
-  "Memoire creative privee",
+  "Memoire creative personnelle",
   "Paywall serveur et quotas",
   "Admin abonnements",
-  "Mode proprietaire isole",
+  "Espaces separes par role",
   "Pipeline narratif complet",
   "Pret pour Stripe en Phase 2C",
 ];
@@ -118,7 +118,7 @@ function ProductPreview() {
               </div>
               <p className="text-xs leading-relaxed text-white/46">
                 Interdits, references, criteres qualite et direction artistique sont injectes dans les generations
-                seulement pour le proprietaire.
+                selon les droits du compte.
               </p>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function Home() {
                 {[
                   ["31", "modules IA"],
                   ["4", "paliers"],
-                  ["Owner", "lab prive"],
+                  ["Studio", "modules avances"],
                 ].map(([value, label]) => (
                   <div key={label}>
                     <p className="font-serif text-2xl font-bold text-white/[0.88]">{value}</p>
@@ -239,10 +239,10 @@ export default function Home() {
         <section className="px-5 py-20 md:px-8">
           <div className="mx-auto grid max-w-7xl gap-12 md:grid-cols-[0.9fr_1.1fr]">
             <div>
-              <h2 className="font-serif text-3xl font-bold text-white md:text-5xl">Commercialisable sans sacrifier le lab prive.</h2>
+              <h2 className="font-serif text-3xl font-bold text-white md:text-5xl">Commercialisable avec une architecture separee.</h2>
               <p className="mt-4 text-base leading-7 text-white/44">
-                La Phase 2A prepare l'onboarding public, tout en gardant le Lab BraveHeart separe : memoire creative,
-                modules experimentaux et modeles premium restent verrouilles par le role proprietaire.
+                La plateforme prepare l'onboarding public tout en gardant les modules sensibles, la memoire creative
+                et les modeles premium derriere des roles d'acces explicites.
               </p>
               <Link href="/pricing">
                 <Button className="mt-7 rounded-full bg-white text-black hover:bg-white/90">
@@ -294,7 +294,7 @@ export default function Home() {
             <LockKeyhole className="mx-auto mb-6 h-10 w-10 text-violet-300" />
             <h2 className="font-serif text-3xl font-bold text-white md:text-5xl">Commencez avec une idee. Gardez le controle.</h2>
             <p className="mt-5 text-base leading-7 text-white/44">
-              Matrice vous aide a avancer vite, mais les choix creatifs, les limites d'acces et le lab prive restent
+              Matrice vous aide a avancer vite, mais les choix creatifs, les limites d'acces et les modules avances restent
               sous votre controle.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

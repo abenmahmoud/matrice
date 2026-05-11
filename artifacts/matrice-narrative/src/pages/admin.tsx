@@ -627,7 +627,7 @@ function AdminSubscriptionsPanel({ adminHeaders }: { adminHeaders: () => Headers
                   <p className="font-medium text-white truncate">{user.email}</p>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full border", user.plan === "pro" ? "bg-green-500/15 text-green-300 border-green-500/25" : "bg-white/5 text-white/45 border-white/10")}>{user.plan.toUpperCase()}</span>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full border", user.status === "active" ? "bg-violet-500/15 text-violet-300 border-violet-500/25" : "bg-red-500/15 text-red-300 border-red-500/25")}>{user.status}</span>
-                  {user.role === "owner" && <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-500/15 text-amber-300 border-amber-500/25">OWNER</span>}
+                  {user.role === "owner" && <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-500/15 text-amber-300 border-amber-500/25">ADMIN</span>}
                 </div>
                 <p className="text-xs text-white/30 mt-1">
                   {user.projectsCreated} projet{user.projectsCreated > 1 ? "s" : ""} - {user.generationsUsed} generation{user.generationsUsed > 1 ? "s" : ""} - inscrit le {new Date(user.createdAt).toLocaleDateString()}
