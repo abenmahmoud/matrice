@@ -141,7 +141,7 @@ export default function Home() {
             <Link href="/admin"><span className="cursor-pointer hover:text-white">Admin</span></Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Link href="/dashboard">
+            <Link href="/login">
               <Button variant="ghost" size="sm" className="hidden text-white/52 hover:text-white sm:inline-flex">
                 Connexion
               </Button>

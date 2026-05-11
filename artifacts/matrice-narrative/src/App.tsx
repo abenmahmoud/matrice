@@ -10,6 +10,7 @@ import { getUserToken } from "@/lib/userAuth";
 import Home from "./pages/home";
 import PricingPage from "./pages/pricing";
 import SignupPage from "./pages/signup";
+import LoginPage from "./pages/login";
 import VerifyEmailPage from "./pages/verify-email";
 import ForgotPasswordPage from "./pages/forgot-password";
 import ResetPasswordPage from "./pages/reset-password";
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/signup" component={SignupPage} />
+      <Route path="/login" component={LoginPage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/forgot-password" component={ForgotPasswordPage} />
       <Route path="/reset-password" component={ResetPasswordPage} />

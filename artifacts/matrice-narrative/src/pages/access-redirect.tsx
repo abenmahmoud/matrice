@@ -9,8 +9,10 @@ const CONTENT = {
     icon: LockKeyhole,
     title: "Connexion requise",
     text: "Cree ou confirme ton compte pour continuer dans Matrice.",
-    primary: "Creer un compte",
-    href: "/signup",
+    primary: "Se connecter",
+    href: "/login",
+    secondary: "Creer un compte",
+    secondaryHref: "/signup",
   },
   "/upgrade": {
     icon: Sparkles,
@@ -18,6 +20,8 @@ const CONTENT = {
     text: "Cette action est reservee aux plans payants.",
     primary: "Voir les paliers",
     href: "/pricing",
+    secondary: "Se connecter",
+    secondaryHref: "/login",
   },
   "/forbidden": {
     icon: ShieldAlert,
@@ -25,6 +29,8 @@ const CONTENT = {
     text: "Cette zone est reservee aux comptes autorises.",
     primary: "Retour dashboard",
     href: "/dashboard",
+    secondary: "Se connecter",
+    secondaryHref: "/login",
   },
 };
 
@@ -49,7 +55,9 @@ export default function AccessRedirectPage() {
             </Link>
           </Button>
           <Button asChild variant="secondary">
-            <Link href={`${BASE}/`}>Accueil</Link>
+            <Link href={`${BASE}${"secondaryHref" in content ? content.secondaryHref : "/"}`}>
+              {"secondary" in content ? content.secondary : "Accueil"}
+            </Link>
           </Button>
         </div>
       </div>

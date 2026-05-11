@@ -114,7 +114,7 @@ export default function PricingPage() {
           </Link>
           <nav className="hidden items-center gap-7 text-sm text-white/55 md:flex">
             <Link href={`${BASE}/#workflow`} className="transition hover:text-white">Workflow</Link>
-            <Link href={`${BASE}/dashboard`} className="transition hover:text-white">Dashboard</Link>
+            <Link href={`${BASE}/login`} className="transition hover:text-white">Connexion</Link>
             <Link href={`${BASE}/admin`} className="transition hover:text-white">Admin</Link>
           </nav>
           <Button asChild className="bg-white text-black hover:bg-white/90">

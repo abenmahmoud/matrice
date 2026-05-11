@@ -165,6 +165,7 @@ def run_tests() -> Results:
             "/",
             "/pricing",
             "/signup",
+            "/login",
             "/onboarding",
             "/forgot-password",
             "/reset-password",

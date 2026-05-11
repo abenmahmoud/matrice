@@ -1174,3 +1174,32 @@ Verification VPS:
 - VPS bascule en `MATRICE_PRODUCT_MODE=commercial` avec plan public `free`.
 - `/api/access` public: `mode=commercial`, `viewer.role=public`, `isPaid=false`.
 - `/api/projects` anonyme: HTTP 401 `AUTH_REQUIRED`.
+
+## 2026-05-11 - Codex - codex/mvp-login-flow
+
+Objectif MVP: ajouter le parcours de connexion utilisateur manquant.
+
+Constat:
+- Backend `/api/auth/login` existe et retourne un bearer token utilisateur.
+- Frontend stocke deja le token via `setAuthTokenGetter(() => getUserToken())`.
+- Mais aucune page `/login` n'existe; la landing renvoie "Connexion" vers `/dashboard`, ce qui produit surtout un blocage 401 pour visiteurs anonymes.
+
+Plan court:
+- Ajouter une page `/login` avec email/password, stockage du token et redirection vers `next` ou `/dashboard`.
+- Rediriger les CTA "Connexion" vers `/login`.
+- Mettre `/auth-required` sur une logique claire: se connecter d'abord, inscription en option.
+- Garder `/signup`, `/verify-email`, `/forgot-password`, `/reset-password` inchanges.
+
+Implementation:
+- Page `/login` ajoutee: email/password, erreurs lisibles, renvoi du lien de confirmation si `EMAIL_NOT_VERIFIED`, stockage `matrice_user_token`.
+- Route `/login` cablee dans `App.tsx`.
+- CTA landing/pricing et `/auth-required` redirigent maintenant vers `/login`.
+- Script acceptance VPS etendu pour verifier que `/login` charge en HTTP 200.
+
+Verification VPS:
+- Build Docker Linux API + frontend: OK.
+- `/api/healthz`: OK.
+- `/login`: HTTP 200.
+- `/auth-required`: HTTP 200.
+- `/api/access`: commercial/free public.
+- `python3 scripts/phase2a_acceptance_vps.py`: 26 PASS / 0 FAIL apres ajout de `/login` a la liste des pages publiques.

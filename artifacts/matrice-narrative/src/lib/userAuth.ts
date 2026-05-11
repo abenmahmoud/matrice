@@ -8,6 +8,10 @@ export function setUserToken(token: string): void {
   localStorage.setItem(USER_TOKEN_KEY, token);
 }
 
+export function clearUserToken(): void {
+  localStorage.removeItem(USER_TOKEN_KEY);
+}
+
 export function userAuthHeaders(): HeadersInit {
   const token = getUserToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
