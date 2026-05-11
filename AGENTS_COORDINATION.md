@@ -1203,3 +1203,21 @@ Verification VPS:
 - `/auth-required`: HTTP 200.
 - `/api/access`: commercial/free public.
 - `python3 scripts/phase2a_acceptance_vps.py`: 26 PASS / 0 FAIL apres ajout de `/login` a la liste des pages publiques.
+
+## 2026-05-11 - Codex - codex/mvp-login-flow (suite email MVP)
+
+Objectif: verrouiller le chemin email MVP pour Brevo avant test reel d'inscription.
+
+Constat:
+- `emailService.ts` supporte deja `EMAIL_PROVIDER=brevo` et `BREVO_API_KEY`.
+- `.env.example` documente deja les variables Brevo.
+- `docker-compose.yml` ne transmettait pas encore `EMAIL_PROVIDER` ni `BREVO_API_KEY` au container API; le backend pouvait donc rester sur le provider par defaut ou ne pas voir la cle Brevo en production.
+
+Correction:
+- Ajout `EMAIL_PROVIDER: ${EMAIL_PROVIDER:-resend}` dans l'environnement du service API Docker.
+- Ajout `BREVO_API_KEY: ${BREVO_API_KEY:-}` dans l'environnement du service API Docker.
+
+Point d'attention VPS:
+- La cle collee precedemment par BraveHeart commencait par `xsmtpsib-...`, ce qui ressemble a une cle SMTP Brevo.
+- Le code actuel utilise l'API REST Brevo `/v3/smtp/email`, qui attend une API key REST commencant generalement par `xkeysib-...`.
+- Pour le test reel, ajouter sur le VPS une vraie `BREVO_API_KEY=xkeysib-...`, garder `EMAIL_PROVIDER=brevo`, puis recreer le container API.
