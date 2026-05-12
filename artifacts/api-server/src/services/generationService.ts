@@ -5,7 +5,7 @@
  */
 
 import { openai } from "@workspace/integrations-openai-ai-server";
-import { defaultAiModel } from "../lib/aiConfig.js";
+import { getDefaultAiModel } from "../lib/aiConfig.js";
 import { appendCreativeMemoryContext } from "./creativeMemoryContext.js";
 
 type Project = {
@@ -98,7 +98,7 @@ async function aiJson<T>(
       : systemPrompt;
 
     const response = await openai.chat.completions.create({
-      model: defaultAiModel,
+      model: getDefaultAiModel(),
       max_completion_tokens: opts?.maxTokens ?? 8192,
       response_format: { type: "json_object" },
       ...(opts?.temperature !== undefined ? { temperature: opts.temperature } : {}),
@@ -1806,7 +1806,7 @@ RÈGLES ABSOLUES :
   ];
 
   try {
-    const res = await openai.chat.completions.create({ model: defaultAiModel, messages, temperature: 0.92, max_tokens: 400 });
+    const res = await openai.chat.completions.create({ model: getDefaultAiModel(), messages, temperature: 0.92, max_tokens: 400 });
     return res.choices[0]?.message?.content ?? "(silence)";
   } catch {
     return "(Le personnage garde le silence pour l'instant.)";

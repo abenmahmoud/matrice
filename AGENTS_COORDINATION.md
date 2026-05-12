@@ -898,3 +898,287 @@ SETUP RESEND POUR TICKET 3 :
 MODE PRIVATE RESTAURE : viewer=owner, mode=private, isPaid=true.
 
 Prochaine etape : BraveHeart decide du domaine d envoi (matrice.essuf.fr a ajouter sur Resend, ou reutiliser safescol.fr, ou autre). Une fois decide, Claude/BraveHeart configure les DNS records et le verifie aupres de Resend. Pendant ce temps Codex code la structure du ticket 3.
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab
+
+Phase 2A demarree depuis main ba8a3b3 / tag v0.7.1.
+
+Ticket 1 - Landing publique `/`:
+- Home remplacee par une vraie landing commerciale Matrice Narrative.
+- H1 produit clair: "Matrice Narrative".
+- Navigation publique: Workflow, Tarifs, Admin, Connexion, Commencer.
+- Hero avec apercu produit code-native du cockpit createur.
+- Sections ajoutees: workflow narratif, separation commercial/Lab prive, apercu des 4 paliers, CTA final.
+- CTA prepares pour `/pricing` (ticket 2) et `/projects/new`.
+- Aucun changement backend, aucun changement sur `creative_memory_entries`, aucun changement sur le gating owner.
+
+Verification locale:
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `git diff --check` OK.
+- Verification visuelle dev server non terminee sur Windows local: Vite bloque sur le package optionnel Rollup `@rollup/rollup-win32-x64-msvc` mal resolu par npm/pnpm. A reverifier cote Linux/VPS ou apres reparation complete de `node_modules`.
+
+Suite:
+- Commit ticket 1.
+- Continuer ticket 2 `/pricing`.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 2)
+
+Ticket 2 - Pricing public `/pricing`:
+- Nouvelle page `artifacts/matrice-narrative/src/pages/pricing.tsx`.
+- Route `/pricing` cablee dans `App.tsx`.
+- 4 paliers conformes au brief: Free, Pro 19 EUR, Studio 49 EUR, Enterprise sur devis.
+- Page explicite sur les limites serveur, la separation owner/public et le fait que le Lab prive proprietaire reste hors offre commerciale.
+- Aucun Stripe, aucun backend, aucune migration DB dans ce ticket.
+- CTA prepares vers `/projects/new` en attendant le vrai signup du ticket 3; Enterprise pointe vers `/admin` temporairement pour usage owner/admin.
+
+Verification a faire avant commit:
+- Typecheck frontend.
+- `git diff --check`.
+- Verification visuelle toujours a refaire cote environnement capable de lancer Vite (blocage Rollup optionnel Windows local).
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 3)
+
+Ticket 3 - Signup + verification email Resend:
+- Schema `app_users` etendu avec les colonnes Phase 2A:
+  - `email_verification_token`
+  - `email_verification_sent_at`
+  - `password_reset_token`
+  - `password_reset_expires_at`
+  - `onboarding_completed_at`
+- Backend:
+  - `src/services/emailService.ts` ajoute pour envoyer via Resend REST API sans nouvelle dependance npm.
+  - `POST /api/auth/signup` cree un user Free non verifie, genere un token de verification et tente l'email.
+  - `GET /api/auth/verify-email?token=...` verifie le compte, nettoie le token et retourne le bearer token.
+  - `POST /api/auth/resend-verification` regenere et renvoie un token, avec cooldown 60s.
+  - `POST /api/auth/login` refuse les comptes non verifies avec `EMAIL_NOT_VERIFIED`.
+- Frontend:
+  - Page `/signup` ajoutee.
+  - Page `/verify-email` ajoutee.
+  - Landing/pricing redirigent les CTA publics vers `/signup`.
+- Env:
+  - `.env.example` documente `RESEND_API_KEY`, `MATRICE_PUBLIC_BASE_URL`, `MATRICE_FROM_EMAIL`, `MATRICE_FROM_NAME`.
+  - `docker-compose.yml` passe ces variables au container API.
+
+Notes Resend:
+- Domaine `matrice.essuf.fr` pas encore verifie cote Resend.
+- Fallback code: `MATRICE_FROM_EMAIL=onboarding@resend.dev`, utilisable pour tests Resend.
+- Si Resend refuse l'envoi, signup reste cree et renvoie `emailDelivery.status="failed"` pour ne pas bloquer les tests structurels.
+
+Verification locale:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox (esbuild spawn EPERM dans sandbox Windows).
+- `git diff --check` OK.
+
+Attention VPS / prod:
+- Migration Drizzle requise avant rebuild prod pour ajouter les 5 colonnes `app_users`.
+- Verification visuelle encore a faire cote VPS/Linux.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 4)
+
+Ticket 4 - Forgot/reset password:
+- Backend:
+  - `POST /api/auth/forgot-password` cree un token reset valable 1 heure et tente l'envoi Resend.
+  - Reponse anti-enumeration: email inconnu => `{ ok: true }`.
+  - `POST /api/auth/reset-password` valide token + expiration, met a jour le hash scrypt et nettoie le token.
+  - Si l'utilisateur etait deja verifie, le reset retourne un bearer token; sinon il remet seulement le mot de passe.
+- Email:
+  - Template reset ajoute dans `emailService.ts`.
+  - Meme fallback Resend que verification email (`onboarding@resend.dev` tant que domaine non verifie).
+- Frontend:
+  - Page `/forgot-password` ajoutee.
+  - Page `/reset-password` ajoutee.
+  - Lien "Mot de passe oublie ?" ajoute sur `/signup`.
+- Aucun changement Stripe, aucun changement owner/memoire privee.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 9)
+
+Ticket 9 - Validation Zod `POST /api/projects`:
+- `POST /api/projects` valide maintenant le payload avec `insertProjectSchema.safeParse`.
+- Reponse invalide: HTTP 400 `INVALID_PROJECT_INPUT` avec `issues[]` lisibles.
+- Remplace les anciens crashs DB 500 quand `rawIdea`, `title`, `genre`, `tone` ou `targetFormat` manquaient.
+- Pas de nouvelle dependance: reutilisation du schema Drizzle/Zod exporte par `@workspace/db`.
+- Logique quota Free et ownership inchangee.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 8)
+
+Ticket 8 - Modeles IA par plan:
+- `ProductPlan` etendu a `free | pro | studio | enterprise | private`.
+- `isPaid` accepte maintenant Pro, Studio, Enterprise.
+- Admin subscriptions peut basculer un user en Free/Pro/Studio/Enterprise.
+- `aiConfig.ts` ajoute le routage modele:
+  - Free => `AI_MODEL_FREE` puis `AI_MODEL_MINI` puis `gpt-4o-mini`.
+  - Pro => `AI_MODEL_PRO` puis `AI_MODEL`.
+  - Studio => `AI_MODEL_STUDIO` puis `AI_MODEL`.
+  - Enterprise => `AI_MODEL_ENTERPRISE` puis `AI_MODEL_STUDIO` puis `AI_MODEL`.
+  - Owner => `AI_MODEL_OVERRIDE_OWNER` puis `AI_MODEL_OWNER` puis `AI_MODEL`.
+- `aiModelContextMiddleware` capture le viewer/plan par requete via `AsyncLocalStorage`.
+- `generationService`, `manuscripts`, `researchLabService` utilisent `getDefaultAiModel()` au moment de l'appel.
+- `.env.example` et `docker-compose.yml` documentent/passent les nouvelles variables modele.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 7)
+
+Ticket 7 - Systeme `experimental_modules`:
+- DB:
+  - Nouvelle table `experimental_modules` ajoutee au schema Drizzle.
+  - Colonnes: `slug`, `name`, `description`, `minimum_plan`, `is_owner_only`, `is_enabled`, timestamps.
+- Backend:
+  - Route `GET /api/experimental-modules` liste les modules avec un bool `available` calcule selon viewer/plan.
+  - `POST /api/experimental-modules` et `PATCH /api/experimental-modules/:id` reserves owner.
+  - Gating: owner voit tout; module `is_owner_only` reste bloque pour users; sinon acces par rang Free/Pro/Studio/Enterprise.
+- Frontend:
+  - Page `/experimental-modules` ajoutee.
+  - Navigation dashboard ajoute un lien "Modules experimentaux".
+- Aucune modification sur `creative_memory_entries` ni sur le gating owner existant.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 6)
+
+Ticket 6 - Redirects propres 401/402/403:
+- Frontend:
+  - Pages dediees ajoutees: `/auth-required`, `/upgrade`, `/forbidden`.
+  - `apiFetch` ajoute pour les fetch manuels: ajoute le bearer user token et redirige 401/402/403.
+  - Creation projet et generations fire-and-forget de `new-project.tsx` utilisent maintenant `apiFetch`.
+  - `@workspace/api-client-react` configure `setAuthTokenGetter(() => getUserToken())` dans `App.tsx`.
+- Lib api client:
+  - `customFetch` redirige maintenant les erreurs 401 => `/auth-required`, 402 => `/upgrade`, 403 => `/forbidden`.
+  - Le comportement existant admin token reste preserve.
+- Aucune modification backend, owner gating ou memoire privee.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+
+## 2026-05-08 - Codex - feat/phase-2a-onboarding-uxlab (suite Ticket 5)
+
+Ticket 5 - Onboarding wizard 3 ecrans:
+- Backend:
+  - `POST /api/auth/onboarding/complete` ajoute pour marquer `onboarding_completed_at`.
+  - Endpoint protege par bearer user token; retourne 401 `AUTH_REQUIRED` sans token.
+  - `AuthenticatedUser` expose maintenant `onboardingCompletedAt`.
+- Frontend:
+  - Helper `src/lib/userAuth.ts` ajoute pour stocker/lire le bearer token utilisateur.
+  - Page `/onboarding` ajoutee avec 3 ecrans: format, objectif, rythme.
+  - `/verify-email` redirige maintenant vers `/onboarding` apres confirmation.
+  - `/reset-password` reutilise le helper token.
+- Pas de changement sur memoire privee, owner gating, Stripe ou modules experimentaux.
+
+Verification a faire avant commit:
+- `corepack pnpm run typecheck:libs` OK.
+- `corepack pnpm --filter @workspace/api-server run typecheck` OK.
+- `corepack pnpm --filter @workspace/matrice-narrative run typecheck` OK.
+- `corepack pnpm --filter @workspace/api-server run build` OK hors sandbox.
+- `git diff --check` OK.
+## 2026-05-11 - Codex - feat/phase-2a-onboarding-uxlab acceptance VPS
+
+Phase 2A validee sur le VPS via SSH direct Codex.
+
+Contexte:
+- VPS: `/opt/matrice`
+- Branche deployee: `feat/phase-2a-onboarding-uxlab`
+- HEAD: `3135b4e fix(phase-2a): validate project creation input`
+- Conteneurs: `api`, `frontend`, `postgres` Up; Postgres healthy.
+
+Script ajoute:
+- `scripts/phase2a_acceptance_vps.py`
+- Le script bascule temporairement `.env` en mode commercial, recree l'API, lance le parcours d'acceptation, nettoie les donnees de test, puis restaure automatiquement `.env` et l'API en mode private.
+
+Resultat acceptance VPS:
+- 26 controles PASS / 0 FAIL.
+- Pages publiques OK: `/`, `/pricing`, `/signup`, `/onboarding`, `/forgot-password`, `/reset-password`, `/verify-email`, `/experimental-modules`.
+- Mode commercial public OK: `/api/access` retourne viewer public/free.
+- Anonyme bloque correctement sur `/api/projects`: HTTP 401 `AUTH_REQUIRED`.
+- Signup invalide rejete: HTTP 400.
+- Signup valide cree un user non verifie: HTTP 201.
+- Login avant verification bloque: HTTP 403 `EMAIL_NOT_VERIFIED`.
+- Verification email via token DB OK et retourne bearer token.
+- `/api/auth/me` OK avec bearer token.
+- Onboarding complete OK et remplit `onboardingCompletedAt`.
+- Forgot password anti-enumeration OK.
+- Reset password via token DB OK, login nouveau mot de passe OK.
+- `POST /api/projects` invalide retourne HTTP 400 `INVALID_PROJECT_INPUT` au lieu d'un crash 500.
+- Premier projet Free cree: HTTP 201.
+- Deuxieme projet Free bloque: HTTP 402 `FREE_PROJECT_LIMIT_REACHED`.
+- Admin login OK.
+- Creation module experimental par owner/admin OK.
+- User Free voit le module Studio indisponible.
+- Upgrade admin vers Studio OK.
+- User Studio devient `isPaid=true` et voit le module Studio disponible.
+
+Nuance email:
+- Les appels Resend retournent encore `emailDelivery.status=failed` car le domaine `matrice.essuf.fr` n'est pas verifie chez Resend.
+- Les flows applicatifs restent fonctionnels car les tests utilisent les tokens stockes en DB.
+- Decision produit en attente: finaliser Brevo ou verifier un domaine Resend avant tests e2e de vraie delivrabilite email.
+
+Etat final VPS:
+- Mode private restaure: `/api/access` retourne `mode=private`, `viewer.role=owner`, `isPaid=true`.
+- Aucune cle secrete commitee.
+## 2026-05-11 - Codex - feat/email-provider-brevo
+
+Branche creee depuis `feat/phase-2a-onboarding-uxlab` apres validation VPS Phase 2A.
+
+Objectif:
+- Corriger durablement la delivrabilite email Matrice en ajoutant Brevo comme provider transactionnel.
+- Ne pas attendre la verification Resend de `matrice.essuf.fr`.
+
+Implementation:
+- `artifacts/api-server/src/services/emailService.ts`
+  - Ajout `EMAIL_PROVIDER=brevo|resend`.
+  - Provider par defaut actuel: si `EMAIL_PROVIDER=brevo`, appel API Brevo REST `https://api.brevo.com/v3/smtp/email`.
+  - Pas de nouvelle dependance npm: utilisation de `fetch`.
+  - Fallback Resend conserve si `EMAIL_PROVIDER` absent ou different de `brevo`.
+- `.env.example`
+  - Ajout `EMAIL_PROVIDER=brevo`.
+  - Ajout `BREVO_API_KEY=xkeysib_REPLACE_ME`.
+  - `MATRICE_FROM_EMAIL=contact@matrice.essuf.fr`.
+
+Important securite:
+- Ne jamais coller la cle Brevo dans le chat.
+- La vraie cle doit etre ajoutee directement dans `/opt/matrice/.env` sur le VPS.
+- Preferer une API key Brevo REST commencant par `xkeysib-...`, pas la cle SMTP `xsmtpsib-...`.
+
+Commande VPS recommandee apres creation/verif domaine Brevo:
+```bash
+cd /opt/matrice
+cp .env .env.backup-brevo
+nano .env
+# EMAIL_PROVIDER=brevo
+# BREVO_API_KEY=xkeysib-...
+# MATRICE_FROM_EMAIL=contact@matrice.essuf.fr
+# MATRICE_FROM_NAME=Matrice Narrative
+docker compose up -d --build --force-recreate api frontend
+```
+
+Note coordination Claude:
+- Claude peut aider BraveHeart dans l'interface Brevo + DNS OVH.
+- Codex gere le code, les tests, le deploy VPS et la verification API.

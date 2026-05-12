@@ -6,7 +6,7 @@ import {
   hpsaScoresTable, bookOutlinesTable, screenplaysTable, seriesTable, pitchDocumentsTable,
   narrativeSkillsTable, projectSkillsTable,
   filmDataTable, filmScenesTable, appUsersTable,
-  sruScoresTable, cinemaKnowledgeTable
+  sruScoresTable, cinemaKnowledgeTable, insertProjectSchema
 } from "@workspace/db";
 import { getSkillsContextString } from "../services/skillsInjectionService.js";
 import { eq, and, asc } from "drizzle-orm";
@@ -130,7 +130,7 @@ router.get("/projects", async (req, res) => {
     const access = getProductAccess(req);
     const user = getAuthUser(req);
     // SECURITY: filter projects strictly by viewer role to prevent leaking projects across users
-    let projects;
+    let projects: (typeof projectsTable.$inferSelect)[];
     if (access.viewer.role === "owner") {
       // Private mode OR admin token: see everything
       projects = await db.select().from(projectsTable).orderBy(projectsTable.updatedAt);
@@ -160,8 +160,8 @@ router.post("/projects", async (req, res) => {
       return;
     }
 
-    const body = req.body;
-    const [project] = await db.insert(projectsTable).values({
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const parsedProject = insertProjectSchema.safeParse({
       title: body.title,
       rawIdea: body.rawIdea,
       inputType: body.inputType,
@@ -178,7 +178,20 @@ router.post("/projects", async (req, res) => {
       manuscriptExcerpt: body.manuscriptExcerpt ?? "",
       ownerUserId: access.viewer.role === "user" ? user?.id : null,
       progression: 5,
-    }).returning();
+    });
+
+    if (!parsedProject.success) {
+      res.status(400).json({
+        error: "INVALID_PROJECT_INPUT",
+        issues: parsedProject.error.issues.map((issue) => ({
+          path: issue.path.join("."),
+          message: issue.message,
+        })),
+      });
+      return;
+    }
+
+    const [project] = await db.insert(projectsTable).values(parsedProject.data).returning();
     if (user && access.viewer.role === "user") {
       await db.update(appUsersTable)
         .set({ projectsCreated: user.projectsCreated + 1, updatedAt: new Date() })

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/apiFetch";
 import {
   Sparkles, ArrowRight, ArrowLeft, Clapperboard,
   Film, Tv, BookOpen, Mic, Gamepad2, Image, Check,
@@ -205,7 +206,7 @@ export default function NewProject() {
         artisticAmbition: `Créer une œuvre ${moodLabels.join(", ").toLowerCase()} qui résonne durablement`,
       };
 
-      const res = await fetch(`${BASE}/api/projects`, {
+      const res = await apiFetch(`${BASE}/api/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -214,13 +215,13 @@ export default function NewProject() {
       const project = await res.json() as { id: string };
 
       // Fire and forget: matrix generation (SSE)
-      void fetch(`${BASE}/api/projects/${project.id}/generate-matrix`, {
+      void apiFetch(`${BASE}/api/projects/${project.id}/generate-matrix`, {
         method: "POST",
         headers: { "Accept": "text/event-stream" },
       });
 
       // Fire and forget: auto-link skills — show toast when done
-      void fetch(`${BASE}/api/projects/${project.id}/auto-link-skills`, {
+      void apiFetch(`${BASE}/api/projects/${project.id}/auto-link-skills`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       }).then(r => r.json() as Promise<LinkedSkill[]>).then(skills => {

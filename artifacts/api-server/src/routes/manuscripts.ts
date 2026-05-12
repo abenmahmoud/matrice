@@ -10,7 +10,7 @@ import {
   charactersTable,
 } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
-import { defaultAiModel } from "../lib/aiConfig.js";
+import { getDefaultAiModel } from "../lib/aiConfig.js";
 import { appendCreativeMemoryContext } from "../services/creativeMemoryContext.js";
 
 const router: IRouter = Router();
@@ -224,7 +224,7 @@ Sois PRÉCIS et HONNÊTE. La vérité utile, pas la flatterie stérile.`;
       send({ type: "progress", step: "L'IA analyse votre texte en profondeur...", percent: 40 });
 
       const response = await openai.chat.completions.create({
-        model: defaultAiModel,
+        model: getDefaultAiModel(),
         max_completion_tokens: 10000,
         response_format: { type: "json_object" },
         messages: [

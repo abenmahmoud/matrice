@@ -61,3 +61,7 @@ ssl/
 *.key
 *.crt
 backups/
+
+# Bloque tous .env.* sauf .env.example
+.env.*
+!.env.example
