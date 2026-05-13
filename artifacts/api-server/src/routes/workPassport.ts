@@ -229,13 +229,28 @@ function normalizePassportDraft(draft: WorkPassportDraft, fallback: WorkPassport
     ...fallback,
     ...draft,
     officialTitle: stringOr(draft.officialTitle, fallback.officialTitle),
-    workType: stringOr(draft.workType, fallback.workType),
+    workType: canonicalWorkType(draft.workType, fallback.workType),
     displayedAuthor: stringOr(draft.displayedAuthor, fallback.displayedAuthor),
-    status: stringOr(draft.status, fallback.status),
+    pseudonym: stringOr(draft.pseudonym, fallback.pseudonym),
+    language: stringOr(draft.language, fallback.language),
+    countryCulture: stringOr(draft.countryCulture, fallback.countryCulture),
+    genre: stringOr(draft.genre, fallback.genre),
+    targetAudience: stringOr(draft.targetAudience, fallback.targetAudience),
+    status: canonicalStatus(draft.status, fallback.status),
+    logline: stringOr(draft.logline, fallback.logline),
+    shortPitch: stringOr(draft.shortPitch, fallback.shortPitch),
+    shortSynopsis: stringOr(draft.shortSynopsis, fallback.shortSynopsis),
     mainThemes: arrayOr(draft.mainThemes, fallback.mainThemes),
+    artisticIntention: stringOr(draft.artisticIntention, fallback.artisticIntention),
+    declaredOriginality: stringOr(draft.declaredOriginality, fallback.declaredOriginality),
     clichRisks: arrayOr(draft.clichRisks, fallback.clichRisks),
-    depositTargets: arrayOr(draft.depositTargets, fallback.depositTargets),
+    depositTargets: canonicalDepositTargets(draft.depositTargets, fallback.depositTargets),
     depositChecklist: objectOr(draft.depositChecklist, fallback.depositChecklist),
+    proofMode: stringOr(draft.proofMode, fallback.proofMode),
+    proofProvider: stringOr(draft.proofProvider, fallback.proofProvider),
+    proofExternalReference: stringOr(draft.proofExternalReference, fallback.proofExternalReference),
+    proofNotes: stringOr(draft.proofNotes, fallback.proofNotes),
+    legalDisclaimer: stringOr(draft.legalDisclaimer, fallback.legalDisclaimer),
   };
 }
 
@@ -293,8 +308,53 @@ function stringOr(value: unknown, fallback: string): string {
   return typeof value === "string" && value.trim() ? value : fallback;
 }
 
+function canonicalWorkType(value: unknown, fallback: string): string {
+  const normalized = typeof value === "string" ? value.toLowerCase() : "";
+  if (normalized.includes("roman")) return "roman";
+  if (normalized.includes("court")) return "court-metrage";
+  if (normalized.includes("scenario") || normalized.includes("scenar")) return "scenario";
+  if (normalized.includes("film")) return "film";
+  if (normalized.includes("serie")) return "serie";
+  if (normalized.includes("autre")) return "autre";
+  return fallback;
+}
+
+function canonicalStatus(value: unknown, fallback: string): string {
+  const normalized = typeof value === "string" ? value.toLowerCase() : "";
+  if (normalized.includes("develop")) return "en_developpement";
+  if (normalized.includes("pret") || normalized.includes("dépôt") || normalized.includes("depot")) return "pret_depot";
+  if (normalized.includes("depos")) return "depose";
+  if (normalized.includes("soumis")) return "soumis";
+  if (normalized.includes("publi")) return "publie";
+  if (normalized.includes("brouillon")) return "brouillon";
+  return fallback;
+}
+
 function arrayOr(value: unknown, fallback: string[]): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : fallback;
+}
+
+function canonicalDepositTargets(value: unknown, fallback: string[]): string[] {
+  if (!Array.isArray(value)) return fallback;
+
+  const mapped = value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => {
+      const normalized = item.toLowerCase();
+      if (normalized.includes("sgdl")) return "sgdl";
+      if (normalized.includes("inpi") || normalized.includes("soleau")) return "inpi_esoleau";
+      if (normalized.includes("sacd")) return "sacd";
+      if (normalized.includes("afnil") || normalized.includes("isbn")) return "isbn_afnil";
+      if (normalized.includes("cnc")) return "cnc";
+      if (normalized.includes("festival")) return "festival";
+      if (normalized.includes("producteur")) return "producteur";
+      if (normalized.includes("diffuseur")) return "diffuseur";
+      if (normalized.includes("isan") || normalized.includes("eidr")) return "isan_eidr";
+      return item.trim() ? "autre" : "";
+    })
+    .filter(Boolean);
+
+  return mapped.length ? Array.from(new Set(mapped)) : fallback;
 }
 
 function objectOr(value: unknown, fallback: Record<string, boolean>): Record<string, boolean> {

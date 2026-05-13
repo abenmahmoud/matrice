@@ -1395,3 +1395,11 @@ Tests VPS a executer apres push:
 - Signup -> emailDelivery Brevo -> verification token -> onboarding complete -> dashboard/projects.
 - Passeport owner: lien visible, generate, patch, seal, export.
 - Passeport user non-owner: lien masque et API refuse.
+
+Resultat intermediaire VPS:
+- Build Docker API + frontend: OK.
+- `/api/healthz`, `/admin`, `/studio`: OK.
+- Brevo visible dans le container API (`EMAIL_PROVIDER=brevo`, `BREVO_API_KEY` present).
+- Signup + verification + onboarding: OK, emailDelivery `sent`.
+- Bug trouve sur Passeport generate: l'IA peut renvoyer `null` pour une colonne texte non-null (`proofExternalReference`).
+- Correction: normalisation stricte de tous les champs texte, statut, type d'oeuvre et cibles de depot avant insertion DB.
