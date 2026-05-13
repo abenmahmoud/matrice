@@ -42,9 +42,9 @@ const CREATIVE_FLOW = [
 
 const PLAN_PREVIEW = [
   { name: "Free", detail: "Decouverte limitee", price: "0 EUR" },
-  { name: "Pro", detail: "Createur individuel", price: "19 EUR" },
-  { name: "Studio", detail: "Usage intensif", price: "49 EUR" },
-  { name: "Enterprise", detail: "Equipes & sur-mesure", price: "Devis" },
+  { name: "Pro", detail: "Createur individuel", price: "9.90 EUR" },
+  { name: "Studio", detail: "Usage intensif", price: "19.90 EUR" },
+  { name: "Publish", detail: "Auteurs qui publient", price: "29.90 EUR" },
 ];
 
 const PROOF_POINTS = [
