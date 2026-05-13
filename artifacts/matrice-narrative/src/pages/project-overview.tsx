@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useAdmin } from "@/context/AdminContext";
 import {
   BookOpen, Brain, Users, Network, Globe2, Search, Activity,
-  Book, Film, Tv, Presentation, Download, FileSearch,
+  Book, Film, Tv, Presentation, Download, FileSearch, BookMarked,
   ArrowRight, Sparkles, CheckCircle2, Circle, Loader2, Wand2, BookText, LockKeyhole
 } from "lucide-react";
 
@@ -118,6 +118,8 @@ const PHASES = [
         desc: "Diagnostic narratif complet sur votre projet avec recommandations." },
     ],
     extraModules: [
+      { name: "Passeport d'Œuvre", href: "passport", icon: BookMarked,
+        desc: "Identite, trace de version, checklist de depot et reconnaissance." },
       { name: "Exports", href: "exports", icon: Download,
         desc: "PDF, Markdown, Fountain, JSON — tous vos documents exportables." },
     ],

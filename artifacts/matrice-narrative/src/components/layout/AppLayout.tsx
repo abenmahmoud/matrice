@@ -4,7 +4,7 @@ import {
   Home, LayoutDashboard, Plus, BookOpen, Brain, Users, Network, Globe2,
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
-  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit
+  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -58,6 +58,7 @@ const PHASES = [
       { name: "Dossier de Pitch", href: "pitch", icon: Presentation, key: "pitch" as keyof StatusMap },
     ],
     extra: [
+      { name: "Passeport d'Œuvre", href: "passport", icon: BookMarked },
       { name: "Note d'Intention", href: "note-intention", icon: ScrollText },
       { name: "Exports", href: "exports", icon: Download },
     ],

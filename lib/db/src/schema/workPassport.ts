@@ -1,6 +1,4 @@
 import { pgTable, text, timestamp, jsonb, integer } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import { z } from "drizzle-zod";
 import { projectsTable } from "./projects";
 
 export const workPassportTypeEnum = [
@@ -65,6 +63,15 @@ export const workPassportsTable = pgTable("work_passports", {
   contentHash: text("content_hash"),
   legalDisclaimer: text("legal_disclaimer").notNull().default(
     "Ce document ne remplace pas un depot officiel. Il constitue une preuve interne de version et un guide de preparation."
+  ),
+
+  // Preuve d'anteriorite - architecture ouverte pour futurs tiers de confiance.
+  proofMode: text("proof_mode").notNull().default("internal_hash"),
+  proofProvider: text("proof_provider").notNull().default("Matrice Narrative"),
+  proofExternalReference: text("proof_external_reference").notNull().default(""),
+  proofRegisteredAt: timestamp("proof_registered_at"),
+  proofNotes: text("proof_notes").notNull().default(
+    "Preuve interne par empreinte SHA-256. Pour une force probante externe, deposer l'oeuvre via INPI e-Soleau, SACD, SGDL ou un service d'horodatage qualifie adapte."
   ),
 
   // Depot / reconnaissance

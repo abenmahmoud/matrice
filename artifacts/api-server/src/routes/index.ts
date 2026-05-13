@@ -27,11 +27,11 @@ router.use(authContextMiddleware);
 router.use(authRouter);
 router.use(accessRouter);
 router.use(experimentalModulesRouter);
-router.use(workPassportRouter);
 router.use(aiModelContextMiddleware);
 router.use("/memory", memoryRouter);
 router.use(creativeMemoryContextMiddleware);
 router.use(productAccessMiddleware);
+router.use(workPassportRouter);
 router.use(projectsRouter);
 router.use(manuscriptsRouter);
 

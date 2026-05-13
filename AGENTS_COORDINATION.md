@@ -1200,3 +1200,43 @@ Prod stable. Une seule cle active maintenant.
 Prochaine etape recommendee:
 - Investiguer pourquoi Codex signup ne genere pas d events Brevo (logs API montrent /api/auth/signup HTTP 201 mais /api/smtp/statistics/events Brevo ne contient que les emails de test manuels, pas les emails de verification automatiques de Codex)
 - Probablement Codex n a pas branche emailService.ts correctement dans le flow signup, ou il echoue silencieusement
+
+## 2026-05-13 - Codex - feat/work-passport-v09
+
+Objectif:
+- Finaliser et fiabiliser le Passeport d'Oeuvre MVP implemente par Kimi.
+- Garder main intact, ne pas merger sans validation BraveHeart.
+
+Audit Kimi:
+- Schema `work_passports`, service, routes API et page `/projects/:id/passport` presents.
+- Bugs bloquants identifies:
+  - `workPassportRouter` etait monte avant `productAccessMiddleware`.
+  - Les routes utilisaient `req.user` / `req.anonymousId` et `viewer.canReadProject`, qui n'existent pas dans l'architecture actuelle.
+  - Page frontend: import `FileText` duplique et icone `Passport` inexistante.
+  - Pas de generation IA reelle, seulement fallback deterministe.
+  - Pas de section explicite "Preuve d'anteriorite".
+
+Corrections Codex:
+- Refonte du controle d'acces Passeport:
+  - public -> 401.
+  - user -> uniquement ses projets via `projects.owner_user_id`.
+  - owner/admin -> tous les projets, avec passportOwnerId stable (`owner` pour anciens projets personnels sans owner_user_id).
+- `workPassportRouter` monte apres `productAccessMiddleware`.
+- Ajout generation IA via `generateWorkPassportDraft()` dans `generationService.ts`, avec fallback deterministe.
+- Prompt IA: document professionnel, aucune promesse juridique, separation preuve interne / depot officiel.
+- Ajout architecture preuve d'anteriorite dans `work_passports`:
+  - `proof_mode`, `proof_provider`, `proof_external_reference`, `proof_registered_at`, `proof_notes`.
+- Scellement SHA-256 base sur payload canonique du passeport, pas seulement titre/date.
+- Navigation ajoutee:
+  - sidebar projet: `Passeport d'Oeuvre`.
+  - project overview phase Publication: carte `Passeport d'Oeuvre`.
+- Page frontend corrigee et section `Preuve d'anteriorite` ajoutee dans l'onglet Tracabilite.
+
+Verification locale:
+- `git diff --check`: OK.
+- Build local Windows bloque par binaires optionnels natifs esbuild/rollup (`@esbuild/win32-x64`, `@rollup/rollup-win32-x64-msvc`), probleme deja connu sur cette machine. Verification definitive a faire via Docker Linux VPS.
+
+Suite VPS:
+- Appliquer migration Drizzle/push pour `work_passports` + nouveaux champs preuve.
+- Rebuild Docker API/frontend.
+- Tester: GET null, generate, PATCH, seal, export MD, page `/projects/:id/passport`, ownership.

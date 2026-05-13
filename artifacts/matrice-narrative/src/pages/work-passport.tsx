@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
-  FileText, FileText, Download, Shield, ChevronLeft, Loader2,
+  FileText, Download, Shield, ChevronLeft, Loader2,
   BookMarked, Globe, ShieldAlert, CheckCircle2, Circle, Lock, ExternalLink
 } from "lucide-react";
 
@@ -41,6 +41,11 @@ interface WorkPassport {
   sealedAt: string | null;
   contentHash: string | null;
   legalDisclaimer: string;
+  proofMode: string;
+  proofProvider: string;
+  proofExternalReference: string;
+  proofRegisteredAt: string | null;
+  proofNotes: string;
   depositTargets: string[];
   depositChecklist: Record<string, boolean>;
   markdownContent: string;
@@ -170,13 +175,13 @@ export default function WorkPassportPage() {
           </Link>
           <Card>
             <CardContent className="p-12 text-center">
-              <Passport className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Passeport d&apos;Oeuvre</h2>
+              <BookMarked className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Passeport d'Œuvre</h2>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 Documente l&apos;identite, l&apos;ADN narratif et la tracabilite de votre creation.
               </p>
               <Button size="lg" onClick={() => genMut.mutate()} disabled={genMut.isPending}>
-                {genMut.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Passport className="h-4 w-4 mr-2" />}
+                {genMut.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BookMarked className="h-4 w-4 mr-2" />}
                 Generer le Passeport
               </Button>
               <p className="text-xs text-muted-foreground mt-4">
@@ -201,7 +206,7 @@ export default function WorkPassportPage() {
               <Button variant="ghost" size="sm"><ChevronLeft className="h-4 w-4 mr-1" /> Retour</Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">{passport.officialTitle || "Passeport d&apos;Oeuvre"}</h1>
+              <h1 className="text-2xl font-bold">{passport.officialTitle || "Passeport d'Œuvre"}</h1>
               <p className="text-sm text-muted-foreground">
                 Version {passport.version}
                 {passport.sealedAt && <span className="ml-2 text-green-600 inline-flex items-center"><Shield className="h-3 w-3 mr-1" /> Scelle</span>}
@@ -314,6 +319,19 @@ export default function WorkPassportPage() {
                     <p className="text-xs font-mono break-all">{passport.contentHash}</p>
                   </div>
                 )}
+                <div className="mt-4 rounded-lg border border-border/50 bg-card/40 p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldAlert className="h-4 w-4 text-amber-500" />
+                    <p className="text-sm font-semibold">Preuve d'antériorité</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <F label="Mode" v={passport.proofMode || "internal_hash"} />
+                    <F label="Fournisseur" v={passport.proofProvider || "Matrice Narrative"} />
+                    <F label="Référence externe" v={passport.proofExternalReference || "Non définie"} />
+                    <F label="Enregistré le" v={passport.proofRegisteredAt ? new Date(passport.proofRegisteredAt).toLocaleDateString("fr-FR") : "Non enregistré"} />
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">{passport.proofNotes}</p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -388,7 +406,7 @@ function downloadJson(p: WorkPassport) {
 
 function generateMd(p: WorkPassport): string {
   const now = new Date().toLocaleDateString("fr-FR", { year: "numeric", month: "long", day: "numeric" });
-  return `# Passeport d&apos;Oeuvre - ${p.officialTitle || "Sans titre"}
+  return `# Passeport d'Œuvre - ${p.officialTitle || "Sans titre"}
 
 > Document genere le ${now} via Matrice Narrative
 >
@@ -421,8 +439,17 @@ function generateMd(p: WorkPassport): string {
 
 Version: ${p.version} | Hash: ${p.contentHash || "_"}
 
+## 3.b Preuve d'anteriorite
+
+- Mode : ${p.proofMode || "internal_hash"}
+- Fournisseur : ${p.proofProvider || "Matrice Narrative"}
+- Reference externe : ${p.proofExternalReference || "_"}
+- Enregistre le : ${p.proofRegisteredAt ? new Date(p.proofRegisteredAt).toLocaleDateString("fr-FR") : "_"}
+
+${p.proofNotes || "Preuve interne par empreinte. Depot officiel recommande."}
+
 ---
-*Passeport d&apos;Oeuvre - Matrice Narrative*
+*Passeport d'Œuvre - Matrice Narrative*
 `;
 }
 

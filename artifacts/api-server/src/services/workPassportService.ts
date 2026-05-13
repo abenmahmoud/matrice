@@ -1,4 +1,4 @@
-import { db, workPassportsTable, projectsTable } from "@workspace/db";
+import { db, workPassportsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import type { WorkPassport, InsertWorkPassport } from "@workspace/db";
 import { createHash } from "crypto";
@@ -54,7 +54,7 @@ export async function sealWorkPassport(
   const passport = await getWorkPassport(projectId, ownerUserId);
   if (!passport) return null;
 
-  const hashInput = `${passport.id}:${passport.projectId}:${passport.ownerUserId}:${passport.officialTitle}:${passport.updatedAt?.toISOString() ?? ""}`;
+  const hashInput = canonicalPassportPayload(passport);
   const contentHash = createHash("sha256").update(hashInput).digest("hex");
 
   const [updated] = await db
@@ -62,6 +62,10 @@ export async function sealWorkPassport(
     .set({
       sealedAt: new Date(),
       contentHash,
+      proofMode: passport.proofMode || "internal_hash",
+      proofProvider: passport.proofProvider || "Matrice Narrative",
+      proofNotes: passport.proofNotes ||
+        "Empreinte SHA-256 interne creee par Matrice. Pour une preuve externe, utiliser un depot officiel ou un horodatage qualifie.",
       version: (passport.version ?? 1) + 1,
       updatedAt: new Date(),
     })
@@ -134,6 +138,19 @@ ${(passport.clichRisks ?? []).map((c: string) => `- ${c}`).join("\n") || "_Non i
 
 ---
 
+## 3.b Preuve d'anteriorite
+
+| Champ | Valeur |
+|-------|--------|
+| **Mode de preuve** | ${passport.proofMode || "internal_hash"} |
+| **Fournisseur / registre** | ${passport.proofProvider || "Matrice Narrative"} |
+| **Reference externe** | ${passport.proofExternalReference || "_Non definie_"} |
+| **Date d'enregistrement externe** | ${passport.proofRegisteredAt ? new Date(passport.proofRegisteredAt).toLocaleDateString("fr-FR") : "_Non enregistree_"} |
+
+${passport.proofNotes || "Le scellement actuel prepare une preuve interne. Pour une force probante externe, effectuer un depot officiel adapte."}
+
+---
+
 ## 4. Dépôt et reconnaissance
 
 ### Cibles recommandées
@@ -148,4 +165,36 @@ ${Object.entries(passport.depositChecklist ?? {})
 
 *Passeport d'Œuvre — Matrice Narrative © ${new Date().getFullYear()}*
 `;
+}
+
+function canonicalPassportPayload(passport: WorkPassport): string {
+  return JSON.stringify({
+    id: passport.id,
+    projectId: passport.projectId,
+    ownerUserId: passport.ownerUserId,
+    officialTitle: passport.officialTitle,
+    workType: passport.workType,
+    displayedAuthor: passport.displayedAuthor,
+    pseudonym: passport.pseudonym,
+    language: passport.language,
+    countryCulture: passport.countryCulture,
+    genre: passport.genre,
+    targetAudience: passport.targetAudience,
+    status: passport.status,
+    logline: passport.logline,
+    shortPitch: passport.shortPitch,
+    shortSynopsis: passport.shortSynopsis,
+    mainThemes: passport.mainThemes,
+    artisticIntention: passport.artisticIntention,
+    declaredOriginality: passport.declaredOriginality,
+    clichRisks: passport.clichRisks,
+    depositTargets: passport.depositTargets,
+    depositChecklist: passport.depositChecklist,
+    proofMode: passport.proofMode,
+    proofProvider: passport.proofProvider,
+    proofExternalReference: passport.proofExternalReference,
+    proofNotes: passport.proofNotes,
+    legalDisclaimer: passport.legalDisclaimer,
+    version: passport.version,
+  });
 }
