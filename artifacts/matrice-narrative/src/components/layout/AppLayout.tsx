@@ -102,7 +102,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const rootNav = [
     { name: "Accueil", href: "/", icon: Home },
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Memoire privee", href: "/memory", icon: BrainCircuit },
+    { name: "Memoire Studio", href: "/memory", icon: BrainCircuit },
     { name: "Modules experimentaux", href: "/experimental-modules", icon: Sparkles },
     { name: "Analyser un texte", href: "/analyse", icon: ScanText },
     { name: "Nouvelle vision", href: "/projects/new", icon: Plus },

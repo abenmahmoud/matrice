@@ -92,7 +92,7 @@ export default function SignupPage() {
           </p>
 
           <div className="mt-8 grid gap-3 text-sm text-white/65">
-            {["Email confirme avant connexion", "Quotas Free controles cote serveur", "Owner et Lab prive separes"].map((item) => (
+            {["Email confirme avant connexion", "Quotas Free controles cote serveur", "Studio et espace avance separes"].map((item) => (
               <div key={item} className="flex items-center gap-3">
                 <CheckCircle2 className="h-4 w-4 text-emerald-300" />
                 {item}

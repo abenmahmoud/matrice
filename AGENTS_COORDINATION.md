@@ -1339,3 +1339,32 @@ Action immediate utilisateur:
 - Dans DevTools Console:
   `localStorage.removeItem("matrice_admin_token"); location.reload();`
 - Puis se reconnecter avec le `ADMIN_PASSWORD` actuel du VPS.
+
+## 2026-05-13 - Codex - clean private wording sprint
+
+Objectif:
+- Masquer en UI toute trace de version privee/owner/admin secret.
+- Garder les concepts techniques (`owner`, `adminHeaders`, `/api/admin/*`) en code pour ne pas casser les flux existants.
+
+Audit Kimi:
+- Branche auditee: `origin/fix/private-wording-v10` commit `80094a96`.
+- Attention: branche Kimi non mergeable telle quelle, car elle ajoute aussi des artefacts locaux (`.pnpm-store`, backups `.ts`, dump SQL) avec environ 31k fichiers.
+- Decision: creation d'une branche propre depuis `main`: `fix/private-wording-v10-clean`.
+
+Changements UI propres:
+- `/studio` ajoute comme alias de `AdminPage`; `/admin` conserve pour compatibilite.
+- Header Studio: `MATRICE STUDIO`, badge `Studio Creatif`.
+- Login Studio: placeholder `Mot de passe Studio`, bouton `Acceder au Studio`, disparition de `ADMIN_PASSWORD` visible.
+- Badges et messages: `OWNER`, `owner prive`, `plans payants`, `Lab prive`, `Dashboard admin`, `zone secrete` remplaces par `Studio`, `acces Studio`, `espaces separes`.
+- Navigation publique: liens `Admin` remplaces par `Studio`.
+- Pages publiques nettoyees: landing, pricing, signup, dashboard, memoire, modules experimentaux, research-lab.
+
+Verification locale:
+- `rg` large sur wording sensible: aucun reste visible critique.
+- Restes acceptes: noms techniques internes (`isOwnerOnly`, `privatePriority`, `adminHeaders`, routes `/api/admin/*`).
+- Aucun `.env` modifie.
+
+Suite recommandee:
+- Pousser `fix/private-wording-v10-clean`.
+- Auditer visuellement `/studio`, `/admin`, `/pricing`, `/signup`.
+- Ne pas merger `origin/fix/private-wording-v10` sans nettoyage complet des artefacts.

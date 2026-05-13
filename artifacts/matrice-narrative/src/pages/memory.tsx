@@ -55,7 +55,7 @@ export default function MemoryPage() {
       setEntries(await res.json() as MemoryEntry[]);
       setLoaded(true);
     } catch {
-      toast({ title: "Memoire indisponible", description: "Connecte-toi en admin si necessaire.", variant: "destructive" });
+      toast({ title: "Memoire indisponible", description: "Connecte-toi au Studio si necessaire.", variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ export default function MemoryPage() {
         <div className="border-b border-white/[0.05] bg-white/[0.01]">
           <div className="mx-auto flex max-w-7xl items-end justify-between gap-6 px-8 py-8">
             <div>
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-violet-300/40">Memoire creative privee</p>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-violet-300/40">Memoire creative Studio</p>
               <h1 className="text-3xl font-serif font-bold text-white/90">Ce que Matrice doit apprendre de toi</h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/32">Rassemble tes regles, interdits, references, motifs et criteres. Cette V1 servira ensuite aux generations IA.</p>
             </div>

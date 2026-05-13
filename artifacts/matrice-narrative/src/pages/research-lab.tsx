@@ -165,7 +165,7 @@ export default function ResearchLabPage() {
     loadStats();
     toast({
       title: "Recherche générée",
-      description: `"${entry.title}" — ${entry.extractedSkillIds?.length ?? 0} skills secrets extraits`,
+      description: `"${entry.title}" — ${entry.extractedSkillIds?.length ?? 0} skills avances extraits`,
     });
   }, []);
 
@@ -298,7 +298,7 @@ export default function ResearchLabPage() {
               </div>
               <p className="text-sm text-muted-foreground max-w-2xl leading-relaxed mt-3">
                 L'IA explore l'histoire du récit humain à travers toutes les cultures et époque — de la tradition orale africaine au cinéma coréen contemporain. 
-                Chaque recherche extrait des <strong className="text-foreground">skills secrets</strong> que l'IA intègre progressivement à sa matrice créative.
+                Chaque recherche extrait des <strong className="text-foreground">skills avances</strong> que l'IA intègre progressivement à sa matrice créative.
               </p>
             </div>
             <div className="flex gap-2">
@@ -347,7 +347,7 @@ export default function ResearchLabPage() {
                 <span className="text-xs text-muted-foreground uppercase tracking-wider">Skills</span>
               </div>
               <p className="text-2xl font-bold">{stats.totalSkillsExtracted}</p>
-              <p className="text-xs text-muted-foreground">skills secrets extraits</p>
+              <p className="text-xs text-muted-foreground">skills avances extraits</p>
             </div>
           </div>
         )}
@@ -458,7 +458,7 @@ export default function ResearchLabPage() {
             </div>
             <h3 className="text-xl font-semibold mb-3">Le laboratoire est vide</h3>
             <p className="text-sm text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
-              Lancez la <strong className="text-foreground">Recherche du jour</strong> pour que l'IA explore automatiquement une tradition narrative mondiale et en extrait des skills secrets pour enrichir votre matrice créative.
+              Lancez la <strong className="text-foreground">Recherche du jour</strong> pour que l'IA explore automatiquement une tradition narrative mondiale et en extrait des skills avances pour enrichir votre matrice créative.
             </p>
             <div className="flex flex-col items-center gap-3">
               <Button onClick={handleDaily} className="gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-8" size="lg" disabled={genState.isGenerating}>

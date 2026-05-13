@@ -247,7 +247,7 @@ function SkillForm({ skill, onSave, onCancel }: { skill: AiSkill | null; onSave:
           onChange={e => setForm(f => ({ ...f, priority: Number(e.target.value) }))}
           className="w-32 h-10 rounded-xl border border-white/10 bg-white/5 text-white/80 text-sm px-3 focus:outline-none focus:ring-1 focus:ring-violet-500/40" />
       </div>
-      <input placeholder="Description courte (visible dans l'admin)" value={form.description}
+      <input placeholder="Description courte (visible dans le Studio)" value={form.description}
         onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
         className="w-full h-10 rounded-xl border border-white/10 bg-white/5 text-white/80 text-sm px-4 placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-violet-500/40" />
       <textarea placeholder="Contenu — texte injecté dans les prompts IA (soyez précis et actionnable)" value={form.content}
