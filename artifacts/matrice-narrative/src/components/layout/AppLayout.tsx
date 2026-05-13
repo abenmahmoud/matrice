@@ -4,10 +4,11 @@ import {
   Home, LayoutDashboard, Plus, BookOpen, Brain, Users, Network, Globe2,
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
-  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit
+  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -58,6 +59,7 @@ const PHASES = [
       { name: "Dossier de Pitch", href: "pitch", icon: Presentation, key: "pitch" as keyof StatusMap },
     ],
     extra: [
+      { name: "Passeport d'Œuvre", href: "passport", icon: BookMarked },
       { name: "Note d'Intention", href: "note-intention", icon: ScrollText },
       { name: "Exports", href: "exports", icon: Download },
     ],
@@ -92,7 +94,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const { data: status } = useQuery<StatusMap>({
     queryKey: [`/api/projects/${projectId}/status`],
-    queryFn: () => fetch(`${BASE}/api/projects/${projectId}/status`).then(r => r.json()) as Promise<StatusMap>,
+    queryFn: () => apiFetch(`${BASE}/api/projects/${projectId}/status`).then(r => r.json()) as Promise<StatusMap>,
     enabled: !!projectId && projectId !== "new",
     staleTime: 15_000,
   });

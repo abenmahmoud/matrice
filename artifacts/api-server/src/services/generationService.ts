@@ -143,6 +143,80 @@ Ambition artistique : ${project.artisticAmbition ?? "créer une œuvre qui réso
   return extras.length ? `${base}\n${extras.join("\n")}` : base;
 }
 
+export type WorkPassportDraft = {
+  officialTitle: string;
+  workType: string;
+  displayedAuthor: string;
+  pseudonym: string;
+  language: string;
+  countryCulture: string;
+  genre: string;
+  targetAudience: string;
+  status: string;
+  logline: string;
+  shortPitch: string;
+  shortSynopsis: string;
+  mainThemes: string[];
+  artisticIntention: string;
+  declaredOriginality: string;
+  clichRisks: string[];
+  depositTargets: string[];
+  depositChecklist: Record<string, boolean>;
+  proofMode: string;
+  proofProvider: string;
+  proofExternalReference: string;
+  proofNotes: string;
+  legalDisclaimer: string;
+};
+
+export async function generateWorkPassportDraft(
+  project: Project,
+  context: {
+    displayedAuthor: string;
+    workType: string;
+    matrix?: Partial<NarrativeMatrix> | null;
+    emotionalCore?: Partial<EmotionalCore> | null;
+    research?: {
+      clicheRisks?: string[] | null;
+      originalityOpportunities?: string[] | null;
+      creationNotes?: string | null;
+    } | null;
+    fallback: WorkPassportDraft;
+  }
+): Promise<WorkPassportDraft> {
+  const system = `Tu es un dramaturge, script doctor et conseiller editorial francophone.
+Ta mission est de produire un Passeport d'Oeuvre professionnel pour Matrice Narrative.
+
+Regles imperatives :
+- Ne pretends jamais fournir une protection juridique officielle.
+- Distingue clairement "preuve interne Matrice" et "depot officiel externe".
+- Ne promets jamais qu'un hash interne suffit devant un tribunal.
+- Recommande des demarches adaptees : INPI e-Soleau, SACD, SGDL, AFNIL/ISBN, CNC, festivals, producteurs, diffuseurs selon le type.
+- Ne copie aucune oeuvre existante et n'invente pas de depot deja realise.
+- Reponds uniquement en JSON valide, sans markdown.`;
+
+  const user = `${projectContext(project)}
+
+Auteur affiche pressenti : ${context.displayedAuthor}
+Type d'oeuvre pressenti : ${context.workType}
+
+Matrice existante :
+${JSON.stringify(context.matrix ?? {}, null, 2)}
+
+Noyau emotionnel existant :
+${JSON.stringify(context.emotionalCore ?? {}, null, 2)}
+
+Recherche existante :
+${JSON.stringify(context.research ?? {}, null, 2)}
+
+Produis exactement ces champs JSON :
+officialTitle, workType, displayedAuthor, pseudonym, language, countryCulture, genre, targetAudience, status,
+logline, shortPitch, shortSynopsis, mainThemes, artisticIntention, declaredOriginality, clichRisks,
+depositTargets, depositChecklist, proofMode, proofProvider, proofExternalReference, proofNotes, legalDisclaimer.`;
+
+  return aiJson<WorkPassportDraft>(system, user, context.fallback, undefined, { temperature: 0.55, maxTokens: 6000 });
+}
+
 // ---------------------------------------------------------------------------
 // CNC Professional Context — injected into Note d'Intention & Pitch
 // ---------------------------------------------------------------------------
