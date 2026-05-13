@@ -1368,3 +1368,30 @@ Suite recommandee:
 - Pousser `fix/private-wording-v10-clean`.
 - Auditer visuellement `/studio`, `/admin`, `/pricing`, `/signup`.
 - Ne pas merger `origin/fix/private-wording-v10` sans nettoyage complet des artefacts.
+
+## 2026-05-13 - Codex - feat/private-power-v11
+
+Objectif sprint:
+- Valider le wording Studio en navigation reelle.
+- Rendre le flow email/onboarding testable avec Brevo en production Docker.
+- Finaliser l'integration IA du Passeport d'Oeuvre sans inventer de garantie juridique.
+- Limiter le lien Passeport au viewer `owner`.
+
+Corrections preparees:
+- `docker-compose.yml` transmet maintenant `EMAIL_PROVIDER` et `BREVO_API_KEY` au container API.
+- `emailService.ts` choisit Brevo automatiquement si `BREVO_API_KEY` existe, meme si `EMAIL_PROVIDER` est absent.
+- `.env.example` nettoye: suppression du doublon Resend historique.
+- `generationService.ts` expose `generateOpenAICompletion()` et `generateWorkPassportDraft()` l'utilise pour le Passeport IA avec fallback JSON deterministe.
+- `workPassportService.ts` expose `generateEnrichedWorkPassportDraft()` pour que le service Passeport porte l'integration avec `generationService`.
+- `project-overview.tsx` combine token utilisateur + token Studio pour `/api/access` et masque `Passeport d'Oeuvre` si `viewer.role !== "owner"`.
+
+Verification locale avant commit:
+- `git diff --check`: OK.
+- Build local Windows toujours bloque par la dependance optionnelle Rollup native manquante; verification Docker Linux prevue sur VPS.
+
+Tests VPS a executer apres push:
+- Build Docker API + frontend.
+- `/api/healthz`, `/admin`, `/studio`.
+- Signup -> emailDelivery Brevo -> verification token -> onboarding complete -> dashboard/projects.
+- Passeport owner: lien visible, generate, patch, seal, export.
+- Passeport user non-owner: lien masque et API refuse.

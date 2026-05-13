@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 import { useAdmin } from "@/context/AdminContext";
 import { apiFetch } from "@/lib/apiFetch";
+import { getUserToken, userAuthHeaders } from "@/lib/userAuth";
 import {
   BookOpen, Brain, Users, Network, Globe2, Search, Activity,
   Book, Film, Tv, Presentation, Download, FileSearch, BookMarked,
@@ -24,11 +25,13 @@ type StatusMap = {
 
 type ProductAccess = {
   mode: "private" | "commercial";
-  plan: "private" | "free" | "pro";
+  plan: "private" | "free" | "pro" | "studio" | "enterprise";
   viewer: {
-    role: "owner" | "public";
+    role: "owner" | "user" | "public";
     authenticated: boolean;
-    source: "private-mode" | "admin-token" | "anonymous";
+    source: "private-mode" | "admin-token" | "user-token" | "anonymous";
+    userId?: string;
+    email?: string;
   };
   isPrivate: boolean;
   isPaid: boolean;
@@ -271,8 +274,12 @@ export default function ProjectOverview() {
   });
 
   const { data: access } = useQuery<ProductAccess>({
-    queryKey: ["/api/access", token ?? "anonymous"],
-    queryFn: () => fetch(`${BASE}/api/access`, { headers: adminHeaders() }).then(r => r.json()) as Promise<ProductAccess>,
+    queryKey: ["/api/access", token ?? "anonymous", getUserToken() ?? "anonymous"],
+    queryFn: () => {
+      const headers = new Headers(userAuthHeaders());
+      new Headers(adminHeaders()).forEach((value, key) => headers.set(key, value));
+      return fetch(`${BASE}/api/access`, { headers }).then(r => r.json()) as Promise<ProductAccess>;
+    },
     staleTime: 60_000,
   });
 
@@ -305,6 +312,7 @@ export default function ProjectOverview() {
   const completionPct = Math.round((completedCount / totalCount) * 100);
   const nextStep = getNextStep(safeStatus);
   const isCommercialFree = access?.mode === "commercial" && !access.isPaid;
+  const isOwnerViewer = access?.viewer.role === "owner";
   const unlockedModules = access?.limits.freeUnlockedModules ?? [];
 
   const visualMoods = (project as unknown as { visualMoods?: string[] }).visualMoods ?? [];
@@ -475,7 +483,7 @@ export default function ProjectOverview() {
                     paywallCta={access?.paywall.cta}
                   />
                 ))}
-                {phase.extraModules?.map(mod => (
+                {phase.extraModules?.filter((mod) => mod.href !== "passport" || isOwnerViewer).map(mod => (
                   <ExtraCard
                     key={mod.href}
                     name={mod.name}

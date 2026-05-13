@@ -10,11 +10,12 @@ import {
 import { and, eq } from "drizzle-orm";
 import {
   createOrUpdateWorkPassport,
+  generateEnrichedWorkPassportDraft,
   generatePassportMarkdown,
   getWorkPassport,
   sealWorkPassport,
 } from "../services/workPassportService.js";
-import { generateWorkPassportDraft, type WorkPassportDraft } from "../services/generationService.js";
+import type { WorkPassportDraft } from "../services/generationService.js";
 import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
 import { getProductAccess } from "../lib/productAccess.js";
 
@@ -103,7 +104,7 @@ router.post("/projects/:id/passport/generate", async (req, res) => {
     const [research] = await db.select().from(researchDataTable).where(eq(researchDataTable.projectId, projectId)).limit(1);
 
     const fallback = buildDeterministicPassport(context.project, context.authorName, matrix, core, research);
-    const draft = await generateWorkPassportDraft(context.project, {
+    const draft = await generateEnrichedWorkPassportDraft(context.project, {
       displayedAuthor: context.authorName,
       workType: fallback.workType,
       matrix,

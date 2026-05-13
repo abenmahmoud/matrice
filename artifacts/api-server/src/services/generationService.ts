@@ -8,7 +8,7 @@ import { openai } from "@workspace/integrations-openai-ai-server";
 import { getDefaultAiModel } from "../lib/aiConfig.js";
 import { appendCreativeMemoryContext } from "./creativeMemoryContext.js";
 
-type Project = {
+export type Project = {
   id: string;
   title: string;
   rawIdea: string;
@@ -26,7 +26,7 @@ type Project = {
   manuscriptExcerpt?: string | null;
 };
 
-type NarrativeMatrix = {
+export type NarrativeMatrix = {
   centralConcept: string;
   logline: string;
   shortPitch: string;
@@ -50,7 +50,7 @@ type NarrativeMatrix = {
   coherenceRules: string[];
 };
 
-type EmotionalCore = {
+export type EmotionalCore = {
   dominantEmotion: string;
   hiddenWound: string;
   emotionalLack: string;
@@ -84,6 +84,42 @@ type ScoreCategory = {
 // ---------------------------------------------------------------------------
 // Core AI helper
 // ---------------------------------------------------------------------------
+
+export async function generateOpenAICompletion(
+  systemPrompt: string,
+  userPrompt: string,
+  opts?: {
+    skillsContext?: string;
+    temperature?: number;
+    maxTokens?: number;
+    json?: boolean;
+  }
+): Promise<string | null> {
+  try {
+    const systemContent = opts?.skillsContext
+      ? `${systemPrompt}\n\n### SKILLS NARRATIFS ACTIFS - integre imperativement ces techniques dans ta generation :\n${opts.skillsContext}`
+      : systemPrompt;
+
+    const response = await openai.chat.completions.create({
+      model: getDefaultAiModel(),
+      max_completion_tokens: opts?.maxTokens ?? 8192,
+      ...(opts?.json ? { response_format: { type: "json_object" as const } } : {}),
+      ...(opts?.temperature !== undefined ? { temperature: opts.temperature } : {}),
+      messages: [
+        {
+          role: "system",
+          content: appendCreativeMemoryContext(systemContent),
+        },
+        { role: "user", content: userPrompt },
+      ],
+    });
+
+    return response.choices[0]?.message?.content ?? null;
+  } catch (e) {
+    process.stderr.write(`[generateOpenAICompletion] API error - fallback active : ${String(e)}\n`);
+    return null;
+  }
+}
 
 async function aiJson<T>(
   systemPrompt: string,
@@ -214,7 +250,20 @@ officialTitle, workType, displayedAuthor, pseudonym, language, countryCulture, g
 logline, shortPitch, shortSynopsis, mainThemes, artisticIntention, declaredOriginality, clichRisks,
 depositTargets, depositChecklist, proofMode, proofProvider, proofExternalReference, proofNotes, legalDisclaimer.`;
 
-  return aiJson<WorkPassportDraft>(system, user, context.fallback, undefined, { temperature: 0.55, maxTokens: 6000 });
+  const content = await generateOpenAICompletion(system, user, {
+    json: true,
+    temperature: 0.55,
+    maxTokens: 6000,
+  });
+
+  if (!content) return context.fallback;
+
+  try {
+    return JSON.parse(content) as WorkPassportDraft;
+  } catch (e) {
+    process.stderr.write(`[generateWorkPassportDraft] JSON parse error - fallback active : ${String(e)}\n`);
+    return context.fallback;
+  }
 }
 
 // ---------------------------------------------------------------------------
