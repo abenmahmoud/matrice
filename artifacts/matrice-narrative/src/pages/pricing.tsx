@@ -32,7 +32,7 @@ const PLANS = [
   },
   {
     name: "Pro",
-    price: "19 EUR",
+    price: "9.90 EUR",
     period: "par mois",
     description: "Pour construire serieusement un roman, un scenario ou une bible de serie.",
     cta: "Choisir Pro",
@@ -48,7 +48,7 @@ const PLANS = [
   },
   {
     name: "Studio",
-    price: "49 EUR",
+    price: "19.90 EUR",
     period: "par mois",
     description: "Pour usage intensif, ateliers, producteurs independants et labs creatifs.",
     cta: "Choisir Studio",
@@ -63,11 +63,11 @@ const PLANS = [
     ],
   },
   {
-    name: "Enterprise",
-    price: "Devis",
-    period: "sur mesure",
-    description: "Pour equipes, formations, studios et integrations specifiques.",
-    cta: "Preparer un acces",
+    name: "Publish",
+    price: "29.90 EUR",
+    period: "par mois",
+    description: "Pour les auteurs qui publient. Tout Studio + certification + export KDP.",
+    cta: "Choisir Publish",
     href: `${BASE}/studio`,
     featured: false,
     features: [
@@ -81,12 +81,12 @@ const PLANS = [
 ];
 
 const COMPARISON = [
-  { label: "Matrice + noyau emotionnel", free: true, pro: true, studio: true, enterprise: true },
-  { label: "Modules avances", free: false, pro: true, studio: true, enterprise: true },
-  { label: "Quotas eleves", free: false, pro: true, studio: true, enterprise: true },
-  { label: "Modules experimentaux", free: false, pro: false, studio: true, enterprise: true },
-  { label: "Gestion abonnements Studio", free: false, pro: true, studio: true, enterprise: true },
-  { label: "Espace Studio avance", free: false, pro: false, studio: true, enterprise: true },
+  { label: "Matrice + noyau emotionnel", free: true, pro: true, studio: true, publish: true },
+  { label: "Modules avances", free: false, pro: true, studio: true, publish: true },
+  { label: "Quotas eleves", free: false, pro: true, studio: true, publish: true },
+  { label: "Modules experimentaux", free: false, pro: false, studio: true, publish: true },
+  { label: "Gestion abonnements Studio", free: false, pro: true, studio: true, publish: true },
+  { label: "Espace Studio avance", free: false, pro: false, studio: true, publish: true },
 ];
 
 function BoolCell({ value }: { value: boolean }) {
@@ -171,7 +171,7 @@ export default function PricingPage() {
                   {plan.name === "Free" && <Sparkles className="h-5 w-5" />}
                   {plan.name === "Pro" && <Crown className="h-5 w-5" />}
                   {plan.name === "Studio" && <FlaskConical className="h-5 w-5" />}
-                  {plan.name === "Enterprise" && <ShieldCheck className="h-5 w-5" />}
+                  {plan.name === "Publish" && <ShieldCheck className="h-5 w-5" />}
                 </div>
                 <h2 className="mt-6 text-2xl font-semibold">{plan.name}</h2>
                 <p className="mt-3 min-h-[72px] text-sm leading-6 text-white/55">{plan.description}</p>
@@ -217,7 +217,7 @@ export default function PricingPage() {
                     <th className="px-4 py-4 font-medium">Free</th>
                     <th className="px-4 py-4 font-medium">Pro</th>
                     <th className="px-4 py-4 font-medium">Studio</th>
-                    <th className="px-4 py-4 font-medium">Enterprise</th>
+                    <th className="px-4 py-4 font-medium">Publish</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.08] bg-[#10101a]">
@@ -227,7 +227,7 @@ export default function PricingPage() {
                       <BoolCell value={row.free} />
                       <BoolCell value={row.pro} />
                       <BoolCell value={row.studio} />
-                      <BoolCell value={row.enterprise} />
+                      <BoolCell value={row.publish} />
                     </tr>
                   ))}
                 </tbody>
