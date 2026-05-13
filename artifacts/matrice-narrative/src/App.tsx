@@ -64,8 +64,8 @@ import SeriesPage from "./pages/series";
 import PitchPage from "./pages/pitch";
 
 import ExportsPage from "./pages/exports";
-import WorkPassportPage
-import BillingPage from "./pages/work-passport";
+import WorkPassportPage from "./pages/work-passport";
+import BillingPage from "./pages/billing";
 
 import AdminPage from "./pages/admin";
 
