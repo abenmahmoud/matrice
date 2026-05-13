@@ -1,3 +1,5 @@
+import { pgTable, text, timestamp, jsonb, integer, numeric } from "drizzle-orm/pg-core";
+ 
 import { pgTable, text, timestamp, jsonb, integer } from "drizzle-orm/pg-core";
 import { projectsTable } from "./projects";
 
@@ -80,6 +82,11 @@ export const workPassportsTable = pgTable("work_passports", {
 
   // Exports
   markdownContent: text("markdown_content").notNull().default(""),
+
+  certificationLevel: integer("certification_level").notNull().default(1),
+  aiContributionScore: numeric("ai_contribution_score").notNull().default(0.5),
+  c2paManifest: text("c2pa_manifest"),
+  otsProof: text("ots_proof"),
 
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

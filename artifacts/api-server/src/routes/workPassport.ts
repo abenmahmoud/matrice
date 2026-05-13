@@ -1,3 +1,4 @@
+ 
 import { Router, type IRouter, type Request, type Response } from "express";
 import {
   appUsersTable,
@@ -159,6 +160,43 @@ router.post("/projects/:id/passport/seal", async (req, res) => {
     res.json({ passport });
   } catch (err) {
     req.log.error({ err }, "Failed to seal work passport");
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+
+// POST /api/projects/:id/passport/certify — C2PA + OpenTimestamps
+router.post("/projects/:id/passport/certify", async (req: AuthenticatedRequest, res) => {
+  try {
+    const projectId = req.params.id;
+    const userId = req.user?.id ?? req.anonymousId;
+
+    if (!userId) {
+      res.status(401).json({ error: "Authentification requise" });
+      return;
+    }
+
+    const access = getProductAccess(req);
+    if (!access?.viewer?.canWriteProject) {
+      res.status(403).json({ error: "Acces interdit" });
+      return;
+    }
+
+    const passport = await getWorkPassport(projectId, userId);
+    if (!passport) {
+      res.status(404).json({ error: "Passeport non trouve" });
+      return;
+    }
+
+    const content = passport.markdownContent || JSON.stringify(passport);
+    const author = req.user?.displayName || req.user?.email || "Auteur anonyme";
+
+    const certified = await certifyWorkPassport(passport, content, author);
+    const enriched = enrichPassport(certified);
+
+    res.json({ passport: enriched });
+  } catch (err) {
+    req.log.error({ err }, "Erreur certification");
     res.status(500).json({ error: "Erreur serveur" });
   }
 });

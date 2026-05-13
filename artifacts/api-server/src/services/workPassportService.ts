@@ -1,3 +1,4 @@
+ 
 import { db, workPassportsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import type { WorkPassport, InsertWorkPassport } from "@workspace/db";
@@ -71,6 +72,83 @@ export async function sealWorkPassport(
     })
     .where(eq(workPassportsTable.id, passport.id))
     .returning();
+  return updated;
+}
+
+
+// ---------------------------------------------------------------------------
+// Certification enrichment — C2PA + OpenTimestamps + Label
+// ---------------------------------------------------------------------------
+
+export function enrichPassport(passport: WorkPassport): EnrichedWorkPassport {
+  let c2paManifest: C2PAManifest | null = null;
+  let otsProof: OTSProof | null = null;
+  let c2paVerificationUrl: string | null = null;
+
+  if (passport.c2paManifest) {
+    try {
+      c2paManifest = JSON.parse(passport.c2paManifest) as C2PAManifest;
+      c2paVerificationUrl = getC2PAVerificationUrl(c2paManifest);
+    } catch {
+      // Invalid manifest JSON
+    }
+  }
+
+  if (passport.otsProof) {
+    try {
+      otsProof = JSON.parse(passport.otsProof) as OTSProof;
+    } catch {
+      // Invalid OTS proof JSON
+    }
+  }
+
+  const level = passport.certificationLevel ?? 1;
+  const certificationLabel = CERTIFICATION_LABELS[level] || null;
+
+  return {
+    ...passport,
+    c2paManifest,
+    otsProof,
+    certificationLabel,
+    c2paVerificationUrl,
+  };
+}
+
+/**
+ * Certify a work passport with C2PA manifest + OpenTimestamps.
+ * This should be called after generating or updating a passport.
+ */
+export async function certifyWorkPassport(
+  passport: WorkPassport,
+  content: string,
+  author: string
+): Promise<WorkPassport> {
+  const aiScore = passport.aiContributionScore ?? 0.5;
+  const level = calculateCertificationLevel(aiScore);
+
+  // Generate C2PA manifest
+  const c2pa = generateC2PAManifest(
+    passport.officialTitle || "Oeuvre sans titre",
+    author,
+    content,
+    aiScore
+  );
+
+  // Submit to OpenTimestamps
+  const ots = await submitToOpenTimestamps(content);
+
+  // Update passport with certification data
+  const [updated] = await db
+    .update(workPassportsTable)
+    .set({
+      certificationLevel: level,
+      c2paManifest: JSON.stringify(c2pa),
+      otsProof: JSON.stringify(ots),
+      updatedAt: new Date(),
+    })
+    .where(eq(workPassportsTable.id, passport.id))
+    .returning();
+
   return updated;
 }
 

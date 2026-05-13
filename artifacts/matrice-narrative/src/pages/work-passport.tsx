@@ -1,3 +1,4 @@
+ 
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { Lock } from "lucide-react";
 import {
-  FileText, Download, Shield, ChevronLeft, Loader2,
+  FileText, Download, Lock, ChevronLeft, Loader2,
   BookMarked, Globe, ShieldAlert, CheckCircle2, Circle, Lock, ExternalLink
 } from "lucide-react";
 
@@ -124,6 +126,14 @@ async function apiUpdate(projectId: string, data: Partial<WorkPassport>) {
   return res.json() as Promise<{ passport: WorkPassport }>;
 }
 
+async function apiCertify(projectId: string) {
+  const res = await fetch(`${BASE}/api/projects/${projectId}/passport/certify`, {
+    method: "POST", headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Erreur certification");
+  return res.json() as Promise<{ passport: WorkPassport }>;
+}
+
 async function apiSeal(projectId: string) {
   const res = await fetch(`${BASE}/api/projects/${projectId}/passport/seal`, {
     method: "POST", headers: authHeaders(),
@@ -155,6 +165,13 @@ export default function WorkPassportPage() {
     mutationFn: (vals: Partial<WorkPassport>) => apiUpdate(projectId, vals),
     onSuccess: (d) => { queryClient.setQueryData(["work-passport", projectId], d); setEditing(false); toast({ title: "Mis a jour" }); },
     onError: () => toast({ title: "Erreur", variant: "destructive" }),
+  });
+
+
+  const certifyMut = useMutation({
+    mutationFn: () => apiCertify(projectId),
+    onSuccess: (d) => { queryClient.setQueryData(["work-passport", projectId], d); toast({ title: "Oeuvre certifiee" }); },
+    onError: () => toast({ title: "Erreur certification", variant: "destructive" }),
   });
 
   const sealMut = useMutation({
@@ -209,7 +226,7 @@ export default function WorkPassportPage() {
               <h1 className="text-2xl font-bold">{passport.officialTitle || "Passeport d'Œuvre"}</h1>
               <p className="text-sm text-muted-foreground">
                 Version {passport.version}
-                {passport.sealedAt && <span className="ml-2 text-green-600 inline-flex items-center"><Shield className="h-3 w-3 mr-1" /> Scelle</span>}
+                {passport.sealedAt && <span className="ml-2 text-green-600 inline-flex items-center"><Lock className="h-3 w-3 mr-1" /> Scelle</span>}
               </p>
             </div>
           </div>
@@ -217,7 +234,7 @@ export default function WorkPassportPage() {
             <Button variant="outline" size="sm" onClick={() => downloadMd(passport)}><Download className="h-4 w-4 mr-1" /> Markdown</Button>
             <Button variant="outline" size="sm" onClick={() => downloadJson(passport)}><Download className="h-4 w-4 mr-1" /> JSON</Button>
             <Button variant="outline" size="sm" onClick={() => { setForm({ officialTitle: passport.officialTitle, pseudonym: passport.pseudonym, language: passport.language, countryCulture: passport.countryCulture, genre: passport.genre, targetAudience: passport.targetAudience, status: passport.status, logline: passport.logline, shortPitch: passport.shortPitch, shortSynopsis: passport.shortSynopsis, artisticIntention: passport.artisticIntention, declaredOriginality: passport.declaredOriginality }); setEditing(true); }}><FileText className="h-4 w-4 mr-1" /> Modifier</Button>
-            <Button size="sm" onClick={() => sealMut.mutate()} disabled={sealMut.isPending || !!passport.sealedAt}>{sealMut.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Shield className="h-4 w-4 mr-1" />} Sceller</Button>
+            <Button size="sm" onClick={() => sealMut.mutate()} disabled={sealMut.isPending || !!passport.sealedAt}>{sealMut.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Lock className="h-4 w-4 mr-1" />} Sceller</Button>
           </div>
         </div>
 
@@ -235,6 +252,7 @@ export default function WorkPassportPage() {
             <TabsTrigger value="adn">ADN narratif</TabsTrigger>
             <TabsTrigger value="depot">Depot</TabsTrigger>
             <TabsTrigger value="trace">Tracabilite</TabsTrigger>
+            <TabsTrigger value="certification">Certification</TabsTrigger>
           </TabsList>
 
           <TabsContent value="identite">
@@ -335,6 +353,98 @@ export default function WorkPassportPage() {
               </CardContent>
             </Card>
           </TabsContent>
+        
+          {/* Onglet Certification */}
+          <TabsContent value="certification">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" /> Certification Matrice
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Badge niveau */}
+                {passport.certificationLevel && (
+                  <div className="flex items-center gap-4 p-4 border rounded-lg">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold" style={{ backgroundColor: CERT_COLORS[passport.certificationLevel] || '#3B82F6' }}>
+                      {passport.certificationLevel}
+                    </div>
+                    <div>
+                      <p className="font-semibold" style={{ color: CERT_COLORS[passport.certificationLevel] || '#3B82F6' }}>
+                        {CERT_LABELS[passport.certificationLevel]?.label || 'Non certifie'}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {CERT_LABELS[passport.certificationLevel]?.desc || ''}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Score IA */}
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Contribution IA</p>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="bg-blue-500 h-3 rounded-full transition-all" style={{ width: `${(passport.aiContributionScore ?? 0.5) * 100}%` }}></div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {Math.round((passport.aiContributionScore ?? 0.5) * 100)}% IA — {Math.round((1 - (passport.aiContributionScore ?? 0.5)) * 100)}% Humain
+                  </p>
+                </div>
+
+                {/* C2PA */}
+                {passport.c2paManifest && (
+                  <div className="p-4 border rounded-lg bg-blue-50/50">
+                    <p className="text-sm font-medium text-blue-800 mb-2">Manifeste C2PA</p>
+                    <p className="text-xs text-blue-600 mb-3">
+                      Ce document porte une signature de provenance C2PA verifiable.
+                    </p>
+                    {passport.c2paVerificationUrl && (
+                      <a href={passport.c2paVerificationUrl} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="h-4 w-4 mr-1" /> Verifier sur contentauthenticity.org
+                        </Button>
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {/* OpenTimestamps */}
+                {passport.otsProof && (
+                  <div className="p-4 border rounded-lg bg-orange-50/50">
+                    <p className="text-sm font-medium text-orange-800 mb-2">Horodatage Blockchain</p>
+                    <p className="text-xs text-orange-600 mb-2">
+                      Preuve d&apos;existance ancree dans la blockchain Bitcoin via OpenTimestamps.
+                    </p>
+                    <p className="text-xs font-mono break-all text-muted-foreground">
+                      {(() => { try { return JSON.parse(passport.otsProof).hash.substring(0, 64) + '...'; } catch { return 'Hash disponible'; } })()}
+                    </p>
+                  </div>
+                )}
+
+                {/* Disclaimer legal */}
+                <div className="p-3 bg-amber-50 rounded-lg text-xs text-amber-700">
+                  <ShieldAlert className="h-3 w-3 inline mr-1" />
+                  Ce document constitue une preuve d&apos;existence et de provenance interne.
+                  Il ne remplace pas un depot officiel aupres de l&apos;INPI, la SACD, le SGDL ou un notaire.
+                </div>
+
+                {/* Bouton certifier */}
+                <Button
+                  onClick={() => certifyMut.mutate()}
+                  disabled={certifyMut.isPending}
+                  className="w-full"
+                >
+                  {certifyMut.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Lock className="h-4 w-4 mr-2" />
+                  )}
+                  {passport.c2paManifest ? 'Recertifier' : 'Certifier'}
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
         </Tabs>
 
         {/* Edit overlay */}
@@ -387,6 +497,18 @@ export default function WorkPassportPage() {
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
+
+const CERT_LABELS: Record<number, { label: string; desc: string }> = {
+  1: { label: "IA assistee", desc: "Oeuvre creee avec assistance IA majeure." },
+  2: { label: "Co-creee", desc: "Collaboration equilibree auteur + IA." },
+  3: { label: "Creation humaine", desc: "Oeuvre majoritairement humaine, IA outil." },
+  4: { label: "Certifiee externe", desc: "Certifiee par organisme externe (SACD, SGDL, etc.)." },
+};
+
+const CERT_COLORS: Record<number, string> = {
+  1: "#3B82F6", 2: "#8B5CF6", 3: "#10B981", 4: "#F59E0B",
+};
+
 function downloadMd(p: WorkPassport) {
   const md = generateMd(p);
   const blob = new Blob([md], { type: "text/markdown" });
