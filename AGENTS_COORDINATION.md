@@ -1404,3 +1404,29 @@ Resultat intermediaire VPS:
 - Bug trouve sur Passeport generate: l'IA peut renvoyer `null` pour une colonne texte non-null (`proofExternalReference`).
 - Correction: normalisation stricte de tous les champs texte, statut, type d'oeuvre et cibles de depot avant insertion DB.
 - Renfort juridique: `proofMode` force vers `internal_hash`; disclaimer et notes de preuve retombent sur le texte sur si l'IA ne mentionne pas clairement preuve interne + depot officiel externe.
+
+Resultat final VPS apres `6efb2ab1`:
+- Branche deployee: `feat/private-power-v11`.
+- Containers: API et frontend reconstruits, Postgres healthy.
+- `/api/healthz`: OK.
+- Brevo: variable presente dans le container API, signup retourne `emailDelivery.status = sent`.
+- Signup temporaire: HTTP 201.
+- Verification email: token DB valide, endpoint verification HTTP 200.
+- Onboarding: completion HTTP 200, `onboarding_completed_at` renseigne.
+- Creation projet utilisateur: HTTP 201.
+- Passeport owner:
+  - generation HTTP 200.
+  - titre rempli depuis le projet.
+  - `proofMode = internal_hash`.
+  - disclaimer contient bien la distinction preuve interne / depot officiel externe.
+  - modification HTTP 200.
+  - scellement HTTP 200 avec hash SHA-256 64 caracteres.
+  - export Markdown HTTP 200, section `Preuve` presente.
+- Nettoyage effectue:
+  - projet temporaire supprime via API.
+  - utilisateur temporaire supprime en DB.
+
+Etat:
+- Sprint Phase 2 livre sur branche `feat/private-power-v11`.
+- Ne pas merger sans validation BraveHeart/Kimi.
+- Prochaine verification recommandee: audit visuel Kimi sur `/admin`, `/studio`, signup, onboarding, page projet et passeport.
