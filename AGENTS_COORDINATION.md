@@ -1296,3 +1296,29 @@ Validation navigateur:
 
 Suite:
 - Rebuild Docker VPS puis re-verification console/network.
+
+## 2026-05-13 - Codex - merge main Passeport v0.9
+
+Integration:
+- Validation BraveHeart implicite recue via consigne: "Claude occupe fait le reste".
+- Branche `feat/work-passport-v09` mergee dans `main`.
+- Commit main: `292f283 Merge work passport v0.9 into main`.
+- Push `origin/main` reussi.
+
+Etat deploy:
+- Le correctif final `apiFetch()` pour `/api/projects/:id/status` est dans `main`.
+- Tentative de deploy VPS depuis `main` bloquee par indisponibilite SSH:
+  - IP repond au ping et HTTPS/443.
+  - port 22 timeout depuis Codex.
+- Aucun rollback effectue.
+- Projet visuel de test supprime via API (`DELETE /api/projects/:id` HTTP 204).
+- Nettoyage DB complet du user visuel a effectuer des que SSH revient, via suppression des emails `passport-visual-%@test.local`.
+
+Commande deploy a relancer quand SSH revient:
+```bash
+cd /opt/matrice
+git checkout main
+git pull origin main
+docker compose up -d --build --force-recreate api frontend
+curl -s https://matrice.essuf.fr/api/healthz
+```
