@@ -68,7 +68,7 @@ const PLANS = [
     period: "sur mesure",
     description: "Pour equipes, formations, studios et integrations specifiques.",
     cta: "Preparer un acces",
-    href: `${BASE}/admin`,
+    href: `${BASE}/studio`,
     featured: false,
     features: [
       "Gestion equipe",
@@ -85,8 +85,8 @@ const COMPARISON = [
   { label: "Modules avances", free: false, pro: true, studio: true, enterprise: true },
   { label: "Quotas eleves", free: false, pro: true, studio: true, enterprise: true },
   { label: "Modules experimentaux", free: false, pro: false, studio: true, enterprise: true },
-  { label: "Gestion abonnements admin", free: false, pro: true, studio: true, enterprise: true },
-  { label: "Lab prive proprietaire", free: false, pro: false, studio: false, enterprise: false },
+  { label: "Gestion abonnements Studio", free: false, pro: true, studio: true, enterprise: true },
+  { label: "Espace Studio avance", free: false, pro: false, studio: true, enterprise: true },
 ];
 
 function BoolCell({ value }: { value: boolean }) {
@@ -115,7 +115,7 @@ export default function PricingPage() {
           <nav className="hidden items-center gap-7 text-sm text-white/55 md:flex">
             <Link href={`${BASE}/#workflow`} className="transition hover:text-white">Workflow</Link>
             <Link href={`${BASE}/dashboard`} className="transition hover:text-white">Dashboard</Link>
-            <Link href={`${BASE}/admin`} className="transition hover:text-white">Admin</Link>
+            <Link href={`${BASE}/studio`} className="transition hover:text-white">Studio</Link>
           </nav>
           <Button asChild className="bg-white text-black hover:bg-white/90">
             <Link href={`${BASE}/signup`}>
@@ -137,7 +137,7 @@ export default function PricingPage() {
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/75">Tarifs</p>
               <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-normal text-white sm:text-5xl lg:text-6xl">
-                Un acces gratuit pour decouvrir, des paliers payants pour avancer vraiment.
+                Un acces gratuit pour decouvrir, des paliers Studio pour avancer vraiment.
               </h1>
             </div>
             <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 text-sm leading-6 text-white/58">
@@ -145,7 +145,7 @@ export default function PricingPage() {
                 <ShieldCheck className="h-4 w-4 text-emerald-300" />
                 Paiement prepare, verrouillage deja cote serveur
               </div>
-              Les limites ne sont pas seulement visuelles : les routes API distinguent public, utilisateur gratuit, Pro et owner.
+              Les limites ne sont pas seulement visuelles : les routes API distinguent public, utilisateur gratuit, Pro et Studio.
               La Phase 2A pose l'onboarding; Stripe arrive ensuite en Phase 2C.
             </div>
           </div>
@@ -202,10 +202,10 @@ export default function PricingPage() {
           <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/75">Comparaison</p>
-              <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Ce qui est ouvert, bloque, ou garde prive.</h2>
+              <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Ce qui est ouvert, bloque, ou reserve au Studio.</h2>
               <p className="mt-5 text-sm leading-6 text-white/55">
-                Le Lab prive proprietaire reste hors offre commerciale. Les utilisateurs publics voient l'experience produit,
-                les quotas et les abonnements, pas tes modules confidentiels.
+                L'espace Studio reste gere separement. Les utilisateurs publics voient l'experience produit,
+                les quotas et les abonnements, pas les modules avances reserves.
               </p>
             </div>
 
@@ -248,8 +248,8 @@ export default function PricingPage() {
             <div className="flex gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
               <ShieldCheck className="mt-1 h-5 w-5 text-emerald-300" />
               <div>
-                <h3 className="font-semibold text-white">Owner protege</h3>
-                <p className="mt-2 text-sm leading-6 text-white/55">Ton mode proprietaire reste debloque et separe du public.</p>
+                <h3 className="font-semibold text-white">Studio protege</h3>
+                <p className="mt-2 text-sm leading-6 text-white/55">L'acces Studio reste debloque et separe du public.</p>
               </div>
             </div>
             <div className="flex gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">

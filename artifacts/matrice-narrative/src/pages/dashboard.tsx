@@ -249,7 +249,7 @@ export default function Dashboard() {
         <div className="border-b border-white/[0.05] bg-white/[0.01]">
           <div className="max-w-7xl mx-auto px-8 py-8 flex items-end justify-between gap-6">
             <div>
-              <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.25em] mb-2">Cockpit privé</p>
+              <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.25em] mb-2">Cockpit Studio</p>
               <h1 className="text-3xl font-serif font-bold text-white/90">Matrice personnelle</h1>
               <p className="text-sm text-white/30 mt-1">
                 {isLoading ? "Chargement de l'atelier..." : `${projects.length} projet${projects.length > 1 ? "s" : ""} dans ton espace créatif`}
@@ -328,7 +328,7 @@ export default function Dashboard() {
                 <section className="grid grid-cols-2 gap-3">
                   <StatTile icon={Library} label="Projets" value={`${summary?.totalProjects ?? projects.length}`} detail={`${activeProjects} actif${activeProjects > 1 ? "s" : ""}`} />
                   <StatTile icon={Activity} label="Moyenne" value={`${averageProgress}%`} detail="Progression globale" tone="blue" />
-                  <StatTile icon={Flame} label="A reprendre" value={`${sleepingProjects}`} detail="Priorites privees" tone="emerald" />
+                  <StatTile icon={Flame} label="A reprendre" value={`${sleepingProjects}`} detail="Priorites Studio" tone="emerald" />
                   <StatTile icon={Layers} label="Format" value={topFormat} detail={topGenre} tone="amber" />
                 </section>
               </div>
@@ -397,7 +397,7 @@ export default function Dashboard() {
                   <div className="rounded-xl border border-amber-500/15 bg-amber-600/[0.035] p-5">
                     <div className="mb-4 flex items-center gap-2">
                       <Flame className="h-4 w-4 text-amber-300/65" />
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200/40">Priorites privees</p>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-200/40">Priorites Studio</p>
                     </div>
                     <div className="space-y-3">
                       {priorityProjects.map((project) => (
@@ -432,7 +432,7 @@ export default function Dashboard() {
                   </div>
 
                   <div className="rounded-xl border border-violet-500/15 bg-violet-600/[0.04] p-5">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300/45">Mémoire privée</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-300/45">Memoire Studio</p>
                     <p className="mt-3 text-sm leading-relaxed text-white/38">
                       Prochain bloc durable: ajouter une couche personnelle pour tes règles, références, motifs et critères de qualité.
                     </p>

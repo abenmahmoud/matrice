@@ -80,13 +80,13 @@ function AdminLogin() {
             <Shield className="w-10 h-10 text-violet-300" />
           </div>
           <h1 className="text-3xl font-serif font-bold text-white tracking-widest uppercase mb-2">MATRICE</h1>
-          <p className="text-sm text-violet-300/70 uppercase tracking-[0.2em]">Intelligence Secrète</p>
+          <p className="text-sm text-violet-300/70 uppercase tracking-[0.2em]">Studio Creatif</p>
           <div className="mt-3 h-px w-16 bg-gradient-to-r from-transparent via-violet-500/50 to-transparent mx-auto" />
         </div>
         <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
           <div className="relative">
             <input type={show ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); setError(""); }}
-              placeholder="Mot de passe admin" autoComplete="current-password"
+              placeholder="Mot de passe Studio" autoComplete="current-password"
               className={cn("w-full h-12 rounded-xl border bg-white/5 px-4 pr-12 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 transition-all",
                 error ? "border-red-500/50 focus:ring-red-500/30" : "border-white/10 focus:ring-violet-500/40")} autoFocus />
             <button type="button" onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70">
@@ -97,10 +97,10 @@ function AdminLogin() {
           <button type="submit" disabled={loading || !password}
             className="w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 disabled:opacity-40 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-[0_4px_20px_rgba(139,92,246,0.3)]">
             {loading ? <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              : <><Lock className="w-4 h-4" />Accéder au laboratoire</>}
+              : <><Lock className="w-4 h-4" />Acceder au Studio</>}
           </button>
         </form>
-        <p className="text-center text-xs text-white/20 mt-8">Variable <code className="font-mono text-violet-400/50">ADMIN_PASSWORD</code></p>
+        <p className="text-center text-xs text-white/20 mt-8">Acces Studio securise</p>
       </div>
     </div>
   );
@@ -461,11 +461,11 @@ const ROADMAP = [
   },
   {
     phase: "Phase 4", label: "Laboratoire de Recherche", status: "done", color: "text-green-400",
-    items: ["Base de connaissance mondiale (10 ères × 8 cultures)", "Extraction automatique de skills secrets", "Cron quotidien autonome", "Matrice de couverture visuelle"],
+    items: ["Base de connaissance mondiale (10 ères × 8 cultures)", "Extraction automatique de skills avances", "Cron quotidien autonome", "Matrice de couverture visuelle"],
   },
   {
-    phase: "Phase 5", label: "Admin & Sécurité", status: "done", color: "text-green-400",
-    items: ["Dashboard admin protégé", "Zone publique / zone secrète séparées", "Token HMAC-SHA256", "Gestion skills depuis l'admin"],
+    phase: "Phase 5", label: "Studio & Securite", status: "done", color: "text-green-400",
+    items: ["Studio protege", "Espaces separes", "Token HMAC-SHA256", "Gestion skills depuis le Studio"],
   },
   {
     phase: "Phase 6", label: "Intelligence Avancée", status: "active", color: "text-violet-300",
@@ -627,7 +627,7 @@ function AdminSubscriptionsPanel({ adminHeaders }: { adminHeaders: () => Headers
                   <p className="font-medium text-white truncate">{user.email}</p>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full border", user.plan === "pro" ? "bg-green-500/15 text-green-300 border-green-500/25" : "bg-white/5 text-white/45 border-white/10")}>{user.plan.toUpperCase()}</span>
                   <span className={cn("text-xs px-2 py-0.5 rounded-full border", user.status === "active" ? "bg-violet-500/15 text-violet-300 border-violet-500/25" : "bg-red-500/15 text-red-300 border-red-500/25")}>{user.status}</span>
-                  {user.role === "owner" && <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-500/15 text-amber-300 border-amber-500/25">OWNER</span>}
+                  {user.role === "owner" && <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-500/15 text-amber-300 border-amber-500/25">Studio</span>}
                 </div>
                 <p className="text-xs text-white/30 mt-1">
                   {user.projectsCreated} projet{user.projectsCreated > 1 ? "s" : ""} - {user.generationsUsed} generation{user.generationsUsed > 1 ? "s" : ""} - inscrit le {new Date(user.createdAt).toLocaleDateString()}
@@ -700,11 +700,11 @@ function AdminDashboard() {
       if ([eRes, sRes, stRes, tRes].some((res) => res.status === 401)) {
         logout();
         toast({
-          title: "Session admin expiree",
-          description: "Reconnecte-toi avec le mot de passe admin actuel.",
+          title: "Session Studio expiree",
+          description: "Reconnecte-toi avec le mot de passe Studio actuel.",
           variant: "destructive",
         });
-        throw new Error("Session admin expiree");
+        throw new Error("Session Studio expiree");
       }
       if (!eRes.ok) throw new Error(`Auth failed: ${eRes.status}`);
       if (!sRes.ok) throw new Error(`Skills failed: ${sRes.status}`);
@@ -765,8 +765,8 @@ function AdminDashboard() {
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Shield className="w-5 h-5 text-violet-400" />
-            <span className="font-serif font-bold tracking-[0.15em] text-sm">MATRICE ADMIN</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/25">Intelligence Secrète</span>
+            <span className="font-serif font-bold tracking-[0.15em] text-sm">MATRICE STUDIO</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/25">Studio Creatif</span>
           </div>
           <div className="flex items-center gap-4">
             {stats && <div className="hidden md:flex gap-5 text-xs">
@@ -856,7 +856,7 @@ function AdminDashboard() {
           {tab === "skills" && (
             <div>
               <div className="flex items-center justify-between mb-5">
-                <div><h2 className="text-lg font-bold">Skills secrets</h2><p className="text-sm text-white/30 mt-0.5"><strong className="text-violet-300">{activeSkills}</strong>/{skills.length} actifs</p></div>
+                <div><h2 className="text-lg font-bold">Skills Studio</h2><p className="text-sm text-white/30 mt-0.5"><strong className="text-violet-300">{activeSkills}</strong>/{skills.length} actifs</p></div>
                 <button onClick={() => { const all = skills.every(s => s.isActive); void Promise.all(skills.map(s => toggleSkill(s.id, !all))); }} className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 border border-white/10 rounded-lg px-3 py-1.5"><TrendingUp className="w-3.5 h-3.5" />Tout basculer</button>
               </div>
               <div className="flex flex-wrap gap-2 mb-5">

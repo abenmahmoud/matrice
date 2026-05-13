@@ -105,6 +105,7 @@ function Router() {
       <Route path="/projects/:id/exports" component={ExportsPage} />
       <Route path="/projects/:id/analyse" component={ProjectAnalysePage} />
       <Route path="/projects/:id/passport" component={WorkPassportPage} />
+      <Route path="/studio" component={AdminPage} />
       <Route path="/admin" component={AdminPage} />
       <Route component={NotFound} />
     </Switch>
