@@ -1403,3 +1403,4 @@ Resultat intermediaire VPS:
 - Signup + verification + onboarding: OK, emailDelivery `sent`.
 - Bug trouve sur Passeport generate: l'IA peut renvoyer `null` pour une colonne texte non-null (`proofExternalReference`).
 - Correction: normalisation stricte de tous les champs texte, statut, type d'oeuvre et cibles de depot avant insertion DB.
+- Renfort juridique: `proofMode` force vers `internal_hash`; disclaimer et notes de preuve retombent sur le texte sur si l'IA ne mentionne pas clairement preuve interne + depot officiel externe.

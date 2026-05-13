@@ -246,11 +246,11 @@ function normalizePassportDraft(draft: WorkPassportDraft, fallback: WorkPassport
     clichRisks: arrayOr(draft.clichRisks, fallback.clichRisks),
     depositTargets: canonicalDepositTargets(draft.depositTargets, fallback.depositTargets),
     depositChecklist: objectOr(draft.depositChecklist, fallback.depositChecklist),
-    proofMode: stringOr(draft.proofMode, fallback.proofMode),
+    proofMode: canonicalProofMode(draft.proofMode, fallback.proofMode),
     proofProvider: stringOr(draft.proofProvider, fallback.proofProvider),
     proofExternalReference: stringOr(draft.proofExternalReference, fallback.proofExternalReference),
-    proofNotes: stringOr(draft.proofNotes, fallback.proofNotes),
-    legalDisclaimer: stringOr(draft.legalDisclaimer, fallback.legalDisclaimer),
+    proofNotes: safeProofNotes(draft.proofNotes, fallback.proofNotes),
+    legalDisclaimer: safeLegalDisclaimer(draft.legalDisclaimer, fallback.legalDisclaimer),
   };
 }
 
@@ -328,6 +328,35 @@ function canonicalStatus(value: unknown, fallback: string): string {
   if (normalized.includes("publi")) return "publie";
   if (normalized.includes("brouillon")) return "brouillon";
   return fallback;
+}
+
+function canonicalProofMode(value: unknown, fallback: string): string {
+  const normalized = typeof value === "string" ? value.toLowerCase() : "";
+  if (normalized.includes("internal") || normalized.includes("interne") || normalized.includes("hash")) {
+    return "internal_hash";
+  }
+  return fallback;
+}
+
+function normalizeForSearch(value: string): string {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+function safeLegalDisclaimer(value: unknown, fallback: string): string {
+  const text = stringOr(value, fallback);
+  const normalized = normalizeForSearch(text);
+  if (!normalized.includes("ne remplace pas") || !normalized.includes("depot officiel")) {
+    return fallback;
+  }
+  return text;
+}
+
+function safeProofNotes(value: unknown, fallback: string): string {
+  const text = stringOr(value, fallback);
+  const normalized = normalizeForSearch(text);
+  const mentionsInternalProof = normalized.includes("preuve interne") || normalized.includes("empreinte") || normalized.includes("hash");
+  const mentionsExternalDeposit = normalized.includes("depot officiel") || normalized.includes("horodatage qualifie") || normalized.includes("tiers de confiance");
+  return mentionsInternalProof && mentionsExternalDeposit ? text : fallback;
 }
 
 function arrayOr(value: unknown, fallback: string[]): string[] {
