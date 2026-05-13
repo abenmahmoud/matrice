@@ -86,7 +86,7 @@ function AdminLogin() {
         <form onSubmit={(e) => { void handleSubmit(e); }} className="space-y-4">
           <div className="relative">
             <input type={show ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); setError(""); }}
-              placeholder="Mot de passe admin" autoComplete="current-password"
+              placeholder="Mot de passe Studio" autoComplete="current-password"
               className={cn("w-full h-12 rounded-xl border bg-white/5 px-4 pr-12 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 transition-all",
                 error ? "border-red-500/50 focus:ring-red-500/30" : "border-white/10 focus:ring-violet-500/40")} autoFocus />
             <button type="button" onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70">
@@ -465,7 +465,7 @@ const ROADMAP = [
   },
   {
     phase: "Phase 5", label: "Admin & Sécurité", status: "done", color: "text-green-400",
-    items: ["Dashboard admin protégé", "Zone publique / zone secrète séparées", "Token HMAC-SHA256", "Gestion skills depuis l'admin"],
+    items: ["Dashboard admin protégé", "Zone publique / espace protege séparées", "Token HMAC-SHA256", "Gestion skills depuis l'admin"],
   },
   {
     phase: "Phase 6", label: "Intelligence Avancée", status: "active", color: "text-violet-300",

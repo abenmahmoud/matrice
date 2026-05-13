@@ -86,7 +86,7 @@ const COMPARISON = [
   { label: "Quotas eleves", free: false, pro: true, studio: true, enterprise: true },
   { label: "Modules experimentaux", free: false, pro: false, studio: true, enterprise: true },
   { label: "Gestion abonnements admin", free: false, pro: true, studio: true, enterprise: true },
-  { label: "Lab prive proprietaire", free: false, pro: false, studio: false, enterprise: false },
+  { label: "Espace Studio", free: false, pro: false, studio: false, enterprise: false },
 ];
 
 function BoolCell({ value }: { value: boolean }) {
@@ -204,7 +204,7 @@ export default function PricingPage() {
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/75">Comparaison</p>
               <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Ce qui est ouvert, bloque, ou garde prive.</h2>
               <p className="mt-5 text-sm leading-6 text-white/55">
-                Le Lab prive proprietaire reste hors offre commerciale. Les utilisateurs publics voient l'experience produit,
+                Le Espace Studio reste hors offre commerciale. Les utilisateurs publics voient l'experience produit,
                 les quotas et les abonnements, pas tes modules confidentiels.
               </p>
             </div>
@@ -248,7 +248,7 @@ export default function PricingPage() {
             <div className="flex gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
               <ShieldCheck className="mt-1 h-5 w-5 text-emerald-300" />
               <div>
-                <h3 className="font-semibold text-white">Owner protege</h3>
+                <h3 className="font-semibold text-white">Studio protege</h3>
                 <p className="mt-2 text-sm leading-6 text-white/55">Ton mode proprietaire reste debloque et separe du public.</p>
               </div>
             </div>

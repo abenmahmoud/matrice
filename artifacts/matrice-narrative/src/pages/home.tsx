@@ -48,7 +48,7 @@ const PLAN_PREVIEW = [
 ];
 
 const PROOF_POINTS = [
-  "Memoire creative privee",
+  "Memoire creative Studio",
   "Paywall serveur et quotas",
   "Admin abonnements",
   "Mode proprietaire isole",
@@ -192,7 +192,7 @@ export default function Home() {
                 {[
                   ["31", "modules IA"],
                   ["4", "paliers"],
-                  ["Owner", "lab prive"],
+                  ["Studio", "espace Studio"],
                 ].map(([value, label]) => (
                   <div key={label}>
                     <p className="font-serif text-2xl font-bold text-white/[0.88]">{value}</p>
@@ -294,7 +294,7 @@ export default function Home() {
             <LockKeyhole className="mx-auto mb-6 h-10 w-10 text-violet-300" />
             <h2 className="font-serif text-3xl font-bold text-white md:text-5xl">Commencez avec une idee. Gardez le controle.</h2>
             <p className="mt-5 text-base leading-7 text-white/44">
-              Matrice vous aide a avancer vite, mais les choix creatifs, les limites d'acces et le lab prive restent
+              Matrice vous aide a avancer vite, mais les choix creatifs, les limites d'acces et l'espace Studio restent
               sous votre controle.
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
