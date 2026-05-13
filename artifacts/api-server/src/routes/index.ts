@@ -1,3 +1,4 @@
+ 
 import { Router, type IRouter } from "express";
 import healthRouter from "./health.js";
 import projectsRouter from "./projects.js";
@@ -9,6 +10,7 @@ import adminDataRouter from "./adminData.js";
 import manuscriptsRouter from "./manuscripts.js";
 import memoryRouter from "./memory.js";
 import experimentalModulesRouter from "./experimentalModules.js";
+import workPassportRouter from "./workPassport.js";
 import { adminAuthMiddleware } from "../middleware/adminAuth.js";
 import accessRouter from "./access.js";
 import { productAccessMiddleware } from "../lib/productAccess.js";
@@ -25,6 +27,7 @@ router.use(authContextMiddleware);
 router.use(authRouter);
 router.use(accessRouter);
 router.use(experimentalModulesRouter);
+router.use(workPassportRouter);
 router.use(aiModelContextMiddleware);
 router.use("/memory", memoryRouter);
 router.use(creativeMemoryContextMiddleware);

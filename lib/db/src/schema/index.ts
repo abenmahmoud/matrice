@@ -7,3 +7,4 @@ export * from "./admin";
 export * from "./memory";
 export * from "./users";
 export * from "./experimentalModules";
+export * from "./workPassport";

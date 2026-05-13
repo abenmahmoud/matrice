@@ -1,3 +1,4 @@
+ 
 import { Switch, Route } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
@@ -30,6 +31,7 @@ import ScreenplayPage from "./pages/screenplay";
 import SeriesPage from "./pages/series";
 import PitchPage from "./pages/pitch";
 import ExportsPage from "./pages/exports";
+import WorkPassportPage from "./pages/work-passport";
 import AdminPage from "./pages/admin";
 import AnalysePage from "./pages/analyse";
 import ProjectAnalysePage from "./pages/project-analyse";
@@ -102,6 +104,7 @@ function Router() {
       <Route path="/projects/:id/pitch" component={PitchPage} />
       <Route path="/projects/:id/exports" component={ExportsPage} />
       <Route path="/projects/:id/analyse" component={ProjectAnalysePage} />
+      <Route path="/projects/:id/passport" component={WorkPassportPage} />
       <Route path="/admin" component={AdminPage} />
       <Route component={NotFound} />
     </Switch>
