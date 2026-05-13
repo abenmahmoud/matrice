@@ -20,7 +20,11 @@ export type AuthenticatedUser = Pick<
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
 function authSecret(): string {
-  return process.env["SESSION_SECRET"] ?? "matrice-secret";
+  const secret = process.env["SESSION_SECRET"];
+  if (!secret) {
+    throw new Error("SESSION_SECRET environment variable is required");
+  }
+  return secret;
 }
 
 function base64url(value: string): string {

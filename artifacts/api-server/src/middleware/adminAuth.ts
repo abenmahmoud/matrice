@@ -2,7 +2,10 @@ import { createHmac } from "crypto";
 import type { Request, Response, NextFunction } from "express";
 
 export function generateAdminToken(password: string): string {
-  const secret = process.env["SESSION_SECRET"] ?? "matrice-secret";
+  const secret = process.env["SESSION_SECRET"];
+  if (!secret) {
+    throw new Error("SESSION_SECRET environment variable is required");
+  }
   return createHmac("sha256", secret).update(password).digest("hex");
 }
 
