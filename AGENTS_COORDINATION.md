@@ -1322,3 +1322,20 @@ git pull origin main
 docker compose up -d --build --force-recreate api frontend
 curl -s https://matrice.essuf.fr/api/healthz
 ```
+
+## 2026-05-13 - Codex - fix admin token expire
+
+Incident:
+- BraveHeart ne pouvait plus acceder au dashboard `/admin`.
+- UI affichait encore l'espace admin car un ancien `matrice_admin_token` restait dans `localStorage`.
+- Les endpoints admin (`/api/research-lab/*`, `/api/skills`) repondaient `401`, donc le token etait invalide apres rotation/changement de secret.
+
+Correction code:
+- `AdminDashboard.loadAll()` detecte maintenant tout `401`.
+- En cas de `401`, l'app supprime le token via `logout()` et renvoie l'utilisateur vers l'ecran de connexion admin.
+- Message UI: session admin expiree, reconnexion avec le mot de passe actuel.
+
+Action immediate utilisateur:
+- Dans DevTools Console:
+  `localStorage.removeItem("matrice_admin_token"); location.reload();`
+- Puis se reconnecter avec le `ADMIN_PASSWORD` actuel du VPS.

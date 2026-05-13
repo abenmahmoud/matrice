@@ -697,14 +697,26 @@ function AdminDashboard() {
         fetch(`${BASE}/api/research-lab/stats`, { headers: h }),
         fetch(`${BASE}/api/research-lab/taxonomy`, { headers: h }),
       ]);
+      if ([eRes, sRes, stRes, tRes].some((res) => res.status === 401)) {
+        logout();
+        toast({
+          title: "Session admin expiree",
+          description: "Reconnecte-toi avec le mot de passe admin actuel.",
+          variant: "destructive",
+        });
+        throw new Error("Session admin expiree");
+      }
       if (!eRes.ok) throw new Error(`Auth failed: ${eRes.status}`);
+      if (!sRes.ok) throw new Error(`Skills failed: ${sRes.status}`);
+      if (!stRes.ok) throw new Error(`Stats failed: ${stRes.status}`);
+      if (!tRes.ok) throw new Error(`Taxonomy failed: ${tRes.status}`);
       setEntries(await eRes.json() as ResearchEntry[]);
       setSkills(await sRes.json() as Skill[]);
       setStats(await stRes.json() as Stats);
       setTaxonomy(await tRes.json() as Taxonomy);
     } catch (err) { setError((err as Error).message); }
     finally { setLoading(false); }
-  }, [adminHeaders]);
+  }, [adminHeaders, logout, toast]);
 
   useEffect(() => { void loadAll(); }, [loadAll]);
 
