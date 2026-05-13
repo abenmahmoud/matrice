@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -93,7 +94,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const { data: status } = useQuery<StatusMap>({
     queryKey: [`/api/projects/${projectId}/status`],
-    queryFn: () => fetch(`${BASE}/api/projects/${projectId}/status`).then(r => r.json()) as Promise<StatusMap>,
+    queryFn: () => apiFetch(`${BASE}/api/projects/${projectId}/status`).then(r => r.json()) as Promise<StatusMap>,
     enabled: !!projectId && projectId !== "new",
     staleTime: 15_000,
   });

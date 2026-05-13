@@ -4,6 +4,7 @@ import { useGetProject } from "@workspace/api-client-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 import { useAdmin } from "@/context/AdminContext";
+import { apiFetch } from "@/lib/apiFetch";
 import {
   BookOpen, Brain, Users, Network, Globe2, Search, Activity,
   Book, Film, Tv, Presentation, Download, FileSearch, BookMarked,
@@ -264,7 +265,7 @@ export default function ProjectOverview() {
 
   const { data: status, isLoading: statusLoading } = useQuery<StatusMap>({
     queryKey: [`/api/projects/${id}/status`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/status`).then(r => r.json()) as Promise<StatusMap>,
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/status`).then(r => r.json()) as Promise<StatusMap>,
     enabled: !!id,
     staleTime: 10_000,
   });

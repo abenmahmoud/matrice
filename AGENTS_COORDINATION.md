@@ -1278,3 +1278,21 @@ Tests E2E VPS:
 Decision:
 - Le Passeport d'Oeuvre est pret pour audit visuel Claude/BraveHeart.
 - Ne pas merger dans main avant validation produit.
+
+## 2026-05-13 - Codex - audit visuel Passeport
+
+Validation navigateur:
+- Creation d'un utilisateur/projet de test temporaire pour rendu authentifie.
+- Ouverture Chrome DevTools sur `/projects/:id/passport`.
+- Page affichee correctement:
+  - titre `Passeport Visuel Codex`.
+  - sidebar projet avec lien `Passeport d'Oeuvre` sous `5 - Presenter`.
+  - onglets `Identite`, `ADN narratif`, `Depot`, `Tracabilite`.
+  - actions `Markdown`, `JSON`, `Modifier`, `Sceller`.
+- Anomalie detectee pendant l'audit visuel:
+  - `GET /api/projects/:id/status` partait sans bearer token depuis `AppLayout` et `project-overview`, provoquant un 401 console malgre une page fonctionnelle.
+- Correction appliquee:
+  - Remplacement des `fetch()` directs du statut projet par `apiFetch()` pour heriter de `matrice_user_token`.
+
+Suite:
+- Rebuild Docker VPS puis re-verification console/network.
