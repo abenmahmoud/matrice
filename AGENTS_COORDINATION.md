@@ -1182,3 +1182,21 @@ docker compose up -d --build --force-recreate api frontend
 Note coordination Claude:
 - Claude peut aider BraveHeart dans l'interface Brevo + DNS OVH.
 - Codex gere le code, les tests, le deploy VPS et la verification API.
+
+## 2026-05-13 01:00 - Claude - Rotation cle Brevo (hygiene securite)
+
+Apres le merge Phase 2A en prod, la cle Brevo (terminait par VO0RNe) etait expose dans l historique du chat. Rotation effectuee:
+
+1. Generee nouvelle cle Brevo nommee matrice-prod-2026-v2 (termine par MsgXr2, 89 chars)
+2. Remplacee dans /opt/matrice/.env (BREVO_API_KEY=...)
+3. Restart docker compose api avec --force-recreate
+4. Test envoi Brevo HTTP 201 OK avec nouvelle cle
+5. Supprime ancienne cle (VO0RNe) sur Brevo - confirmee absente du dashboard
+6. Test final apres suppression: API Brevo HTTP 200, 300 credits disponibles
+7. Healthcheck /api/healthz: {"status":"ok"}
+
+Prod stable. Une seule cle active maintenant.
+
+Prochaine etape recommendee:
+- Investiguer pourquoi Codex signup ne genere pas d events Brevo (logs API montrent /api/auth/signup HTTP 201 mais /api/smtp/statistics/events Brevo ne contient que les emails de test manuels, pas les emails de verification automatiques de Codex)
+- Probablement Codex n a pas branche emailService.ts correctement dans le flow signup, ou il echoue silencieusement
