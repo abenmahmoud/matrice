@@ -28,11 +28,18 @@ function fromIdentity(): { email: string; name: string } {
 }
 
 async function sendEmail(input: SendEmailInput): Promise<EmailDelivery> {
-  const provider = process.env["EMAIL_PROVIDER"]?.trim().toLowerCase() ?? "resend";
+  const provider = process.env["EMAIL_PROVIDER"]?.trim().toLowerCase()
+    || (process.env["BREVO_API_KEY"] ? "brevo" : "resend");
   if (provider === "brevo") {
     return sendBrevoEmail(input);
   }
-  return sendResendEmail(input);
+
+  const resendDelivery = await sendResendEmail(input);
+  if (resendDelivery.status === "failed" && process.env["BREVO_API_KEY"]) {
+    return sendBrevoEmail(input);
+  }
+
+  return resendDelivery;
 }
 
 async function sendResendEmail(input: SendEmailInput): Promise<EmailDelivery> {

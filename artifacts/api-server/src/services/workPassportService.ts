@@ -2,6 +2,33 @@ import { db, workPassportsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import type { WorkPassport, InsertWorkPassport } from "@workspace/db";
 import { createHash } from "crypto";
+import {
+  generateWorkPassportDraft,
+  type EmotionalCore,
+  type NarrativeMatrix,
+  type Project,
+  type WorkPassportDraft,
+} from "./generationService.js";
+
+type WorkPassportGenerationContext = {
+  displayedAuthor: string;
+  workType: string;
+  matrix?: Partial<NarrativeMatrix> | null;
+  emotionalCore?: Partial<EmotionalCore> | null;
+  research?: {
+    clicheRisks?: string[] | null;
+    originalityOpportunities?: string[] | null;
+    creationNotes?: string | null;
+  } | null;
+  fallback: WorkPassportDraft;
+};
+
+export async function generateEnrichedWorkPassportDraft(
+  project: Project,
+  context: WorkPassportGenerationContext
+): Promise<WorkPassportDraft> {
+  return generateWorkPassportDraft(project, context);
+}
 
 export async function getWorkPassport(projectId: string, ownerUserId: string): Promise<WorkPassport | null> {
   const rows = await db

@@ -1368,3 +1368,101 @@ Suite recommandee:
 - Pousser `fix/private-wording-v10-clean`.
 - Auditer visuellement `/studio`, `/admin`, `/pricing`, `/signup`.
 - Ne pas merger `origin/fix/private-wording-v10` sans nettoyage complet des artefacts.
+
+## 2026-05-13 - Codex - feat/private-power-v11
+
+Objectif sprint:
+- Valider le wording Studio en navigation reelle.
+- Rendre le flow email/onboarding testable avec Brevo en production Docker.
+- Finaliser l'integration IA du Passeport d'Oeuvre sans inventer de garantie juridique.
+- Limiter le lien Passeport au viewer `owner`.
+
+Corrections preparees:
+- `docker-compose.yml` transmet maintenant `EMAIL_PROVIDER` et `BREVO_API_KEY` au container API.
+- `emailService.ts` choisit Brevo automatiquement si `BREVO_API_KEY` existe, meme si `EMAIL_PROVIDER` est absent.
+- `.env.example` nettoye: suppression du doublon Resend historique.
+- `generationService.ts` expose `generateOpenAICompletion()` et `generateWorkPassportDraft()` l'utilise pour le Passeport IA avec fallback JSON deterministe.
+- `workPassportService.ts` expose `generateEnrichedWorkPassportDraft()` pour que le service Passeport porte l'integration avec `generationService`.
+- `project-overview.tsx` combine token utilisateur + token Studio pour `/api/access` et masque `Passeport d'Oeuvre` si `viewer.role !== "owner"`.
+
+Verification locale avant commit:
+- `git diff --check`: OK.
+- Build local Windows toujours bloque par la dependance optionnelle Rollup native manquante; verification Docker Linux prevue sur VPS.
+
+Tests VPS a executer apres push:
+- Build Docker API + frontend.
+- `/api/healthz`, `/admin`, `/studio`.
+- Signup -> emailDelivery Brevo -> verification token -> onboarding complete -> dashboard/projects.
+- Passeport owner: lien visible, generate, patch, seal, export.
+- Passeport user non-owner: lien masque et API refuse.
+
+Resultat intermediaire VPS:
+- Build Docker API + frontend: OK.
+- `/api/healthz`, `/admin`, `/studio`: OK.
+- Brevo visible dans le container API (`EMAIL_PROVIDER=brevo`, `BREVO_API_KEY` present).
+- Signup + verification + onboarding: OK, emailDelivery `sent`.
+- Bug trouve sur Passeport generate: l'IA peut renvoyer `null` pour une colonne texte non-null (`proofExternalReference`).
+- Correction: normalisation stricte de tous les champs texte, statut, type d'oeuvre et cibles de depot avant insertion DB.
+- Renfort juridique: `proofMode` force vers `internal_hash`; disclaimer et notes de preuve retombent sur le texte sur si l'IA ne mentionne pas clairement preuve interne + depot officiel externe.
+
+Resultat final VPS apres `6efb2ab1`:
+- Branche deployee: `feat/private-power-v11`.
+- Containers: API et frontend reconstruits, Postgres healthy.
+- `/api/healthz`: OK.
+- Brevo: variable presente dans le container API, signup retourne `emailDelivery.status = sent`.
+- Signup temporaire: HTTP 201.
+- Verification email: token DB valide, endpoint verification HTTP 200.
+- Onboarding: completion HTTP 200, `onboarding_completed_at` renseigne.
+- Creation projet utilisateur: HTTP 201.
+- Passeport owner:
+  - generation HTTP 200.
+  - titre rempli depuis le projet.
+  - `proofMode = internal_hash`.
+  - disclaimer contient bien la distinction preuve interne / depot officiel externe.
+  - modification HTTP 200.
+  - scellement HTTP 200 avec hash SHA-256 64 caracteres.
+  - export Markdown HTTP 200, section `Preuve` presente.
+- Nettoyage effectue:
+  - projet temporaire supprime via API.
+  - utilisateur temporaire supprime en DB.
+
+Etat:
+- Sprint Phase 2 livre sur branche `feat/private-power-v11`.
+- Ne pas merger sans validation BraveHeart/Kimi.
+- Prochaine verification recommandee: audit visuel Kimi sur `/admin`, `/studio`, signup, onboarding, page projet et passeport.
+
+## 2026-05-21 - Codex - integration payment-v12 + v11 hardening
+
+Contexte:
+- Audit VPS recu sur branche `feat/payment-fr-v12` commit `c7e9bd08`.
+- Probleme prod confirme: email verification KO via Resend (`essuf.fr` non verifie) et variables Stripe absentes.
+- Risque precedent: si `MATRICE_PRODUCT_MODE` manque, l'API retombe en mode `private` et traite le visiteur public comme `owner`.
+
+Branche locale creee:
+- `codex/payment-v12-v11-hardening`, base `feat/private-power-v11`.
+- Cherry-pick des commits paiement `bafda866`, `4c5dec46`, `91ad9c41`, `c7e9bd08`.
+
+Corrections appliquees:
+- Default prod durci: `MATRICE_PRODUCT_MODE` tombe maintenant en `commercial` sauf si `private` est explicitement defini.
+- `docker-compose.yml` transmet `EMAIL_PROVIDER`, `BREVO_API_KEY`, `RESEND_API_KEY`, et les variables Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*`).
+- `emailService.ts` garde Brevo prioritaire si cle presente et ajoute fallback Brevo quand Resend echoue.
+- Plan `publish` reconnu comme plan payant cote API, modele IA et modules experimentaux.
+- Routes paiement corriges pour utiliser `getAuthUser(req)` au lieu de `req.user`.
+- Router paiement monte avant `productAccessMiddleware`, afin que le webhook Stripe ne soit pas bloque par l'auth produit.
+- `app.ts` ajoute `express.raw()` sur `/api/payments/webhook` pour permettre la verification de signature Stripe.
+- Service Stripe synchronise maintenant client, abonnement et factures en DB.
+- Tables `subscriptions` et `invoices` ajoutent des index uniques Stripe.
+- Fix typecheck Passeport: normalisation de `req.params.id` avant requete Drizzle.
+
+Validation locale:
+- `corepack pnpm run typecheck`: OK.
+- `corepack pnpm --filter @workspace/api-server run build`: OK.
+- Build frontend local Windows toujours bloque par optional dependency Rollup native absente (`@rollup/rollup-win32-x64-msvc`), a verifier via Docker/Linux VPS.
+
+Actions VPS recommandees apres push:
+- Definir `MATRICE_PRODUCT_MODE=commercial` explicitement dans `.env`.
+- Definir `EMAIL_PROVIDER=brevo` ou verifier completement le domaine `essuf.fr` chez Resend.
+- Definir `BREVO_API_KEY` dans le container API si Brevo est retenu.
+- Ajouter les variables Stripe avant test paiement.
+- Lancer `corepack pnpm --filter @workspace/db run push` avant rebuild API si les tables paiement n'existent pas.
+- Nettoyer utilisateurs de test: `passport-visual-%@test.local`, `test-debug-%@essuf.fr`, `test-resend-%@essuf.fr`, `test-fullaccess-%@essuf.fr`, `test-audit-%@essuf.fr`.

@@ -9,7 +9,8 @@ const PLAN_RANK: Record<string, number> = {
   free: 0,
   pro: 1,
   studio: 2,
-  enterprise: 3,
+  publish: 3,
+  enterprise: 4,
   private: 99,
 };
 
