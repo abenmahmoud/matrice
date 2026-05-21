@@ -67,6 +67,7 @@ export async function createCheckoutSession(
     mode: "subscription",
     success_url: `${process.env["MATRICE_PUBLIC_BASE_URL"] || "https://matrice.essuf.fr"}/billing?success=true`,
     cancel_url: `${process.env["MATRICE_PUBLIC_BASE_URL"] || "https://matrice.essuf.fr"}/pricing?canceled=true`,
+    metadata: { userId, plan },
     subscription_data: { metadata: { userId, plan } },
     tax_id_collection: { enabled: true },
     automatic_tax: { enabled: true },
@@ -129,7 +130,10 @@ export async function getUserInvoices(userId: string) {
 }
 
 export async function syncInvoiceToDB(stripeInvoice: Stripe.Invoice) {
-  const userId = stripeInvoice.subscription_details?.metadata?.userId;
+  const invoiceWithDetails = stripeInvoice as Stripe.Invoice & {
+    subscription_details?: { metadata?: Record<string, string> };
+  };
+  const userId = invoiceWithDetails.subscription_details?.metadata?.userId ?? stripeInvoice.metadata?.userId;
   if (!userId) return;
   const amount = (stripeInvoice.total / 100).toFixed(2);
   await db.insert(invoicesTable).values({
@@ -153,13 +157,77 @@ export async function syncInvoiceToDB(stripeInvoice: Stripe.Invoice) {
 // Webhook Handlers
 // ---------------------------------------------------------------------------
 
+function planFromMetadata(value: unknown): "free" | "pro" | "studio" | "publish" {
+  return value === "pro" || value === "studio" || value === "publish" ? value : "free";
+}
+
+function stripeDate(value: number | null | undefined): Date | null {
+  return value ? new Date(value * 1000) : null;
+}
+
+async function syncSubscriptionToDB(subscription: Stripe.Subscription): Promise<void> {
+  const userId = subscription.metadata?.userId;
+  if (!userId) return;
+  const subscriptionWithPeriod = subscription as Stripe.Subscription & {
+    current_period_start?: number;
+    current_period_end?: number;
+  };
+
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer?.id ?? null;
+  const plan = planFromMetadata(subscription.metadata?.plan);
+  const priceId = subscription.items.data[0]?.price.id ?? "";
+  const values = {
+    userId,
+    stripeCustomerId: customerId,
+    stripeSubscriptionId: subscription.id,
+    stripePriceId: priceId,
+    plan,
+    status: subscription.status,
+    currentPeriodStart: stripeDate(subscriptionWithPeriod.current_period_start),
+    currentPeriodEnd: stripeDate(subscriptionWithPeriod.current_period_end),
+    cancelAtPeriodEnd: subscription.cancel_at_period_end ? 1 : 0,
+    updatedAt: new Date(),
+  };
+
+  const [existing] = await db
+    .select({ id: subscriptionsTable.id })
+    .from(subscriptionsTable)
+    .where(eq(subscriptionsTable.userId, userId))
+    .limit(1);
+
+  if (existing) {
+    await db.update(subscriptionsTable).set(values).where(eq(subscriptionsTable.id, existing.id));
+  } else {
+    await db.insert(subscriptionsTable).values(values);
+  }
+
+  await db
+    .update(appUsersTable)
+    .set({
+      plan,
+      stripeCustomerId: customerId,
+      stripeSubscriptionId: subscription.id,
+      updatedAt: new Date(),
+    })
+    .where(eq(appUsersTable.id, userId));
+}
+
 export async function handleWebhookEvent(event: Stripe.Event) {
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      const { userId, plan } = session.subscription_details?.metadata || {};
-      if (userId && plan) {
-        await db.update(appUsersTable).set({ plan }).where(eq(appUsersTable.id, userId));
+      const userId = session.metadata?.userId;
+      const plan = planFromMetadata(session.metadata?.plan);
+      if (session.subscription && stripe) {
+        const subscriptionId =
+          typeof session.subscription === "string" ? session.subscription : session.subscription.id;
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        await syncSubscriptionToDB(subscription);
+      } else if (userId) {
+        await db.update(appUsersTable).set({ plan, updatedAt: new Date() }).where(eq(appUsersTable.id, userId));
       }
       break;
     }
@@ -175,16 +243,20 @@ export async function handleWebhookEvent(event: Stripe.Event) {
     }
     case "customer.subscription.updated": {
       const subscription = event.data.object as Stripe.Subscription;
-      const userId = subscription.metadata?.userId;
-      if (userId) {
-        await db.update(appUsersTable).set({ plan: subscription.metadata?.plan }).where(eq(appUsersTable.id, userId));
-      }
+      await syncSubscriptionToDB(subscription);
       break;
     }
     case "customer.subscription.deleted": {
       const subscription = event.data.object as Stripe.Subscription;
       await db.update(subscriptionsTable).set({ status: "cancelled", updatedAt: new Date() })
         .where(eq(subscriptionsTable.stripeSubscriptionId, subscription.id));
+      const userId = subscription.metadata?.userId;
+      if (userId) {
+        await db
+          .update(appUsersTable)
+          .set({ plan: "free", stripeSubscriptionId: null, updatedAt: new Date() })
+          .where(eq(appUsersTable.id, userId));
+      }
       break;
     }
   }

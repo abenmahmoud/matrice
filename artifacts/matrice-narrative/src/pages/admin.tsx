@@ -48,7 +48,7 @@ type SubscriptionUser = {
   email: string;
   displayName: string;
   role: "user" | "owner";
-  plan: "free" | "pro" | "studio" | "enterprise";
+  plan: "free" | "pro" | "studio" | "publish" | "enterprise";
   status: "active" | "suspended";
   generationsUsed: number;
   projectsCreated: number;

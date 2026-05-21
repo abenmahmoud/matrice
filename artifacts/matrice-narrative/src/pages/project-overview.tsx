@@ -25,7 +25,7 @@ type StatusMap = {
 
 type ProductAccess = {
   mode: "private" | "commercial";
-  plan: "private" | "free" | "pro" | "studio" | "enterprise";
+  plan: "private" | "free" | "pro" | "studio" | "publish" | "enterprise";
   viewer: {
     role: "owner" | "user" | "public";
     authenticated: boolean;

@@ -32,9 +32,15 @@ type PassportAccessContext = {
 };
 
 async function resolvePassportAccess(req: Request, res: Response): Promise<PassportAccessContext | null> {
-  const projectId = req.params.id;
+  const rawProjectId = req.params.id;
+  const projectId = Array.isArray(rawProjectId) ? rawProjectId[0] : rawProjectId;
   const access = getProductAccess(req);
   const user = getAuthUser(req);
+
+  if (!projectId) {
+    res.status(400).json({ error: "PROJECT_ID_REQUIRED" });
+    return null;
+  }
 
   if (access.viewer.role === "public") {
     res.status(401).json({ error: "AUTH_REQUIRED" });

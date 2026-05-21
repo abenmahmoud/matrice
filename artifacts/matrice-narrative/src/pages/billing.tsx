@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, FileText, Loader2, ExternalLink, Download, AlertCircle, CheckCircle } from "lucide-react";
+import { apiFetch } from "@/lib/apiFetch";
+import { CreditCard, FileText, Loader2, ExternalLink, Download, AlertCircle } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -41,25 +42,25 @@ function authHeaders(): HeadersInit {
 }
 
 async function fetchSubscription(): Promise<{ subscription: Subscription | null }> {
-  const res = await fetch(`${BASE}/api/payments/subscription`, { headers: authHeaders() });
+  const res = await apiFetch(`${BASE}/api/payments/subscription`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Erreur");
   return res.json();
 }
 
 async function fetchInvoices(): Promise<{ invoices: Invoice[] }> {
-  const res = await fetch(`${BASE}/api/payments/invoices`, { headers: authHeaders() });
+  const res = await apiFetch(`${BASE}/api/payments/invoices`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Erreur");
   return res.json();
 }
 
 async function fetchPortal(): Promise<{ url: string }> {
-  const res = await fetch(`${BASE}/api/payments/portal`, { headers: authHeaders() });
+  const res = await apiFetch(`${BASE}/api/payments/portal`, { headers: authHeaders() });
   if (!res.ok) throw new Error("Erreur");
   return res.json();
 }
 
 async function cancelSub(): Promise<unknown> {
-  const res = await fetch(`${BASE}/api/payments/cancel`, { method: "POST", headers: authHeaders() });
+  const res = await apiFetch(`${BASE}/api/payments/cancel`, { method: "POST", headers: authHeaders() });
   if (!res.ok) throw new Error("Erreur");
   return res.json();
 }
@@ -263,7 +264,7 @@ function CheckoutButton({ plan }: { plan: string }) {
     setLoading(true);
     try {
       const token = localStorage.getItem("matrice_user_token");
-      const res = await fetch(`${BASE}/api/payments/checkout`, {
+      const res = await apiFetch(`${BASE}/api/payments/checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

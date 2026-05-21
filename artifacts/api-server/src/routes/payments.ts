@@ -1,21 +1,31 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type Request, type Response } from "express";
 import { stripe, createCheckoutSession, createCustomerPortalSession, getUserSubscription, cancelSubscription, reactivateSubscription, getUserInvoices, handleWebhookEvent } from "../services/stripeService.js";
-import { getProductAccess } from "../lib/productAccess.js";
-import type { AuthenticatedRequest } from "../lib/auth.js";
+import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
 
 const router: IRouter = Router();
+const BILLING_PLANS = new Set(["pro", "studio", "publish"]);
+
+function requireUser(req: Request, res: Response): AuthenticatedUser | null {
+  const user = getAuthUser(req);
+  if (!user?.id) {
+    res.status(401).json({ error: "Authentification requise" });
+    return null;
+  }
+  return user;
+}
+
+function isBillingPlan(value: unknown): value is "pro" | "studio" | "publish" {
+  return typeof value === "string" && BILLING_PLANS.has(value);
+}
 
 // POST /api/payments/checkout — Creer session Stripe Checkout
-router.post("/payments/checkout", async (req: AuthenticatedRequest, res) => {
+router.post("/payments/checkout", async (req, res) => {
   try {
-    const user = req.user;
-    if (!user?.id) {
-      res.status(401).json({ error: "Authentification requise" });
-      return;
-    }
+    const user = requireUser(req, res);
+    if (!user) return;
 
     const { plan } = req.body;
-    if (!plan || !["pro", "studio", "publish"].includes(plan)) {
+    if (!isBillingPlan(plan)) {
       res.status(400).json({ error: "Plan invalide. Choisissez pro, studio ou publish." });
       return;
     }
@@ -29,15 +39,12 @@ router.post("/payments/checkout", async (req: AuthenticatedRequest, res) => {
 });
 
 // GET /api/payments/subscription — Lire abonnement actuel
-router.get("/payments/subscription", async (req: AuthenticatedRequest, res) => {
+router.get("/payments/subscription", async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: "Authentification requise" });
-      return;
-    }
+    const user = requireUser(req, res);
+    if (!user) return;
 
-    const sub = await getUserSubscription(userId);
+    const sub = await getUserSubscription(user.id);
     res.json({ subscription: sub });
   } catch (err) {
     req.log.error({ err }, "Erreur lecture abonnement");
@@ -46,15 +53,12 @@ router.get("/payments/subscription", async (req: AuthenticatedRequest, res) => {
 });
 
 // POST /api/payments/cancel — Annuler abonnement
-router.post("/payments/cancel", async (req: AuthenticatedRequest, res) => {
+router.post("/payments/cancel", async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: "Authentification requise" });
-      return;
-    }
+    const user = requireUser(req, res);
+    if (!user) return;
 
-    const result = await cancelSubscription(userId);
+    const result = await cancelSubscription(user.id);
     res.json(result);
   } catch (err) {
     req.log.error({ err }, "Erreur annulation");
@@ -63,15 +67,12 @@ router.post("/payments/cancel", async (req: AuthenticatedRequest, res) => {
 });
 
 // POST /api/payments/reactivate — Reactiver abonnement
-router.post("/payments/reactivate", async (req: AuthenticatedRequest, res) => {
+router.post("/payments/reactivate", async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: "Authentification requise" });
-      return;
-    }
+    const user = requireUser(req, res);
+    if (!user) return;
 
-    const result = await reactivateSubscription(userId);
+    const result = await reactivateSubscription(user.id);
     res.json(result);
   } catch (err) {
     req.log.error({ err }, "Erreur reactivation");
@@ -80,15 +81,12 @@ router.post("/payments/reactivate", async (req: AuthenticatedRequest, res) => {
 });
 
 // GET /api/payments/portal — Redirection vers Customer Portal Stripe
-router.get("/payments/portal", async (req: AuthenticatedRequest, res) => {
+router.get("/payments/portal", async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: "Authentification requise" });
-      return;
-    }
+    const user = requireUser(req, res);
+    if (!user) return;
 
-    const url = await createCustomerPortalSession(userId);
+    const url = await createCustomerPortalSession(user.id);
     res.json({ url });
   } catch (err) {
     req.log.error({ err }, "Erreur portal");
@@ -97,15 +95,12 @@ router.get("/payments/portal", async (req: AuthenticatedRequest, res) => {
 });
 
 // GET /api/payments/invoices — Lister factures
-router.get("/payments/invoices", async (req: AuthenticatedRequest, res) => {
+router.get("/payments/invoices", async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      res.status(401).json({ error: "Authentification requise" });
-      return;
-    }
+    const user = requireUser(req, res);
+    if (!user) return;
 
-    const invoices = await getUserInvoices(userId);
+    const invoices = await getUserInvoices(user.id);
     res.json({ invoices });
   } catch (err) {
     req.log.error({ err }, "Erreur factures");
@@ -123,9 +118,17 @@ router.post("/payments/webhook", async (req, res) => {
       res.status(400).json({ error: "Signature ou secret manquant" });
       return;
     }
+    if (!stripe) {
+      res.status(503).json({ error: "Stripe non configure" });
+      return;
+    }
+    if (!Buffer.isBuffer(req.body)) {
+      res.status(400).json({ error: "Corps webhook brut manquant" });
+      return;
+    }
 
     const event = stripe.webhooks.constructEvent(
-      req.body as string | Buffer,
+      req.body,
       sig as string,
       secret
     );

@@ -31,10 +31,10 @@ router.use(accessRouter);
 router.use(experimentalModulesRouter);
 router.use(aiModelContextMiddleware);
 router.use("/memory", memoryRouter);
+router.use(paymentRouter);
 router.use(creativeMemoryContextMiddleware);
 router.use(productAccessMiddleware);
 router.use(workPassportRouter);
-router.use(paymentRouter);
 router.use(projectsRouter);
 router.use(manuscriptsRouter);
 

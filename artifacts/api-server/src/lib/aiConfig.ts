@@ -21,7 +21,7 @@ export function getAiModelForPlan(plan: ProductPlan, viewerRole: ViewerRole): st
     return readModel("AI_MODEL_OVERRIDE_OWNER", readModel("AI_MODEL_OWNER", defaultAiModel));
   }
 
-  if (plan === "enterprise") {
+  if (plan === "enterprise" || plan === "publish") {
     return readModel("AI_MODEL_ENTERPRISE", readModel("AI_MODEL_STUDIO", defaultAiModel));
   }
 

@@ -1430,3 +1430,39 @@ Etat:
 - Sprint Phase 2 livre sur branche `feat/private-power-v11`.
 - Ne pas merger sans validation BraveHeart/Kimi.
 - Prochaine verification recommandee: audit visuel Kimi sur `/admin`, `/studio`, signup, onboarding, page projet et passeport.
+
+## 2026-05-21 - Codex - integration payment-v12 + v11 hardening
+
+Contexte:
+- Audit VPS recu sur branche `feat/payment-fr-v12` commit `c7e9bd08`.
+- Probleme prod confirme: email verification KO via Resend (`essuf.fr` non verifie) et variables Stripe absentes.
+- Risque precedent: si `MATRICE_PRODUCT_MODE` manque, l'API retombe en mode `private` et traite le visiteur public comme `owner`.
+
+Branche locale creee:
+- `codex/payment-v12-v11-hardening`, base `feat/private-power-v11`.
+- Cherry-pick des commits paiement `bafda866`, `4c5dec46`, `91ad9c41`, `c7e9bd08`.
+
+Corrections appliquees:
+- Default prod durci: `MATRICE_PRODUCT_MODE` tombe maintenant en `commercial` sauf si `private` est explicitement defini.
+- `docker-compose.yml` transmet `EMAIL_PROVIDER`, `BREVO_API_KEY`, `RESEND_API_KEY`, et les variables Stripe (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_*`).
+- `emailService.ts` garde Brevo prioritaire si cle presente et ajoute fallback Brevo quand Resend echoue.
+- Plan `publish` reconnu comme plan payant cote API, modele IA et modules experimentaux.
+- Routes paiement corriges pour utiliser `getAuthUser(req)` au lieu de `req.user`.
+- Router paiement monte avant `productAccessMiddleware`, afin que le webhook Stripe ne soit pas bloque par l'auth produit.
+- `app.ts` ajoute `express.raw()` sur `/api/payments/webhook` pour permettre la verification de signature Stripe.
+- Service Stripe synchronise maintenant client, abonnement et factures en DB.
+- Tables `subscriptions` et `invoices` ajoutent des index uniques Stripe.
+- Fix typecheck Passeport: normalisation de `req.params.id` avant requete Drizzle.
+
+Validation locale:
+- `corepack pnpm run typecheck`: OK.
+- `corepack pnpm --filter @workspace/api-server run build`: OK.
+- Build frontend local Windows toujours bloque par optional dependency Rollup native absente (`@rollup/rollup-win32-x64-msvc`), a verifier via Docker/Linux VPS.
+
+Actions VPS recommandees apres push:
+- Definir `MATRICE_PRODUCT_MODE=commercial` explicitement dans `.env`.
+- Definir `EMAIL_PROVIDER=brevo` ou verifier completement le domaine `essuf.fr` chez Resend.
+- Definir `BREVO_API_KEY` dans le container API si Brevo est retenu.
+- Ajouter les variables Stripe avant test paiement.
+- Lancer `corepack pnpm --filter @workspace/db run push` avant rebuild API si les tables paiement n'existent pas.
+- Nettoyer utilisateurs de test: `passport-visual-%@test.local`, `test-debug-%@essuf.fr`, `test-resend-%@essuf.fr`, `test-fullaccess-%@essuf.fr`, `test-audit-%@essuf.fr`.

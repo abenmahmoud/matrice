@@ -64,14 +64,14 @@ router.get("/admin/subscriptions/users", adminAuthMiddleware, async (req, res) =
 router.patch("/admin/subscriptions/users/:id", adminAuthMiddleware, async (req, res) => {
   try {
     const body = req.body as {
-      plan?: "free" | "pro" | "studio" | "enterprise";
+      plan?: "free" | "pro" | "studio" | "publish" | "enterprise";
       role?: "user" | "owner";
       status?: "active" | "suspended";
       resetUsage?: boolean;
     };
 
     const patch: Record<string, unknown> = { updatedAt: new Date() };
-    if (body.plan === "free" || body.plan === "pro" || body.plan === "studio" || body.plan === "enterprise") {
+    if (body.plan === "free" || body.plan === "pro" || body.plan === "studio" || body.plan === "publish" || body.plan === "enterprise") {
       patch["plan"] = body.plan;
     }
     if (body.role === "user" || body.role === "owner") patch["role"] = body.role;
