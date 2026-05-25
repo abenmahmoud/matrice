@@ -1,5 +1,3 @@
-import { createRequire } from "node:module";
-
 type OtsStatus = "pending" | "confirmed";
 
 type VerifyResult = {
@@ -47,9 +45,8 @@ export type UpgradeProofResult = {
   confirmedAt?: Date;
 };
 
-const require = createRequire(import.meta.url);
-const defaultOpenTimestamps = require("javascript-opentimestamps") as OpenTimestampsApi;
-let activeOpenTimestamps = defaultOpenTimestamps;
+let defaultOpenTimestampsApi: OpenTimestampsApi | undefined;
+let activeOpenTimestamps: OpenTimestampsApi | undefined;
 
 const DEFAULT_CALENDARS = [
   "https://a.pool.opentimestamps.org",
@@ -78,8 +75,9 @@ function otsOptions(): OtsOptions {
 }
 
 export async function stampHash(sha256Hex: string): Promise<StampHashResult> {
-  const detached = detachedFromHash(sha256Hex);
-  await activeOpenTimestamps.stamp(detached, otsOptions());
+  const openTimestamps = await getOpenTimestamps();
+  const detached = detachedFromHash(openTimestamps, sha256Hex);
+  await openTimestamps.stamp(detached, otsOptions());
 
   return {
     ots: serializeDetached(detached),
@@ -88,8 +86,9 @@ export async function stampHash(sha256Hex: string): Promise<StampHashResult> {
 }
 
 export async function upgradeProof(otsBase64: string): Promise<UpgradeProofResult> {
-  const detached = deserializeDetached(otsBase64);
-  await activeOpenTimestamps.upgrade(detached, otsOptions());
+  const openTimestamps = await getOpenTimestamps();
+  const detached = deserializeDetached(openTimestamps, otsBase64);
+  await openTimestamps.upgrade(detached, otsOptions());
 
   const status: OtsStatus = isTimestampComplete(detached) ? "confirmed" : "pending";
   const result: UpgradeProofResult = {
@@ -101,8 +100,8 @@ export async function upgradeProof(otsBase64: string): Promise<UpgradeProofResul
     return result;
   }
 
-  const original = detachedFromDigest(readDigest(detached));
-  const verified = await activeOpenTimestamps.verify(detached, original, otsOptions());
+  const original = detachedFromDigest(openTimestamps, readDigest(detached));
+  const verified = await openTimestamps.verify(detached, original, otsOptions());
   const bitcoin = verified.bitcoin;
   if (!bitcoin?.height) {
     return result;
@@ -111,35 +110,49 @@ export async function upgradeProof(otsBase64: string): Promise<UpgradeProofResul
   result.blockchain = "bitcoin";
   result.blockHeight = bitcoin.height;
   result.confirmedAt = bitcoin.timestamp ? new Date(bitcoin.timestamp * 1000) : undefined;
-  result.blockchainTx = extractBitcoinTransactionId(detached);
+  result.blockchainTx = extractBitcoinTransactionId(openTimestamps, detached);
   return result;
 }
 
 export async function verifyProof(otsBase64: string, sha256Hex: string): Promise<boolean> {
-  const detachedStamped = deserializeDetached(otsBase64);
-  const detachedOriginal = detachedFromHash(sha256Hex);
-  const verified = await activeOpenTimestamps.verify(detachedStamped, detachedOriginal, otsOptions());
+  const openTimestamps = await getOpenTimestamps();
+  const detachedStamped = deserializeDetached(openTimestamps, otsBase64);
+  const detachedOriginal = detachedFromHash(openTimestamps, sha256Hex);
+  const verified = await openTimestamps.verify(detachedStamped, detachedOriginal, otsOptions());
   return Boolean(verified.bitcoin?.height);
 }
 
 export function configureOpenTimestampsForTests(api?: OpenTimestampsApi): void {
-  activeOpenTimestamps = api ?? defaultOpenTimestamps;
+  activeOpenTimestamps = api;
 }
 
-function detachedFromHash(sha256Hex: string): unknown {
+async function getOpenTimestamps(): Promise<OpenTimestampsApi> {
+  if (activeOpenTimestamps) {
+    return activeOpenTimestamps;
+  }
+
+  if (!defaultOpenTimestampsApi) {
+    const imported = await import("javascript-opentimestamps");
+    defaultOpenTimestampsApi = ((imported as { default?: unknown }).default ?? imported) as OpenTimestampsApi;
+  }
+
+  return defaultOpenTimestampsApi;
+}
+
+function detachedFromHash(openTimestamps: OpenTimestampsApi, sha256Hex: string): unknown {
   assertSha256Hex(sha256Hex);
-  return detachedFromDigest(Buffer.from(sha256Hex, "hex"));
+  return detachedFromDigest(openTimestamps, Buffer.from(sha256Hex, "hex"));
 }
 
-function detachedFromDigest(digest: Uint8Array | number[]): unknown {
-  return activeOpenTimestamps.DetachedTimestampFile.fromHash(new activeOpenTimestamps.Ops.OpSHA256(), digest);
+function detachedFromDigest(openTimestamps: OpenTimestampsApi, digest: Uint8Array | number[]): unknown {
+  return openTimestamps.DetachedTimestampFile.fromHash(new openTimestamps.Ops.OpSHA256(), digest);
 }
 
-function deserializeDetached(otsBase64: string): unknown {
+function deserializeDetached(openTimestamps: OpenTimestampsApi, otsBase64: string): unknown {
   if (!otsBase64 || typeof otsBase64 !== "string") {
     throw new Error("Preuve OpenTimestamps manquante");
   }
-  return activeOpenTimestamps.DetachedTimestampFile.deserialize(Buffer.from(otsBase64, "base64"));
+  return openTimestamps.DetachedTimestampFile.deserialize(Buffer.from(otsBase64, "base64"));
 }
 
 function serializeDetached(detached: unknown): string {
@@ -157,8 +170,8 @@ function isTimestampComplete(detached: unknown): boolean {
   return Boolean(timestamped.timestamp?.isTimestampComplete());
 }
 
-function extractBitcoinTransactionId(detached: unknown): string | undefined {
-  const info = activeOpenTimestamps.info(detached, { verbose: true });
+function extractBitcoinTransactionId(openTimestamps: OpenTimestampsApi, detached: unknown): string | undefined {
+  const info = openTimestamps.info(detached, { verbose: true });
   return info.match(/Bitcoin transaction id\s+([a-f0-9]{64})/i)?.[1];
 }
 

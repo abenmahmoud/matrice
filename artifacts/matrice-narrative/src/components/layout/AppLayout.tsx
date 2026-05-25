@@ -4,7 +4,7 @@ import {
   Home, LayoutDashboard, Plus, BookOpen, Brain, Users, Network, Globe2,
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
-  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked
+  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -102,6 +102,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const rootNav = [
     { name: "Accueil", href: "/", icon: Home },
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Œuvres verrouillées", href: "/locked-works", icon: ShieldCheck },
     { name: "Memoire Studio", href: "/memory", icon: BrainCircuit },
     { name: "Modules experimentaux", href: "/experimental-modules", icon: Sparkles },
     { name: "Analyser un texte", href: "/analyse", icon: ScanText },

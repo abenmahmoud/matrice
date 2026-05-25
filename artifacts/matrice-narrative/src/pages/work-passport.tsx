@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -51,6 +51,21 @@ interface WorkPassport {
   markdownContent: string;
   createdAt: string;
   updatedAt: string;
+}
+
+type ExportFormat = "epub" | "docx" | "kdp-pdf";
+
+interface ExportJob {
+  jobId: string;
+  workPassportId: string;
+  format: string;
+  status: "pending" | "processing" | "completed" | "failed";
+  progressPct: number;
+  errorMessage?: string | null;
+  downloadUrl?: string | null;
+  fileSizeBytes?: number | null;
+  createdAt?: string;
+  completedAt?: string | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -130,6 +145,28 @@ async function apiSeal(projectId: string) {
   });
   if (!res.ok) throw new Error("Erreur scellement");
   return res.json() as Promise<{ passport: WorkPassport }>;
+}
+
+async function apiExportHistory() {
+  const res = await fetch(`${BASE}/api/exports/list`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("Erreur chargement exports");
+  return res.json() as Promise<{ jobs: ExportJob[] }>;
+}
+
+async function apiStartExport(projectId: string, format: ExportFormat) {
+  const res = await fetch(`${BASE}/api/projects/${projectId}/passport/export/${format}`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  const body = await res.json().catch(() => ({})) as { jobId?: string; status?: string; error?: string };
+  if (!res.ok || !body.jobId) throw new Error(body.error || "Export impossible");
+  return body as { jobId: string; status: string };
+}
+
+async function apiExportJob(jobId: string) {
+  const res = await fetch(`${BASE}/api/exports/${jobId}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("Export introuvable");
+  return res.json() as Promise<ExportJob>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -337,6 +374,10 @@ export default function WorkPassportPage() {
           </TabsContent>
         </Tabs>
 
+        <div className="mt-6">
+          <ExportSection projectId={projectId} workPassportId={passport.id} sealed={Boolean(passport.sealedAt)} />
+        </div>
+
         {/* Edit overlay */}
         {editing && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -382,6 +423,215 @@ export default function WorkPassportPage() {
       </div>
     </AppLayout>
   );
+}
+
+function ExportSection({ projectId, workPassportId, sealed }: { projectId: string; workPassportId: string; sealed: boolean }) {
+  const { toast } = useToast();
+  const [activeJobs, setActiveJobs] = useState<Record<string, ExportJob>>({});
+  const [history, setHistory] = useState<ExportJob[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const pollingIntervals = useRef<Record<string, number>>({});
+
+  useEffect(() => {
+    void loadHistory();
+  }, [workPassportId]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(pollingIntervals.current).forEach((interval) => window.clearInterval(interval));
+      pollingIntervals.current = {};
+    };
+  }, []);
+
+  async function loadHistory() {
+    try {
+      setLoadingHistory(true);
+      const data = await apiExportHistory();
+      setHistory(data.jobs.filter((job) => job.workPassportId === workPassportId).slice(0, 5));
+    } catch {
+      toast({ title: "Exports indisponibles", description: "Impossible de charger l'historique.", variant: "destructive" });
+    } finally {
+      setLoadingHistory(false);
+    }
+  }
+
+  async function startExport(format: ExportFormat) {
+    try {
+      const { jobId } = await apiStartExport(projectId, format);
+      setActiveJobs((current) => ({
+        ...current,
+        [jobId]: { jobId, workPassportId, format, status: "processing", progressPct: 0 },
+      }));
+      toast({ title: "Export lance", description: "La generation commence en arriere-plan." });
+      pollJob(jobId);
+    } catch (err) {
+      toast({
+        title: "Export impossible",
+        description: err instanceof Error ? err.message : "Une erreur est survenue.",
+        variant: "destructive",
+      });
+    }
+  }
+
+  function pollJob(jobId: string) {
+    const existing = pollingIntervals.current[jobId];
+    if (existing) window.clearInterval(existing);
+
+    const interval = window.setInterval(async () => {
+      try {
+        const job = await apiExportJob(jobId);
+        setActiveJobs((current) => ({ ...current, [jobId]: job }));
+
+        if (job.status === "completed" || job.status === "failed") {
+          window.clearInterval(interval);
+          delete pollingIntervals.current[jobId];
+          if (job.status === "completed") {
+            toast({ title: "Export pret", description: "Le fichier est disponible au telechargement pendant 1 heure." });
+            await loadHistory();
+          } else {
+            toast({
+              title: "Export echoue",
+              description: job.errorMessage || "La generation n'a pas pu aboutir.",
+              variant: "destructive",
+            });
+          }
+        }
+      } catch {
+        window.clearInterval(interval);
+        delete pollingIntervals.current[jobId];
+      }
+    }, 3000);
+
+    pollingIntervals.current[jobId] = interval;
+  }
+
+  const runningJobs = Object.values(activeJobs).filter((job) => job.status !== "completed" && job.status !== "failed");
+
+  if (!sealed) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Download className="h-5 w-5" /> Exporter cette oeuvre</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Vous devez d'abord verrouiller votre oeuvre pour generer les formats de publication.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Download className="h-5 w-5" /> Exporter cette oeuvre</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid gap-3 md:grid-cols-3">
+          <ExportButton
+            title="EPUB3"
+            subtitle="Kindle, Apple, Kobo"
+            disabled={hasRunningFormat(runningJobs, "epub")}
+            onClick={() => startExport("epub")}
+          />
+          <ExportButton
+            title="DOCX manuscrit"
+            subtitle="Format editeur FR"
+            disabled={hasRunningFormat(runningJobs, "docx")}
+            onClick={() => startExport("docx")}
+          />
+          <ExportButton
+            title="PDF KDP"
+            subtitle="Amazon broche 6x9"
+            disabled={hasRunningFormat(runningJobs, "kdp-pdf")}
+            onClick={() => startExport("kdp-pdf")}
+          />
+        </div>
+
+        {runningJobs.length > 0 && (
+          <div className="space-y-3">
+            {runningJobs.map((job) => (
+              <div key={job.jobId} className="rounded-lg border bg-muted/40 p-3">
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span>{formatExportLabel(job.format)} - {formatExportStatus(job.status)}</span>
+                  <span>{job.progressPct ?? 0}%</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded bg-background">
+                  <div className="h-full bg-primary transition-all" style={{ width: `${job.progressPct ?? 0}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <h4 className="text-sm font-medium">Historique recent</h4>
+            <Button variant="ghost" size="sm" onClick={() => loadHistory()} disabled={loadingHistory}>
+              {loadingHistory ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : null}
+              Actualiser
+            </Button>
+          </div>
+          {history.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Aucun export recent pour cette oeuvre.</p>
+          ) : (
+            <ul className="space-y-2">
+              {history.map((job) => (
+                <li key={job.jobId} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-sm">
+                  <span>
+                    {formatExportLabel(job.format)} - {job.createdAt ? new Date(job.createdAt).toLocaleString("fr-FR") : "date inconnue"}
+                  </span>
+                  {job.downloadUrl ? (
+                    <a href={`${BASE}${job.downloadUrl}`} download className="text-primary hover:underline">
+                      Telecharger {job.fileSizeBytes ? `(${Math.round(job.fileSizeBytes / 1024)} Ko)` : ""}
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground">{formatExportStatus(job.status)}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ExportButton({ title, subtitle, disabled, onClick }: { title: string; subtitle: string; disabled: boolean; onClick: () => void }) {
+  return (
+    <Button variant="outline" className="h-auto flex-col items-start gap-1 px-4 py-3 text-left" disabled={disabled} onClick={onClick}>
+      <span className="font-semibold">{title}</span>
+      <span className="text-xs font-normal text-muted-foreground">{subtitle}</span>
+    </Button>
+  );
+}
+
+function hasRunningFormat(jobs: ExportJob[], format: ExportFormat): boolean {
+  return jobs.some((job) => job.format === format || apiFormatToButtonFormat(job.format) === format);
+}
+
+function apiFormatToButtonFormat(format: string): ExportFormat | null {
+  if (format === "epub3") return "epub";
+  if (format === "docx_manuscript") return "docx";
+  if (format === "pdf_kdp") return "kdp-pdf";
+  return null;
+}
+
+function formatExportLabel(format: string): string {
+  if (format === "epub" || format === "epub3") return "EPUB3";
+  if (format === "docx" || format === "docx_manuscript") return "DOCX manuscrit";
+  if (format === "kdp-pdf" || format === "pdf_kdp") return "PDF KDP";
+  return format;
+}
+
+function formatExportStatus(status: string): string {
+  if (status === "pending") return "En attente";
+  if (status === "processing") return "Generation en cours";
+  if (status === "completed") return "Pret";
+  if (status === "failed") return "Echec";
+  return status;
 }
 
 /* ------------------------------------------------------------------ */

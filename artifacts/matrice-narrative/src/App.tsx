@@ -34,10 +34,12 @@ import ResetPasswordPage from "./pages/reset-password";
 import OnboardingPage from "./pages/onboarding";
 
 import AccessRedirectPage from "./pages/access-redirect";
+import VerifyWorkPage from "./pages/verify-work";
 
 import ExperimentalModulesPage from "./pages/experimental-modules";
 
 import Dashboard from "./pages/dashboard";
+import MyLockedWorksPage from "./pages/my-locked-works";
 
 import NewProject from "./pages/new-project";
 
@@ -144,10 +146,12 @@ function Router() {
       <Route path="/upgrade" component={AccessRedirectPage} />
 
       <Route path="/forbidden" component={AccessRedirectPage} />
+      <Route path="/verify/:hash" component={VerifyWorkPage} />
 
       <Route path="/experimental-modules" component={ExperimentalModulesPage} />
 
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/locked-works" component={MyLockedWorksPage} />
 
       <Route path="/memory" component={MemoryPage} />
 
