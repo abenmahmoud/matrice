@@ -24,7 +24,7 @@ router.get("/public/verify/:hash", rateLimitPublic, async (req, res) => {
   if (!passport?.sealedAt) {
     res.status(404).json({
       found: false,
-      message: "Aucun passeport d'oeuvre trouve pour ce hash",
+      message: "Aucun passeport d'œuvre trouvé pour ce hash",
     });
     return;
   }
@@ -44,7 +44,7 @@ router.get("/public/verify/:hash/qr.png", rateLimitPublic, async (req, res) => {
 
   const passport = await findPassportByHash(hash);
   if (!passport?.sealedAt) {
-    res.status(404).json({ error: "Passeport d'oeuvre introuvable" });
+    res.status(404).json({ error: "Passeport d'œuvre introuvable" });
     return;
   }
 
@@ -75,7 +75,7 @@ router.get("/public/verify/:hash/badge.svg", rateLimitPublic, async (req, res) =
 
   const passport = await findPassportByHash(hash);
   if (!passport?.sealedAt) {
-    res.status(404).type("text/plain").send("Passeport d'oeuvre introuvable");
+    res.status(404).type("text/plain").send("Passeport d'œuvre introuvable");
     return;
   }
 
@@ -104,7 +104,7 @@ router.get("/passport/locked-works", async (req, res) => {
       .map((passport) => ({
         id: passport.id,
         projectId: passport.projectId,
-        title: passport.officialTitle || "Oeuvre sans titre",
+        title: passport.officialTitle || "Œuvre sans titre",
         author: displayAuthor(passport),
         workType: passport.workType,
         sealedAt: passport.sealedAt,
@@ -219,7 +219,6 @@ function sanitizeBadgeSize(value: unknown): number {
 }
 
 function renderVerifyBadgeSvg({ size, confirmed }: { size: number; confirmed: boolean }): string {
-  const scale = size / 192;
   const center = 96;
   const icon = confirmed
     ? `<path d="M70 99l17 17 36-42" fill="none" stroke="#C9A961" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>`
@@ -227,13 +226,13 @@ function renderVerifyBadgeSvg({ size, confirmed }: { size: number; confirmed: bo
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 192 192" role="img" aria-label="Matrice Certified">
-  <rect width="192" height="192" rx="${Math.max(0, 96 * scale)}" fill="#0B0B0D"/>
+  <rect width="192" height="192" rx="96" fill="#0B0B0D"/>
   <circle cx="${center}" cy="${center}" r="84" fill="none" stroke="#C9A961" stroke-width="5"/>
   <circle cx="${center}" cy="${center}" r="68" fill="none" stroke="#C9A961" stroke-opacity=".35" stroke-width="1.5"/>
   <text x="96" y="47" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="21" font-weight="700" letter-spacing="5" fill="#EDEBE6">MATRICE</text>
   ${icon}
   <text x="96" y="153" text-anchor="middle" font-family="Manrope, Inter, Arial, sans-serif" font-size="15" font-weight="800" letter-spacing="3" fill="#C9A961">CERTIFIED</text>
-  <text x="96" y="171" text-anchor="middle" font-family="Manrope, Inter, Arial, sans-serif" font-size="8" letter-spacing="1.5" fill="#EDEBE6" opacity=".68">PASSEPORT D'OEUVRE</text>
+  <text x="96" y="171" text-anchor="middle" font-family="Manrope, Inter, Arial, sans-serif" font-size="8" letter-spacing="1.5" fill="#EDEBE6" opacity=".68">PASSEPORT D'ŒUVRE</text>
 </svg>`;
 }
 

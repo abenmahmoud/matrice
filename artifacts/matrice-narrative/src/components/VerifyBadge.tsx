@@ -82,7 +82,7 @@ export function VerifyBadge({
         fill="#EDEBE6"
         opacity=".68"
       >
-        PASSEPORT D'OEUVRE
+        PASSEPORT D'ŒUVRE
       </text>
     </svg>
   );

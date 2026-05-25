@@ -41,7 +41,7 @@ export default function VerifyWorkPage() {
     queryFn: async () => {
       const response = await fetch(`${BASE}/api/public/verify/${normalizedHash}`);
       if (response.status === 404) {
-        return { found: false, message: "Aucun passeport d'oeuvre trouve pour ce hash" };
+        return { found: false, message: "Aucun passeport d'œuvre trouvé pour ce hash" };
       }
       if (!response.ok) {
         throw new Error("Verification impossible");
@@ -56,7 +56,7 @@ export default function VerifyWorkPage() {
   }, []);
 
   const unknownHash = !validFormat || isError || data?.found === false;
-  const title = data?.found ? data.title || "Oeuvre sans titre" : "";
+  const title = data?.found ? data.title || "Œuvre sans titre" : "";
   const confirmed = data?.found && data.otsStatus === "confirmed";
 
   return (
@@ -68,14 +68,14 @@ export default function VerifyWorkPage() {
               Matrice
             </div>
           </Link>
-          <p className="hidden text-sm text-[#EDEBE6]/55 sm:block">Vérification d'oeuvre</p>
+          <p className="hidden text-sm text-[#EDEBE6]/55 sm:block">Vérification d'œuvre</p>
         </header>
 
         <section className="flex flex-1 items-center py-10 sm:py-14">
           {isLoading ? (
             <div className="mx-auto flex items-center gap-3 text-[#EDEBE6]/70">
               <Loader2 className="h-5 w-5 animate-spin text-[#C9A961]" />
-              Vérification du passeport d'oeuvre...
+              Vérification du passeport d'œuvre...
             </div>
           ) : data?.found ? (
             <article className="mx-auto w-full max-w-2xl border border-[#C9A961]/30 bg-[#0B0B0D] p-5 shadow-[0_0_80px_rgba(201,169,97,0.08)] sm:p-8">
@@ -83,7 +83,7 @@ export default function VerifyWorkPage() {
                 <div>
                   <div className="inline-flex items-center gap-2 border border-[#C9A961]/35 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#C9A961]">
                     <ShieldCheck className="h-3.5 w-3.5" />
-                    Passeport d'oeuvre vérifié
+                    Passeport d'œuvre vérifié
                   </div>
                   <h1 className="mt-6 text-4xl font-semibold leading-tight text-[#EDEBE6] sm:text-5xl" style={{ fontFamily: "Cormorant Garamond, Georgia, serif" }}>
                     {title}
@@ -94,7 +94,7 @@ export default function VerifyWorkPage() {
               </div>
 
               <dl className="mt-8 grid gap-4 border-t border-[#C9A961]/15 pt-6 sm:grid-cols-2">
-                <Fact label="Type d'oeuvre" value={labelWorkType(data.workType)} />
+                <Fact label="Type d'œuvre" value={labelWorkType(data.workType)} />
                 <Fact label="Langue" value={labelLanguage(data.language)} />
                 <Fact label="Verrouillée le" value={formatDate(data.sealedAt)} />
                 <Fact label="Preuve" value={data.proofProvider || "Matrice Narrative"} />
@@ -160,7 +160,7 @@ export default function VerifyWorkPage() {
                 Aucun passeport trouvé
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-[#EDEBE6]/58">
-                Le hash fourni ne correspond à aucune oeuvre verrouillée sur Matrice, ou son format est invalide.
+                Le hash fourni ne correspond à aucune œuvre verrouillée sur Matrice, ou son format est invalide.
               </p>
               <p className="mt-5 break-all font-mono text-xs text-[#EDEBE6]/38">{hash}</p>
               <Link href="/">
