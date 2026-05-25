@@ -1,4 +1,4 @@
-import { createRequire } from "node:module";
+import defaultOpenTimestamps from "javascript-opentimestamps";
 
 type OtsStatus = "pending" | "confirmed";
 
@@ -47,9 +47,8 @@ export type UpgradeProofResult = {
   confirmedAt?: Date;
 };
 
-const require = createRequire(import.meta.url);
-const defaultOpenTimestamps = require("javascript-opentimestamps") as OpenTimestampsApi;
-let activeOpenTimestamps = defaultOpenTimestamps;
+const defaultOpenTimestampsApi = defaultOpenTimestamps as OpenTimestampsApi;
+let activeOpenTimestamps = defaultOpenTimestampsApi;
 
 const DEFAULT_CALENDARS = [
   "https://a.pool.opentimestamps.org",
@@ -123,7 +122,7 @@ export async function verifyProof(otsBase64: string, sha256Hex: string): Promise
 }
 
 export function configureOpenTimestampsForTests(api?: OpenTimestampsApi): void {
-  activeOpenTimestamps = api ?? defaultOpenTimestamps;
+  activeOpenTimestamps = api ?? defaultOpenTimestampsApi;
 }
 
 function detachedFromHash(sha256Hex: string): unknown {
