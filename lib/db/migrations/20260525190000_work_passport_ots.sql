@@ -4,3 +4,7 @@ ALTER TABLE work_passports ADD COLUMN IF NOT EXISTS ots_blockchain TEXT DEFAULT 
 ALTER TABLE work_passports ADD COLUMN IF NOT EXISTS ots_block_height INTEGER;
 ALTER TABLE work_passports ADD COLUMN IF NOT EXISTS ots_tx_id TEXT;
 ALTER TABLE work_passports ADD COLUMN IF NOT EXISTS ots_confirmed_at TIMESTAMP;
+UPDATE work_passports SET ots_status = 'pending' WHERE ots_status IS NULL;
+UPDATE work_passports SET ots_blockchain = 'bitcoin' WHERE ots_blockchain IS NULL;
+ALTER TABLE work_passports ALTER COLUMN ots_status SET NOT NULL;
+ALTER TABLE work_passports ALTER COLUMN ots_blockchain SET NOT NULL;
