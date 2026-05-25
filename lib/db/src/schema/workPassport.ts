@@ -73,6 +73,12 @@ export const workPassportsTable = pgTable("work_passports", {
   proofNotes: text("proof_notes").notNull().default(
     "Preuve interne par empreinte SHA-256. Pour une force probante externe, deposer l'oeuvre via INPI e-Soleau, SACD, SGDL ou un service d'horodatage qualifie adapte."
   ),
+  otsProof: text("ots_proof"),
+  otsStatus: text("ots_status").notNull().default("pending"),
+  otsBlockchain: text("ots_blockchain").notNull().default("bitcoin"),
+  otsBlockHeight: integer("ots_block_height"),
+  otsTxId: text("ots_tx_id"),
+  otsConfirmedAt: timestamp("ots_confirmed_at"),
 
   // Depot / reconnaissance
   depositTargets: jsonb("deposit_targets").$type<string[]>().notNull().default([]),
