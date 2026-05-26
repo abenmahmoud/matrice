@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { Link } from "wouter";
 import { useAdmin } from "@/context/AdminContext";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -773,6 +774,9 @@ function AdminDashboard() {
               <span className="text-white/30"><strong className="text-white">{stats.totalEntries}</strong> entrées</span>
               <span className="text-white/30"><strong className="text-violet-300">{activeSkills}</strong> skills actifs</span>
             </div>}
+            <Link href="/admin/finance" className="rounded-lg border border-matrice-sable bg-white px-3 py-1.5 text-xs font-medium text-matrice-encre/70 transition hover:bg-matrice-sable/40">
+              Finance
+            </Link>
             <button onClick={() => void loadAll()} className="p-2 text-white/30 hover:text-white/70"><RefreshCw className="w-4 h-4" /></button>
             <button onClick={logout} className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70"><LogOut className="w-3.5 h-3.5" />Sortir</button>
           </div>

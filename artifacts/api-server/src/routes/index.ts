@@ -5,7 +5,8 @@ import healthRouter from "./health.js";
 import projectsRouter from "./projects.js";
 import skillsRouter from "./skills.js";
 import researchLabRouter from "./researchLab.js";
-import adminRouter from "./admin.js";
+import adminRouter from "./admin.js";
+import adminFinanceRouter from "./admin-finance.js";
 import authRouter from "./auth.js";
 import adminDataRouter from "./adminData.js";
 import manuscriptsRouter from "./manuscripts.js";
@@ -27,7 +28,8 @@ const router: IRouter = Router();
 
 // Public
 router.use(healthRouter);
-router.use(adminRouter);
+router.use(adminRouter);
+router.use(adminFinanceRouter);
 router.use(authContextMiddleware);
 router.use(authRouter);
 router.use(accessRouter);
