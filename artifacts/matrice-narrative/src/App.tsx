@@ -76,6 +76,8 @@ import AdminFinancePage from "./pages/admin/finance";
 import AdminAuthorsPage from "./pages/admin/authors";
 
 import AnalysePage from "./pages/analyse";
+import LentilleMarchePage from "./pages/lentille-marche";
+import LentilleMarcheDetailPage from "./pages/lentille-marche-detail";
 
 import ProjectAnalysePage from "./pages/project-analyse";
 
@@ -164,6 +166,8 @@ function Router() {
       <Route path="/memory" component={MemoryPage} />
 
       <Route path="/analyse" component={AnalysePage} />
+      <Route path="/lentille-marche/:id" component={LentilleMarcheDetailPage} />
+      <Route path="/lentille-marche" component={LentilleMarchePage} />
 
       <Route path="/projects/new" component={NewProject} />
 

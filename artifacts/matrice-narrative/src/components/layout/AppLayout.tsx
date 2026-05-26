@@ -141,6 +141,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Œuvres verrouillées", href: "/locked-works", icon: ShieldCheck },
     { name: "Memoire Studio", href: "/memory", icon: BrainCircuit },
     { name: "Modules experimentaux", href: "/experimental-modules", icon: Sparkles },
+    { name: "Lentille Marché 2026", href: "/lentille-marche", icon: Sparkles },
     { name: "Analyser un texte", href: "/analyse", icon: ScanText },
     { name: "Nouvelle vision", href: "/projects/new", icon: Plus },
   ];
