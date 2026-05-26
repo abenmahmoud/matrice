@@ -73,7 +73,7 @@ function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
+    <div className="matrice-work min-h-screen bg-matrice-ivoire text-matrice-encre flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-10">
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600/30 to-indigo-600/30 border border-violet-500/40 flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(139,92,246,0.2)]">
@@ -760,7 +760,7 @@ function AdminDashboard() {
   const activeSkills = skills.filter(s => s.isActive).length;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
+    <div className="matrice-work min-h-screen bg-matrice-ivoire text-matrice-encre">
       <header className="border-b border-white/[0.06] bg-black/60 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
