@@ -4,11 +4,13 @@ import {
   Home, LayoutDashboard, Plus, BookOpen, Brain, Users, Network, Globe2,
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
-  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck
+  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck,
+  CircleUserRound, ChevronDown, LogOut, UserRound
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
 import { apiFetch } from "@/lib/apiFetch";
+import { clearUserToken, getUserToken } from "@/lib/userAuth";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -16,6 +18,15 @@ type StatusMap = {
   matrix: boolean; emotionalCore: boolean; characters: boolean;
   relationships: boolean; world: boolean; research: boolean;
   hpsa: boolean; book: boolean; screenplay: boolean; series: boolean; pitch: boolean;
+};
+
+type AuthUser = {
+  id: string;
+  email: string;
+  displayName: string;
+  role: string;
+  plan: string;
+  isEmailVerified: boolean;
 };
 
 const PHASES = [
@@ -84,9 +95,10 @@ const PHASES = [
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [match, params] = useRoute("/projects/:id/*?");
   const projectId = match ? params?.id : null;
+  const token = getUserToken();
 
   const { data: project } = useGetProject(projectId as string, {
     query: { enabled: !!projectId && projectId !== "new", queryKey: [`/api/projects/${projectId}`] }
@@ -98,6 +110,29 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     enabled: !!projectId && projectId !== "new",
     staleTime: 15_000,
   });
+
+  const { data: authUser } = useQuery<AuthUser | null>({
+    queryKey: ["auth-me", token ?? "anonymous"],
+    queryFn: async () => {
+      if (!token) return null;
+      const response = await apiFetch(`${BASE}/api/auth/me`);
+      if (!response.ok) return null;
+      const payload = (await response.json()) as { user: AuthUser };
+      return payload.user;
+    },
+    enabled: !!token,
+    staleTime: 30_000,
+  });
+
+  async function logout() {
+    await fetch(`${BASE}/api/auth/logout`, {
+      method: "POST",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      credentials: "include",
+    }).catch(() => undefined);
+    clearUserToken();
+    setLocation("/login");
+  }
 
   const rootNav = [
     { name: "Accueil", href: "/", icon: Home },
@@ -248,10 +283,58 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <header className="flex min-h-[64px] items-center justify-end gap-3 border-b border-border/30 bg-[#09090e]/70 px-5 backdrop-blur-xl">
+          {authUser ? (
+            <details className="relative">
+              <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white/70 transition hover:bg-white/[0.06] hover:text-white">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
+                  {(authUser.displayName || authUser.email).slice(0, 1).toUpperCase()}
+                </span>
+                <span className="hidden max-w-[170px] truncate sm:block">{authUser.displayName || authUser.email}</span>
+                <ChevronDown className="h-4 w-4" />
+              </summary>
+              <div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-white/[0.08] bg-[#10101a] p-1 shadow-2xl shadow-black/30">
+                <MenuLink href="/profile" icon={UserRound} label="Mon profil" />
+                <MenuLink href="/locked-works" icon={ShieldCheck} label="Mes oeuvres" />
+                <MenuLink href="/dashboard" icon={LayoutDashboard} label="Tableau de bord" />
+                {authUser.role === "admin" && <MenuLink href="/admin" icon={CircleUserRound} label="Admin" />}
+                <div className="my-1 h-px bg-white/[0.08]" />
+                <button
+                  type="button"
+                  onClick={() => void logout()}
+                  className="flex min-h-[42px] w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/55 transition hover:bg-white/[0.05] hover:text-white"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Déconnexion
+                </button>
+              </div>
+            </details>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link href="/login" className="flex min-h-[44px] items-center text-sm text-white/55 transition hover:text-primary">
+                Se connecter
+              </Link>
+              <Link href="/signup" className="flex min-h-[44px] items-center rounded-lg bg-primary px-4 text-sm font-medium text-white transition hover:bg-primary/90">
+                Créer un compte
+              </Link>
+            </div>
+          )}
+        </header>
         <div className="flex-1 overflow-y-auto">
           {children}
         </div>
       </main>
     </div>
+  );
+}
+
+function MenuLink({ href, icon: Icon, label }: { href: string; icon: typeof UserRound; label: string }) {
+  return (
+    <Link href={href}>
+      <div className="flex min-h-[42px] cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/55 transition hover:bg-white/[0.05] hover:text-white">
+        <Icon className="h-4 w-4" />
+        {label}
+      </div>
+    </Link>
   );
 }
