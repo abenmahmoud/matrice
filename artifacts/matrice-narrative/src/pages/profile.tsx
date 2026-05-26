@@ -207,8 +207,8 @@ function AccountTab({ user }: { user: User }) {
             </label>
             <div>
               <p className="text-sm font-medium text-[#2A2520]">Email</p>
-              <div className="mt-2 flex items-center justify-between rounded-lg border border-[#E8DFC9] bg-[#F5F1E8]/60 px-3 py-2 text-sm">
-                <span>{user.email}</span>
+              <div className="mt-2 flex flex-col gap-2 rounded-lg border border-[#E8DFC9] bg-[#F5F1E8]/60 px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+                <span className="mobile-safe-wrap">{user.email}</span>
                 {user.isEmailVerified ? (
                   <Badge className="bg-[#6B8E5A] text-white">
                     <CheckCircle2 className="mr-1 h-3 w-3" />

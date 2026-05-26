@@ -5,12 +5,13 @@ import {
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
   Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck,
-  CircleUserRound, ChevronDown, LogOut, UserRound
+  CircleUserRound, ChevronDown, LogOut, UserRound, type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
 import { apiFetch } from "@/lib/apiFetch";
 import { clearUserToken, getUserToken } from "@/lib/userAuth";
+import { MobileNav, type MobileNavSection } from "@/components/layout/MobileNav";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -145,11 +146,49 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   ];
 
   const isActive = (href: string) => location === href || location.startsWith(href + "/");
+  const mobileSections: MobileNavSection[] = [
+    {
+      label: "Navigation",
+      links: rootNav.map((item) => ({
+        ...item,
+        active: item.href === "/" ? location === "/" || location === "" : isActive(item.href),
+      })),
+    },
+  ];
+
+  if (projectId && projectId !== "new") {
+    mobileSections.push({
+      label: project?.title ?? "Projet",
+      links: [
+        {
+          name: "Vue d'ensemble",
+          href: `/projects/${projectId}`,
+          icon: LayoutGrid,
+          active: location === `/projects/${projectId}` || location === `/projects/${projectId}/overview`,
+        },
+        ...PHASES.flatMap((phase) => [
+          ...phase.items.map((item) => ({
+            name: item.name,
+            href: `/projects/${projectId}/${item.href}`,
+            icon: item.icon,
+            active: isActive(`/projects/${projectId}/${item.href}`),
+            done: status ? status[item.key] : false,
+          })),
+          ...(phase.extra?.map((item) => ({
+            name: item.name,
+            href: `/projects/${projectId}/${item.href}`,
+            icon: item.icon,
+            active: isActive(`/projects/${projectId}/${item.href}`),
+          })) ?? []),
+        ]),
+      ],
+    });
+  }
 
   return (
-    <div className="matrice-work min-h-screen bg-matrice-ivoire text-matrice-encre flex">
+    <div className="matrice-work flex min-h-screen bg-matrice-ivoire text-matrice-encre">
       {/* Sidebar */}
-      <aside className="w-60 flex-shrink-0 border-r border-matrice-sable bg-white/85 backdrop-blur-xl flex flex-col h-screen sticky top-0 overflow-hidden shadow-[8px_0_32px_-28px_rgba(42,37,32,0.45)]">
+      <aside className="sticky top-0 hidden h-screen w-60 flex-shrink-0 flex-col overflow-hidden border-r border-matrice-sable bg-white/85 shadow-[8px_0_32px_-28px_rgba(42,37,32,0.45)] backdrop-blur-xl lg:flex">
 
         {/* Logo */}
         <div className="px-5 py-5 border-b border-matrice-sable flex-shrink-0">
@@ -282,8 +321,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <header className="flex min-h-[64px] items-center justify-end gap-3 border-b border-matrice-sable bg-matrice-ivoire/90 px-5 backdrop-blur-xl">
+      <main className="flex min-h-screen min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="relative z-[140] flex min-h-[64px] items-center justify-between gap-3 border-b border-matrice-sable bg-matrice-ivoire/95 px-3 sm:px-5">
+          <div className="flex min-w-0 items-center gap-3 lg:hidden">
+            <MobileNav
+              sections={mobileSections}
+              user={authUser ? { displayName: authUser.displayName, email: authUser.email } : null}
+              onLogout={() => void logout()}
+            />
+            <Link href="/dashboard" className="inline-flex min-h-[44px] items-center truncate font-serif text-base font-bold uppercase tracking-[0.16em] text-matrice-or-fonce">
+              Matrice
+            </Link>
+          </div>
           {authUser ? (
             <details className="relative">
               <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 rounded-xl border border-matrice-sable bg-white px-3 py-2 text-sm text-matrice-encre/70 transition hover:bg-matrice-sable/35 hover:text-matrice-encre">
@@ -302,7 +351,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <button
                   type="button"
                   onClick={() => void logout()}
-                  className="flex min-h-[42px] w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-matrice-encre/62 transition hover:bg-matrice-sable/40 hover:text-matrice-encre"
+                  className="flex min-h-[44px] w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-matrice-encre/62 transition hover:bg-matrice-sable/40 hover:text-matrice-encre"
                 >
                   <LogOut className="h-4 w-4" />
                   Déconnexion
@@ -310,11 +359,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </details>
           ) : (
-            <div className="flex items-center gap-3">
-              <Link href="/login" className="flex min-h-[44px] items-center text-sm text-matrice-encre/62 transition hover:text-matrice-terracotta">
+            <div className="ml-auto flex items-center gap-2 sm:gap-3">
+              <Link href="/login" className="flex min-h-[44px] items-center whitespace-nowrap text-sm text-matrice-encre/62 transition hover:text-matrice-terracotta">
                 Se connecter
               </Link>
-              <Link href="/signup" className="flex min-h-[44px] items-center rounded-lg bg-matrice-terracotta px-4 text-sm font-medium text-white transition hover:bg-matrice-terracotta/90">
+              <Link href="/signup" className="flex min-h-[44px] items-center whitespace-nowrap rounded-lg bg-matrice-terracotta px-3 text-sm font-medium text-white transition hover:bg-matrice-terracotta/90 sm:px-4">
                 Créer un compte
               </Link>
             </div>
@@ -328,10 +377,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function MenuLink({ href, icon: Icon, label }: { href: string; icon: typeof UserRound; label: string }) {
+function MenuLink({ href, icon: Icon, label }: { href: string; icon: LucideIcon; label: string }) {
   return (
     <Link href={href}>
-      <div className="flex min-h-[42px] cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-matrice-encre/62 transition hover:bg-matrice-sable/40 hover:text-matrice-encre">
+      <div className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-matrice-encre/62 transition hover:bg-matrice-sable/40 hover:text-matrice-encre">
         <Icon className="h-4 w-4" />
         {label}
       </div>

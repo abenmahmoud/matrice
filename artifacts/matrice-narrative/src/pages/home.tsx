@@ -132,7 +132,7 @@ export default function Home() {
     <div className="min-h-[100dvh] bg-[#08080d] text-white">
       <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#08080d]/[0.86] backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
-          <Link href="/">
+          <Link href="/" className="inline-flex min-h-[44px] items-center">
             <span className="font-serif text-lg font-bold uppercase tracking-[0.22em] text-violet-200">Matrice</span>
           </Link>
           <nav className="hidden items-center gap-7 text-sm text-white/48 md:flex">
@@ -169,26 +169,26 @@ export default function Home() {
               transition={{ duration: 0.65, ease: "easeOut" }}
               className="max-w-2xl"
             >
-              <h1 className="font-serif text-5xl font-black leading-[0.95] tracking-tight text-white md:text-7xl">
+              <h1 className="font-serif text-4xl font-black leading-[1.02] tracking-tight text-white sm:text-5xl md:text-7xl">
                 Matrice Narrative
               </h1>
-              <p className="mt-7 max-w-xl text-lg leading-8 text-white/54 md:text-xl">
+              <p className="mt-6 max-w-xl text-base leading-7 text-white/54 sm:text-lg md:text-xl md:leading-8">
                 L'atelier IA pour transformer une idee brute en univers fictionnel solide : matrice, personnages,
                 scenes, pitch et memoire creative, dans un workflow pense pour auteurs, scenaristes et producteurs.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link href="/signup">
-                  <Button size="lg" className="h-12 rounded-full bg-violet-500 px-7 text-base text-white hover:bg-violet-400">
+                  <Button size="lg" className="h-12 w-full rounded-full bg-violet-500 px-7 text-base text-white hover:bg-violet-400 sm:w-auto">
                     Creer mon compte <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
                 <Link href="/pricing">
-                  <Button size="lg" variant="outline" className="h-12 rounded-full border-white/[0.12] bg-white/[0.03] px-7 text-base text-white/70 hover:bg-white/[0.06] hover:text-white">
+                  <Button size="lg" variant="outline" className="h-12 w-full rounded-full border-white/[0.12] bg-white/[0.03] px-7 text-base text-white/70 hover:bg-white/[0.06] hover:text-white sm:w-auto">
                     Voir les paliers
                   </Button>
                 </Link>
               </div>
-              <div className="mt-9 grid max-w-lg grid-cols-3 gap-4 border-t border-white/[0.08] pt-6">
+              <div className="mt-9 grid max-w-lg grid-cols-1 gap-4 border-t border-white/[0.08] pt-6 sm:grid-cols-3">
                 {[
                   ["31", "modules IA"],
                   ["4", "paliers"],

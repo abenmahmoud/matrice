@@ -150,7 +150,38 @@ export default function AdminAuthorsPage() {
           {loading ? (
             <div className="p-10 text-center text-sm text-matrice-encre/55">Chargement des auteurs...</div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <div className="divide-y divide-matrice-sable md:hidden">
+              {authors.map((author) => (
+                <article key={author.id} className="space-y-4 p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-matrice-encre">{author.display_name || "Sans nom"}</p>
+                      <p className="mobile-safe-wrap text-sm text-matrice-encre/55">{author.email}</p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-matrice-sable/60 px-3 py-1 text-xs font-semibold uppercase text-matrice-encre/70">
+                      {author.plan}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <SmallDatum label="Oeuvres" value={`${author.locked_works_count} verrouillee${author.locked_works_count > 1 ? "s" : ""}`} />
+                    <SmallDatum label="Exports" value={String(author.exports_count)} />
+                    <SmallDatum label="Solde" value={`${author.payout_balance_eur} EUR`} />
+                    <SmallDatum label="Inscription" value={formatDate(author.created_at)} />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {author.mandate_signed ? (
+                      <Status label="Signe" tone="success" />
+                    ) : (
+                      <Status label="Non signe" tone="neutral" icon={FileSignature} />
+                    )}
+                    <Status label={author.stripe_connect_status === "non_configure" ? "Non configure" : author.stripe_connect_status} tone="neutral" />
+                  </div>
+                </article>
+              ))}
+              {authors.length === 0 && <div className="p-8 text-center text-matrice-encre/50">Aucun auteur trouve.</div>}
+            </div>
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[1050px] text-left text-sm">
                 <thead className="bg-matrice-ivoire text-xs uppercase tracking-[0.14em] text-matrice-encre/45">
                   <tr>
@@ -203,6 +234,7 @@ export default function AdminAuthorsPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </section>
       </div>
@@ -231,5 +263,14 @@ function Status({ label, tone, icon: Icon }: { label: string; tone: "success" | 
       {Icon && <Icon className="h-3.5 w-3.5" />}
       {label}
     </span>
+  );
+}
+
+function SmallDatum({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-[0.12em] text-matrice-encre/42">{label}</p>
+      <p className="mobile-safe-wrap mt-1 font-medium text-matrice-encre">{value}</p>
+    </div>
   );
 }
