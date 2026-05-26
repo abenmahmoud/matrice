@@ -57,7 +57,7 @@ export default function MyLockedWorksPage() {
     <AppLayout>
       <div className="min-h-screen bg-[#09090e]">
         <div className="border-b border-white/[0.05] bg-white/[0.01]">
-          <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-8 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-7 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8">
             <div>
               <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-white/24">
                 Publication Roman
@@ -67,14 +67,14 @@ export default function MyLockedWorksPage() {
                 Retrouvez les URLs publiques, QR codes et badges embarquables de vos passeports d'œuvre.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:w-[320px]">
+            <div className="grid w-full grid-cols-2 gap-3 sm:w-[320px]">
               <Metric label="Verrouillées" value={String(works.length)} />
               <Metric label="Bitcoin" value={String(confirmedCount)} />
             </div>
           </div>
         </div>
 
-        <div className="mx-auto max-w-7xl px-6 py-8 sm:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           {isLoading ? (
             <div className="flex items-center justify-center py-24">
               <Loader2 className="h-7 w-7 animate-spin text-primary/55" />
@@ -121,7 +121,7 @@ function LockedWorkRow({
   const confirmed = work.otsStatus === "confirmed";
 
   return (
-    <article className="grid gap-5 border border-white/[0.07] bg-white/[0.018] p-5 lg:grid-cols-[1fr_220px]">
+    <article className="grid gap-5 rounded-2xl border border-white/[0.07] bg-white/[0.018] p-4 sm:p-5 lg:grid-cols-[1fr_220px]">
       <div className="min-w-0">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -133,7 +133,7 @@ function LockedWorkRow({
                 {formatDate(work.sealedAt)}
               </span>
             </div>
-            <h2 className="mt-4 text-2xl font-serif font-bold leading-tight text-white/88">{work.title}</h2>
+            <h2 className="mobile-safe-wrap mt-4 text-2xl font-serif font-bold leading-tight text-white/88">{work.title}</h2>
             <p className="mt-1 text-sm text-white/38">par {work.author || "Anonyme"}</p>
           </div>
           <div className="flex items-center gap-3">
@@ -145,7 +145,7 @@ function LockedWorkRow({
         </div>
 
         <div className="mt-5 grid gap-3">
-          <div className="break-all border border-white/[0.06] bg-black/10 p-3 font-mono text-xs leading-relaxed text-white/45">
+          <div className="break-all rounded-xl border border-white/[0.06] bg-black/10 p-3 font-mono text-xs leading-relaxed text-white/45">
             {work.verifyUrl}
           </div>
           <div className="flex flex-wrap gap-2">
@@ -168,7 +168,7 @@ function LockedWorkRow({
 
         <div className="mt-5">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/25">Badge à embarquer</p>
-          <div className="break-all border border-white/[0.06] bg-black/10 p-3 font-mono text-[11px] leading-relaxed text-white/42">
+          <div className="break-all rounded-xl border border-white/[0.06] bg-black/10 p-3 font-mono text-[11px] leading-relaxed text-white/42">
             {snippet}
           </div>
           <Button
@@ -183,7 +183,7 @@ function LockedWorkRow({
         </div>
       </div>
 
-      <aside className="border border-white/[0.06] bg-black/10 p-4">
+      <aside className="rounded-2xl border border-white/[0.06] bg-black/10 p-4">
         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/28">
           <QrCode className="h-3.5 w-3.5" />
           QR code
@@ -191,7 +191,7 @@ function LockedWorkRow({
         <img
           src={`${BASE}${work.qrUrl}`}
           alt={`QR code de vérification pour ${work.title}`}
-          className="mt-4 aspect-square w-full bg-white p-3"
+          className="mx-auto mt-4 aspect-square w-full max-w-[220px] bg-white p-3 lg:max-w-none"
         />
         <a href={`${BASE}${work.qrUrl}`} download={`qr-${work.contentHash.slice(0, 12)}.png`}>
           <Button size="sm" variant="outline" className="mt-4 w-full border-white/[0.08] bg-white/[0.02] text-white/55 hover:bg-white/[0.05] hover:text-white/80">

@@ -293,7 +293,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
       type="button"
       onClick={onClick}
       className={cn(
-        "min-h-[42px] rounded-xl px-4 text-sm font-medium transition",
+        "min-h-[44px] rounded-xl px-4 text-sm font-medium transition",
         active ? "bg-matrice-terracotta text-white shadow-sm" : "text-matrice-encre/60 hover:bg-matrice-sable/45 hover:text-matrice-encre"
       )}
     >
@@ -308,7 +308,31 @@ function SubscriptionsTable({ rows }: { rows: SubscriptionRow[] }) {
       <div className="border-b border-matrice-sable px-5 py-4">
         <h2 className="font-serif text-xl font-semibold">Abonnements actifs</h2>
       </div>
-      <div className="overflow-x-auto">
+      <div className="divide-y divide-matrice-sable md:hidden">
+        {rows.map((row) => (
+          <article key={row.subscription_id} className="space-y-3 p-5">
+            <div>
+              <p className="font-medium">{row.customer_name || "Client Stripe"}</p>
+              <p className="mobile-safe-wrap text-sm text-matrice-encre/55">{row.customer_email || row.subscription_id}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <SmallDatum label="Plan" value={row.plan} />
+              <SmallDatum label="Montant" value={`${euro(row.amount_eur)} / ${row.interval === "year" ? "an" : "mois"}`} />
+              <SmallDatum label="Renouvellement" value={formatDate(row.current_period_end)} />
+              <div>
+                <p className="text-xs uppercase tracking-[0.12em] text-matrice-encre/42">Statut</p>
+                {row.cancel_at_period_end ? (
+                  <span className="mt-1 inline-flex rounded-full bg-matrice-warning/15 px-3 py-1 text-xs font-medium text-matrice-warning">Annulera</span>
+                ) : (
+                  <span className="mt-1 inline-flex rounded-full bg-matrice-success/15 px-3 py-1 text-xs font-medium text-matrice-success">Actif</span>
+                )}
+              </div>
+            </div>
+          </article>
+        ))}
+        {rows.length === 0 && <div className="p-8 text-center text-matrice-encre/50">Aucun abonnement actif.</div>}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="bg-matrice-ivoire text-xs uppercase tracking-[0.14em] text-matrice-encre/45">
             <tr>
@@ -376,7 +400,29 @@ function TransactionsTable(props: {
           </Button>
         </div>
       </div>
-      <div className="overflow-x-auto">
+      <div className="divide-y divide-matrice-sable md:hidden">
+        {props.rows.map((row) => (
+          <article key={row.id} className="space-y-3 p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-medium">{formatDate(row.date)}</p>
+                <p className="mobile-safe-wrap text-sm text-matrice-encre/55">{row.customer_email || "Non renseigne"}</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-matrice-sable/60 px-3 py-1 text-sm font-semibold">
+                {euro(row.amount_eur)}
+              </span>
+            </div>
+            <p className="mobile-safe-wrap text-sm text-matrice-encre/65">{row.description || row.id}</p>
+            {row.receipt_url && (
+              <a className="inline-flex min-h-[44px] items-center gap-1 text-sm font-medium text-matrice-or-fonce hover:underline" href={row.receipt_url} target="_blank" rel="noreferrer">
+                Ouvrir le recu <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            )}
+          </article>
+        ))}
+        {props.rows.length === 0 && <div className="p-8 text-center text-matrice-encre/50">Aucune transaction sur cette periode.</div>}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[820px] text-left text-sm">
           <thead className="bg-matrice-ivoire text-xs uppercase tracking-[0.14em] text-matrice-encre/45">
             <tr>
@@ -483,7 +529,7 @@ function DateField({ label, value, onChange }: { label: string; value: string; o
       {label}
       <input
         type="date"
-        className="mt-1 h-10 rounded-xl border border-matrice-sable bg-matrice-ivoire/60 px-3 text-sm text-matrice-encre"
+        className="mt-1 h-11 rounded-xl border border-matrice-sable bg-matrice-ivoire/60 px-3 text-sm text-matrice-encre"
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
@@ -496,6 +542,15 @@ function Metric({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl bg-white p-4">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-matrice-encre/45">{label}</p>
       <p className="mt-2 text-2xl font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function SmallDatum({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-[0.12em] text-matrice-encre/42">{label}</p>
+      <p className="mobile-safe-wrap mt-1 font-medium text-matrice-encre">{value}</p>
     </div>
   );
 }

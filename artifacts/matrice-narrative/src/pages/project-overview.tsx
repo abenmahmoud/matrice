@@ -329,7 +329,7 @@ export default function ProjectOverview() {
             <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-indigo-600/6 blur-[100px]" />
           </div>
 
-          <div className="relative z-10 max-w-6xl mx-auto px-8 py-10">
+          <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
             <div className="flex flex-col lg:flex-row lg:items-start gap-8">
 
               {/* Left: project info */}
@@ -348,7 +348,7 @@ export default function ProjectOverview() {
                 </div>
 
                 {/* Title */}
-                <h1 className="text-4xl sm:text-5xl font-serif font-bold text-white tracking-tight leading-none mb-6">
+                <h1 className="mobile-safe-wrap mb-6 font-serif text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
                   {project.title}
                 </h1>
 
@@ -365,7 +365,7 @@ export default function ProjectOverview() {
 
                 {/* Spark quote */}
                 {spark && (
-                  <blockquote className="border-l-2 border-violet-500/40 pl-4 py-1">
+                  <blockquote className="border-l-2 border-violet-500/40 py-1 pl-4">
                     <p className="text-sm text-white/35 italic leading-relaxed line-clamp-3">
                       "{spark.length > 180 ? spark.slice(0, 180) + "…" : spark}"
                     </p>
@@ -374,7 +374,7 @@ export default function ProjectOverview() {
               </div>
 
               {/* Right: progress + next step */}
-              <div className="flex flex-col items-center lg:items-end gap-5 flex-shrink-0">
+              <div className="flex w-full flex-col items-center gap-5 sm:w-auto lg:items-end">
                 <ProgressArc pct={completionPct} />
 
                 <div className="text-center lg:text-right">
@@ -410,7 +410,7 @@ export default function ProjectOverview() {
         </div>
 
         {/* ── CREATIVE PIPELINE ─────────────────────── */}
-        <div className="max-w-6xl mx-auto px-8 py-12 space-y-14">
+        <div className="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
 
           {/* Completion banner when all done */}
           {completedCount === totalCount && (
@@ -441,9 +441,9 @@ export default function ProjectOverview() {
           )}
 
           {PHASES.map((phase) => (
-            <div key={phase.n}>
+            <div key={phase.n} className="min-w-0">
               {/* Phase header */}
-              <div className="flex items-center gap-4 mb-6">
+              <div className="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border flex-shrink-0",
                   `${phase.bg} ${phase.border} ${phase.accent}`

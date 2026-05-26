@@ -83,12 +83,12 @@ export default function MatrixPage() {
 
         {/* ── PAGE HEADER ────────────────────────── */}
         <div className="border-b border-white/[0.05] bg-white/[0.01]">
-          <div className="max-w-4xl mx-auto px-8 py-6 flex items-center justify-between gap-4">
+          <div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
             <div>
               <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] mb-1">Module I · Fondations</p>
               <h1 className="text-2xl font-serif font-bold text-white/90">Matrice Narrative</h1>
             </div>
-            <div className="flex gap-2.5">
+            <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row">
               <Button
                 variant="outline"
                 size="sm"
@@ -116,7 +116,7 @@ export default function MatrixPage() {
           </div>
         </div>
 
-        <div className="max-w-4xl mx-auto px-8 py-10 space-y-10">
+        <div className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
 
           {/* ── COHERENCE RESULT ───────────────────── */}
           {coherenceResult && (
@@ -160,8 +160,8 @@ export default function MatrixPage() {
           {/* ── LOGLINE HERO ─────────────────────────── */}
           <div className="relative rounded-3xl overflow-hidden border border-violet-500/20 bg-violet-600/[0.06]">
             <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-violet-600/10 blur-[60px] pointer-events-none" />
-            <div className="relative z-10 p-8 md:p-10">
-              <div className="flex items-center gap-2 mb-6">
+            <div className="relative z-10 p-5 sm:p-8 md:p-10">
+              <div className="mb-6 flex flex-wrap items-center gap-2">
                 <div className="text-[10px] font-bold text-violet-400/70 uppercase tracking-[0.2em]">Logline</div>
                 <div className="flex-1 h-px bg-violet-500/15" />
                 <div className="text-[9px] text-violet-400/30 uppercase tracking-wider">La phrase qui résume tout</div>

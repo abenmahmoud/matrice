@@ -95,7 +95,7 @@ export default function LoginPage() {
                 <label htmlFor="password" className="text-sm font-medium text-[#2A2520]">
                   Mot de passe
                 </label>
-                <a href="/forgot-password" className="text-xs text-[#8B6F2E] hover:text-[#C9A961] transition">
+                <a href="/forgot-password" className="inline-flex min-h-[44px] items-center text-xs text-[#8B6F2E] hover:text-[#C9A961] transition">
                   Mot de passe oublié ?
                 </a>
               </div>
@@ -137,7 +137,7 @@ export default function LoginPage() {
 
           <div className="mt-6 pt-6 border-t border-[#E8DFC9] text-center text-sm text-[#2A2520]/70">
             Pas encore de compte ?{" "}
-            <a href="/signup" className="text-[#8B6F2E] hover:text-[#C9A961] font-medium transition">
+            <a href="/signup" className="inline-flex min-h-[44px] items-center text-[#8B6F2E] hover:text-[#C9A961] font-medium transition">
               Créer un compte
             </a>
           </div>

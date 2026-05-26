@@ -2,6 +2,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
+@source ".";
+@source "../index.html";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -223,6 +225,29 @@
   body {
     @apply font-sans antialiased bg-background text-foreground selection:bg-primary/30;
     background-image: none;
+    min-width: 320px;
+    overflow-x: hidden;
+    text-size-adjust: 100%;
+  }
+
+  html,
+  #root {
+    min-height: 100%;
+    overflow-x: hidden;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font-size: max(16px, 1em);
+  }
+
+  button,
+  [role="button"],
+  input:not([type="checkbox"]):not([type="radio"]),
+  select {
+    min-height: 44px;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -373,5 +398,15 @@
   .matrice-work [class*="text-violet"],
   .matrice-work [class*="text-indigo"] {
     color: var(--matrice-or-fonce) !important;
+  }
+
+  @media (max-width: 767px) {
+    .matrice-work table {
+      font-size: 0.875rem;
+    }
+
+    .matrice-work .mobile-safe-wrap {
+      overflow-wrap: anywhere;
+    }
   }
 }

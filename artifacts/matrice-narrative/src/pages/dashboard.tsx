@@ -247,7 +247,7 @@ export default function Dashboard() {
     <AppLayout>
       <div className="min-h-screen bg-[#09090e]">
         <div className="border-b border-white/[0.05] bg-white/[0.01]">
-          <div className="max-w-7xl mx-auto px-8 py-8 flex items-end justify-between gap-6">
+          <div className="mx-auto flex max-w-7xl flex-col items-start gap-5 px-4 py-7 sm:flex-row sm:items-end sm:justify-between sm:px-6 lg:px-8">
             <div>
               <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.25em] mb-2">Cockpit Studio</p>
               <h1 className="text-3xl font-serif font-bold text-white/90">Matrice personnelle</h1>
@@ -256,7 +256,7 @@ export default function Dashboard() {
               </p>
             </div>
             <Link href="/projects/new">
-              <Button className="bg-primary/90 hover:bg-primary text-white rounded-xl flex-shrink-0">
+              <Button className="w-full flex-shrink-0 rounded-xl bg-primary/90 text-white hover:bg-primary sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Nouvelle vision
               </Button>
@@ -264,7 +264,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-8 py-8">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           {isLoading ? (
             <div className="flex items-center justify-center py-24">
               <Loader2 className="w-7 h-7 animate-spin text-primary/50" />
@@ -293,7 +293,7 @@ export default function Dashboard() {
             <div className="space-y-8">
               <div className="grid grid-cols-1 lg:grid-cols-[1.25fr_0.75fr] gap-5">
                 <section className="rounded-xl border border-white/[0.06] bg-white/[0.018] p-6">
-                  <div className="flex items-start justify-between gap-6">
+                  <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Focus du moment</p>
                       <h2 className="mt-3 text-2xl font-serif font-bold text-white/90">{focusProject.title}</h2>
@@ -317,7 +317,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <Link href={nextGesture.href}>
-                        <Button size="sm" className="rounded-lg bg-primary/90 text-white hover:bg-primary">
+                        <Button size="sm" className="w-full rounded-lg bg-primary/90 text-white hover:bg-primary sm:w-auto">
                           Continuer <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                         </Button>
                       </Link>
@@ -325,7 +325,7 @@ export default function Dashboard() {
                   </div>
                 </section>
 
-                <section className="grid grid-cols-2 gap-3">
+                <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <StatTile icon={Library} label="Projets" value={`${summary?.totalProjects ?? projects.length}`} detail={`${activeProjects} actif${activeProjects > 1 ? "s" : ""}`} />
                   <StatTile icon={Activity} label="Moyenne" value={`${averageProgress}%`} detail="Progression globale" tone="blue" />
                   <StatTile icon={Flame} label="A reprendre" value={`${sleepingProjects}`} detail="Priorites Studio" tone="emerald" />
@@ -335,7 +335,7 @@ export default function Dashboard() {
 
               <section className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
                 <div>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/20">Bibliothèque active</p>
                       <h2 className="text-xl font-serif font-bold text-white/80 mt-1">Univers en cours</h2>
@@ -354,13 +354,13 @@ export default function Dashboard() {
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder="Rechercher un projet, genre, ton..."
-                        className="h-10 rounded-xl border-white/[0.08] bg-white/[0.025] pl-9 text-white/75 placeholder:text-white/22"
+                        className="h-11 rounded-xl border-white/[0.08] bg-white/[0.025] pl-9 text-white/75 placeholder:text-white/22"
                       />
                     </div>
                     <select
                       value={formatFilter}
                       onChange={(event) => setFormatFilter(event.target.value)}
-                      className="h-10 rounded-xl border border-white/[0.08] bg-[#0d0d14] px-3 text-sm text-white/60 outline-none"
+                      className="h-11 rounded-xl border border-white/[0.08] bg-[#0d0d14] px-3 text-sm text-white/60 outline-none"
                     >
                       <option value="all">Tous formats</option>
                       {formats.map((formatName) => (
@@ -370,7 +370,7 @@ export default function Dashboard() {
                     <select
                       value={stageFilter}
                       onChange={(event) => setStageFilter(event.target.value)}
-                      className="h-10 rounded-xl border border-white/[0.08] bg-[#0d0d14] px-3 text-sm text-white/60 outline-none"
+                      className="h-11 rounded-xl border border-white/[0.08] bg-[#0d0d14] px-3 text-sm text-white/60 outline-none"
                     >
                       <option value="active">Actifs</option>
                       <option value="all">Tous</option>
