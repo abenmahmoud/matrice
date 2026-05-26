@@ -72,6 +72,8 @@ import WorkPassportPage from "./pages/work-passport";
 import BillingPage from "./pages/billing";
 
 import AdminPage from "./pages/admin";
+import AdminFinancePage from "./pages/admin/finance";
+import AdminAuthorsPage from "./pages/admin/authors";
 
 import AnalysePage from "./pages/analyse";
 
@@ -223,6 +225,8 @@ function Router() {
       <Route path="/projects/:id/passport" component={WorkPassportPage} />
       <Route path="/billing" component={BillingPage} />
       <Route path="/studio" component={AdminPage} />
+      <Route path="/admin/finance" component={AdminFinancePage} />
+      <Route path="/admin/authors" component={AdminAuthorsPage} />
       <Route path="/admin" component={AdminPage} />
       <Route component={NotFound} />
 

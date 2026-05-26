@@ -297,7 +297,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <MenuLink href="/profile" icon={UserRound} label="Mon profil" />
                 <MenuLink href="/locked-works" icon={ShieldCheck} label="Mes oeuvres" />
                 <MenuLink href="/dashboard" icon={LayoutDashboard} label="Tableau de bord" />
-                {authUser.role === "admin" && <MenuLink href="/admin" icon={CircleUserRound} label="Admin" />}
+                {(authUser.role === "admin" || authUser.role === "owner") && <MenuLink href="/admin" icon={CircleUserRound} label="Admin" />}
                 <div className="my-1 h-px bg-matrice-sable" />
                 <button
                   type="button"
