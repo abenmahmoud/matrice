@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useAdmin } from "@/context/AdminContext";
 import { apiFetch } from "@/lib/apiFetch";
 import { getUserToken, userAuthHeaders } from "@/lib/userAuth";
+import type { LentilleAnalysisRow } from "@/components/lentille/types";
 import {
   BookOpen, Brain, Users, Network, Globe2, Search, Activity,
   Book, Film, Tv, Presentation, Download, FileSearch, BookMarked,
@@ -87,7 +88,7 @@ const PHASES = [
       { key: "hpsa" as keyof StatusMap, name: "Scores H.P.S.A.", href: "hpsa", icon: Activity,
         desc: "7 dimensions : Humour, Pleur, Suspense, Attractivité, Profondeur, Originalité, Cohérence." },
       { key: "research" as keyof StatusMap, name: "Notes de Recherche", href: "research", icon: Search,
-        desc: "Références, tendances, risques de clichés, opportunités d'originalité." },
+        desc: "Références, risques de clichés, opportunités d'originalité." },
     ],
   },
   {
@@ -283,6 +284,16 @@ export default function ProjectOverview() {
     staleTime: 60_000,
   });
 
+  const { data: lentilleLatest } = useQuery<{ analyse: LentilleAnalysisRow | null }>({
+    queryKey: [`/api/lentille-marche/project/${id}/latest`],
+    queryFn: async () => {
+      const response = await apiFetch(`${BASE}/api/lentille-marche/project/${id}/latest`);
+      return response.json() as Promise<{ analyse: LentilleAnalysisRow | null }>;
+    },
+    enabled: !!id && !!getUserToken(),
+    staleTime: 30_000,
+  });
+
   if (projectLoading || statusLoading) {
     return (
       <AppLayout>
@@ -439,6 +450,44 @@ export default function ProjectOverview() {
               </button>
             </div>
           )}
+
+          <div className="rounded-2xl border border-amber-400/25 bg-gradient-to-br from-amber-300/[0.10] via-white/[0.035] to-rose-400/[0.08] p-5 sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200/80">
+                  <Sparkles className="h-4 w-4" />
+                  Lentille Marché 2026
+                </div>
+                <h2 className="mt-2 font-serif text-2xl font-bold text-white">Audit production</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/45">
+                  Analyse ce projet sous l'angle microdrama, IA-prod, pression spatiale, personnage déplacé et hybridation.
+                </p>
+              </div>
+
+              {lentilleLatest?.analyse ? (
+                <div className="flex flex-col gap-3 sm:items-end">
+                  <div className="flex items-center gap-3">
+                    <span className="font-serif text-4xl font-bold text-amber-200">{lentilleLatest.analyse.scoreGlobal}</span>
+                    <div className="text-xs text-white/35">
+                      <p className="uppercase tracking-[0.16em]">Score global</p>
+                      <p className="mt-1 text-white/55">{lentilleLatest.analyse.formatRecommendation}</p>
+                    </div>
+                  </div>
+                  <Link href={`/lentille-marche/${lentilleLatest.analyse.id}`}>
+                    <button className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-amber-200 px-4 text-sm font-bold text-black transition hover:bg-amber-100">
+                      Voir l'audit <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </Link>
+                </div>
+              ) : (
+                <Link href={`/lentille-marche?project_id=${id}`}>
+                  <button className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-amber-200 px-4 text-sm font-bold text-black transition hover:bg-amber-100">
+                    Lancer une analyse production <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Link>
+              )}
+            </div>
+          </div>
 
           {PHASES.map((phase) => (
             <div key={phase.n} className="min-w-0">
