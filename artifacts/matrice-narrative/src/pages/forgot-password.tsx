@@ -32,18 +32,18 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-[#09090e] px-5 text-white">
-      <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#10101a] p-7 shadow-2xl shadow-black/35">
-        <Link href={`${BASE}/signup`} className="mb-8 inline-flex items-center gap-2 text-sm text-white/50 transition hover:text-white">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-matrice-ivoire px-5 text-matrice-encre">
+      <div className="w-full max-w-lg rounded-2xl border border-matrice-sable bg-white p-7 shadow-2xl shadow-black/10">
+        <Link href={`${BASE}/signup`} className="mb-8 inline-flex items-center gap-2 text-sm text-matrice-encre/55 transition hover:text-matrice-terracotta">
           <ArrowLeft className="h-4 w-4" />
           Retour signup
         </Link>
 
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/15 text-violet-200">
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-matrice-terracotta/12 text-matrice-terracotta">
           <Sparkles className="h-5 w-5" />
         </div>
         <h1 className="mt-6 text-2xl font-semibold">Mot de passe oublie</h1>
-        <p className="mt-3 text-sm leading-6 text-white/55">
+        <p className="mt-3 text-sm leading-6 text-matrice-encre/62">
           Entre ton email. Si le compte existe, Matrice prepare un lien de reinitialisation valable 1 heure.
         </p>
 
@@ -56,14 +56,14 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           <form onSubmit={submit} className="mt-8 space-y-5">
-            <label className="block text-sm text-white/70">
+            <label className="block text-sm text-matrice-encre/72">
               Email
               <Input
                 type="email"
                 required
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="mt-2 border-white/[0.12] bg-black/25 text-white"
+                className="mt-2 border-matrice-sable bg-matrice-ivoire/60 text-matrice-encre"
                 placeholder="toi@email.com"
               />
             </label>
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
               </div>
             )}
 
-            <Button type="submit" disabled={status === "submitting"} className="h-11 w-full bg-violet-500 text-white hover:bg-violet-400">
+            <Button type="submit" disabled={status === "submitting"} className="h-11 w-full bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
               {status === "submitting" ? "Envoi..." : "Recevoir le lien"}
               <ArrowRight className="h-4 w-4" />
             </Button>

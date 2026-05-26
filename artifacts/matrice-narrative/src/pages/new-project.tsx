@@ -248,9 +248,9 @@ export default function NewProject() {
   const manuscriptWordCount = manuscriptExcerpt.trim().split(/\s+/).filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col">
+    <div className="matrice-work min-h-screen bg-matrice-ivoire text-matrice-encre flex flex-col">
       {/* Header */}
-      <header className="border-b border-white/[0.05] px-8 py-5 flex items-center justify-between sticky top-0 z-10 bg-[#0a0a0f]/80 backdrop-blur-xl">
+      <header className="border-b border-matrice-sable px-8 py-5 flex items-center justify-between sticky top-0 z-10 bg-matrice-ivoire/90 backdrop-blur-xl">
         <a href={`${import.meta.env.BASE_URL}`} className="font-serif font-bold text-sm tracking-[0.2em] text-violet-400 hover:text-violet-300 transition-colors">MATRICE</a>
         <div className="text-xs text-white/20">Nouvelle vision</div>
       </header>

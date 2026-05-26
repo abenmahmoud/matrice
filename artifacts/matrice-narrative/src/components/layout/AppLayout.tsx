@@ -147,14 +147,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) => location === href || location.startsWith(href + "/");
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="matrice-work min-h-screen bg-matrice-ivoire text-matrice-encre flex">
       {/* Sidebar */}
-      <aside className="w-60 flex-shrink-0 border-r border-border/40 bg-[#09090e]/80 backdrop-blur-xl flex flex-col h-screen sticky top-0 overflow-hidden">
+      <aside className="w-60 flex-shrink-0 border-r border-matrice-sable bg-white/85 backdrop-blur-xl flex flex-col h-screen sticky top-0 overflow-hidden shadow-[8px_0_32px_-28px_rgba(42,37,32,0.45)]">
 
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-border/30 flex-shrink-0">
+        <div className="px-5 py-5 border-b border-matrice-sable flex-shrink-0">
           <Link href="/">
-            <h1 className="text-base font-serif font-bold text-primary cursor-pointer tracking-[0.18em] uppercase">
+            <h1 className="text-base font-serif font-bold text-matrice-or-fonce cursor-pointer tracking-[0.18em] uppercase">
               MATRICE
             </h1>
           </Link>
@@ -171,8 +171,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className={cn(
                     "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all cursor-pointer",
                     active
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                      ? "bg-matrice-terracotta/12 text-matrice-terracotta font-medium"
+                      : "text-matrice-encre/62 hover:bg-matrice-sable/45 hover:text-matrice-encre"
                   )}>
                     <item.icon className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate">{item.name}</span>
@@ -187,7 +187,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="mt-5">
               {/* Project title */}
               <div className="px-5 mb-3">
-                <p className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.15em] truncate">
+                <p className="text-[10px] font-semibold text-matrice-encre/50 uppercase tracking-[0.15em] truncate">
                   {project?.title ?? "Projet…"}
                 </p>
               </div>
@@ -198,8 +198,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className={cn(
                     "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all cursor-pointer",
                     location === `/projects/${projectId}`
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                      ? "bg-matrice-terracotta/12 text-matrice-terracotta font-medium"
+                      : "text-matrice-encre/62 hover:bg-matrice-sable/45 hover:text-matrice-encre"
                   )}>
                     <LayoutGrid className="w-4 h-4 flex-shrink-0" />
                     <span>Vue d'ensemble</span>
@@ -211,7 +211,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="space-y-4 mt-4 px-2">
                 {PHASES.map((phase) => (
                   <div key={phase.label}>
-                    <p className="text-[9px] text-muted-foreground/40 uppercase tracking-[0.18em] font-semibold px-3 mb-1">
+                    <p className="text-[9px] text-matrice-encre/38 uppercase tracking-[0.18em] font-semibold px-3 mb-1">
                       {phase.label}
                     </p>
                     <div className="space-y-0.5">
@@ -224,14 +224,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             <div className={cn(
                               "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer",
                               active
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                                ? "bg-matrice-terracotta/12 text-matrice-terracotta font-medium"
+                                : "text-matrice-encre/58 hover:bg-matrice-sable/45 hover:text-matrice-encre"
                             )}>
                               <item.icon className="w-3.5 h-3.5 flex-shrink-0" />
                               <span className="flex-1 truncate">{item.name}</span>
                               {done
-                                ? <CheckCircle2 className="w-3 h-3 text-primary/60 flex-shrink-0" />
-                                : <Circle className="w-3 h-3 text-muted-foreground/20 flex-shrink-0" />
+                                ? <CheckCircle2 className="w-3 h-3 text-matrice-success/75 flex-shrink-0" />
+                                : <Circle className="w-3 h-3 text-matrice-encre/20 flex-shrink-0" />
                               }
                             </div>
                           </Link>
@@ -245,8 +245,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             <div className={cn(
                               "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer",
                               active
-                                ? "bg-primary/10 text-primary font-medium"
-                                : "text-muted-foreground hover:bg-white/[0.04] hover:text-foreground"
+                                ? "bg-matrice-terracotta/12 text-matrice-terracotta font-medium"
+                                : "text-matrice-encre/58 hover:bg-matrice-sable/45 hover:text-matrice-encre"
                             )}>
                               <item.icon className="w-3.5 h-3.5 flex-shrink-0" />
                               <span className="flex-1 truncate">{item.name}</span>
@@ -264,16 +264,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Footer progression */}
         {projectId && projectId !== "new" && status && (
-          <div className="flex-shrink-0 border-t border-border/30 px-5 py-4">
+          <div className="flex-shrink-0 border-t border-matrice-sable px-5 py-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">Progression</span>
-              <span className="text-[10px] font-bold text-primary/70">
+              <span className="text-[10px] text-matrice-encre/45 uppercase tracking-wider">Progression</span>
+              <span className="text-[10px] font-bold text-matrice-terracotta">
                 {Object.values(status).filter(Boolean).length}/{Object.values(status).length}
               </span>
             </div>
-            <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+            <div className="h-1 bg-matrice-sable rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-violet-600 to-indigo-500 rounded-full transition-all duration-700"
+                className="h-full bg-gradient-to-r from-matrice-terracotta to-matrice-or-fonce rounded-full transition-all duration-700"
                 style={{ width: `${Math.round((Object.values(status).filter(Boolean).length / Object.values(status).length) * 100)}%` }}
               />
             </div>
@@ -283,26 +283,26 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <header className="flex min-h-[64px] items-center justify-end gap-3 border-b border-border/30 bg-[#09090e]/70 px-5 backdrop-blur-xl">
+        <header className="flex min-h-[64px] items-center justify-end gap-3 border-b border-matrice-sable bg-matrice-ivoire/90 px-5 backdrop-blur-xl">
           {authUser ? (
             <details className="relative">
-              <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-sm text-white/70 transition hover:bg-white/[0.06] hover:text-white">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 rounded-xl border border-matrice-sable bg-white px-3 py-2 text-sm text-matrice-encre/70 transition hover:bg-matrice-sable/35 hover:text-matrice-encre">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-matrice-terracotta/15 text-matrice-terracotta">
                   {(authUser.displayName || authUser.email).slice(0, 1).toUpperCase()}
                 </span>
                 <span className="hidden max-w-[170px] truncate sm:block">{authUser.displayName || authUser.email}</span>
                 <ChevronDown className="h-4 w-4" />
               </summary>
-              <div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-white/[0.08] bg-[#10101a] p-1 shadow-2xl shadow-black/30">
+              <div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-matrice-sable bg-white p-1 shadow-2xl shadow-black/10">
                 <MenuLink href="/profile" icon={UserRound} label="Mon profil" />
                 <MenuLink href="/locked-works" icon={ShieldCheck} label="Mes oeuvres" />
                 <MenuLink href="/dashboard" icon={LayoutDashboard} label="Tableau de bord" />
                 {authUser.role === "admin" && <MenuLink href="/admin" icon={CircleUserRound} label="Admin" />}
-                <div className="my-1 h-px bg-white/[0.08]" />
+                <div className="my-1 h-px bg-matrice-sable" />
                 <button
                   type="button"
                   onClick={() => void logout()}
-                  className="flex min-h-[42px] w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-white/55 transition hover:bg-white/[0.05] hover:text-white"
+                  className="flex min-h-[42px] w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-matrice-encre/62 transition hover:bg-matrice-sable/40 hover:text-matrice-encre"
                 >
                   <LogOut className="h-4 w-4" />
                   Déconnexion
@@ -311,10 +311,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </details>
           ) : (
             <div className="flex items-center gap-3">
-              <Link href="/login" className="flex min-h-[44px] items-center text-sm text-white/55 transition hover:text-primary">
+              <Link href="/login" className="flex min-h-[44px] items-center text-sm text-matrice-encre/62 transition hover:text-matrice-terracotta">
                 Se connecter
               </Link>
-              <Link href="/signup" className="flex min-h-[44px] items-center rounded-lg bg-primary px-4 text-sm font-medium text-white transition hover:bg-primary/90">
+              <Link href="/signup" className="flex min-h-[44px] items-center rounded-lg bg-matrice-terracotta px-4 text-sm font-medium text-white transition hover:bg-matrice-terracotta/90">
                 Créer un compte
               </Link>
             </div>
@@ -331,7 +331,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 function MenuLink({ href, icon: Icon, label }: { href: string; icon: typeof UserRound; label: string }) {
   return (
     <Link href={href}>
-      <div className="flex min-h-[42px] cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/55 transition hover:bg-white/[0.05] hover:text-white">
+      <div className="flex min-h-[42px] cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-matrice-encre/62 transition hover:bg-matrice-sable/40 hover:text-matrice-encre">
         <Icon className="h-4 w-4" />
         {label}
       </div>

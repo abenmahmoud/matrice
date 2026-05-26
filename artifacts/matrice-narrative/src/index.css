@@ -6,6 +6,20 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-essuf-noir: #0B0B0D;
+  --color-essuf-or: #C9A961;
+  --color-essuf-blanc-voile: #EDEBE6;
+
+  --color-matrice-ivoire: #F5F1E8;
+  --color-matrice-sable: #E8DFC9;
+  --color-matrice-encre: #2A2520;
+  --color-matrice-or-fonce: #8B6F2E;
+  --color-matrice-terracotta: #C97B5C;
+  --color-matrice-bleu-nuit: #2B3A4A;
+  --color-matrice-success: #6B8E5A;
+  --color-matrice-warning: #D4A04C;
+  --color-matrice-error: #B85450;
+
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-border: hsl(var(--border));
@@ -69,6 +83,24 @@
 
 /* LIGHT MODE */
 :root {
+  /* Vitrine */
+  --essuf-noir: #0B0B0D;
+  --essuf-or: #C9A961;
+  --essuf-blanc-voile: #EDEBE6;
+
+  /* Travail */
+  --matrice-ivoire: #F5F1E8;
+  --matrice-sable: #E8DFC9;
+  --matrice-encre: #2A2520;
+  --matrice-or-fonce: #8B6F2E;
+  --matrice-terracotta: #C97B5C;
+  --matrice-bleu-nuit: #2B3A4A;
+
+  /* Etats */
+  --matrice-success: #6B8E5A;
+  --matrice-warning: #D4A04C;
+  --matrice-error: #B85450;
+
   --button-outline: rgba(0,0,0, .10);
   --badge-outline: rgba(0,0,0, .05);
 
@@ -77,54 +109,54 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 260 20% 98%;
-  --foreground: 260 40% 10%;
-  --border: 260 20% 88%;
+  --background: 41 39% 94%;
+  --foreground: 32 11% 15%;
+  --border: 42 34% 85%;
   --card: 0 0% 100%;
-  --card-foreground: 260 40% 10%;
-  --card-border: 260 20% 92%;
-  --sidebar: 260 30% 96%;
-  --sidebar-foreground: 260 40% 15%;
-  --sidebar-border: 260 20% 90%;
-  --sidebar-primary: 270 80% 60%;
+  --card-foreground: 32 11% 15%;
+  --card-border: 42 34% 85%;
+  --sidebar: 41 39% 94%;
+  --sidebar-foreground: 32 11% 15%;
+  --sidebar-border: 42 34% 85%;
+  --sidebar-primary: 18 51% 58%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 260 30% 90%;
-  --sidebar-accent-foreground: 260 40% 10%;
-  --sidebar-ring: 270 80% 60%;
+  --sidebar-accent: 42 34% 85%;
+  --sidebar-accent-foreground: 32 11% 15%;
+  --sidebar-ring: 41 47% 58%;
   --popover: 0 0% 100%;
-  --popover-foreground: 260 40% 10%;
-  --popover-border: 260 20% 90%;
-  --primary: 270 80% 60%;
+  --popover-foreground: 32 11% 15%;
+  --popover-border: 42 34% 85%;
+  --primary: 18 51% 58%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 260 20% 90%;
-  --secondary-foreground: 260 40% 20%;
-  --muted: 260 20% 92%;
-  --muted-foreground: 260 20% 40%;
-  --accent: 260 30% 94%;
-  --accent-foreground: 260 40% 15%;
-  --destructive: 0 84% 60%;
+  --secondary: 42 34% 85%;
+  --secondary-foreground: 32 11% 15%;
+  --muted: 42 34% 88%;
+  --muted-foreground: 32 10% 42%;
+  --accent: 41 39% 92%;
+  --accent-foreground: 32 11% 15%;
+  --destructive: 2 42% 52%;
   --destructive-foreground: 0 0% 100%;
-  --input: 260 20% 88%;
-  --ring: 270 80% 60%;
-  --chart-1: 270 80% 60%;
-  --chart-2: 240 70% 50%;
-  --chart-3: 200 80% 40%;
-  --chart-4: 310 70% 50%;
-  --chart-5: 340 80% 60%;
+  --input: 42 34% 85%;
+  --ring: 41 47% 58%;
+  --chart-1: 18 51% 58%;
+  --chart-2: 93 23% 45%;
+  --chart-3: 212 26% 23%;
+  --chart-4: 38 62% 56%;
+  --chart-5: 2 42% 52%;
 
-  --app-font-sans: 'Inter', sans-serif;
-  --app-font-serif: 'Playfair Display', serif;
+  --app-font-sans: 'Manrope', 'Inter', -apple-system, system-ui, sans-serif;
+  --app-font-serif: 'Cormorant Garamond', Georgia, serif;
   --app-font-mono: Menlo, monospace;
   --radius: 0.75rem;
   
-  --shadow-2xs: 0px 2px 0px 0px hsl(270 80% 60% / 0.05);
-  --shadow-xs: 0px 2px 0px 0px hsl(270 80% 60% / 0.10);
-  --shadow-sm: 0px 2px 0px 0px hsl(270 80% 60% / 0.15), 0px 1px 2px -1px hsl(270 80% 60% / 0.10);
-  --shadow: 0px 2px 0px 0px hsl(270 80% 60% / 0.20), 0px 1px 2px -1px hsl(270 80% 60% / 0.15);
-  --shadow-md: 0px 2px 0px 0px hsl(270 80% 60% / 0.25), 0px 2px 4px -1px hsl(270 80% 60% / 0.20);
-  --shadow-lg: 0px 2px 0px 0px hsl(270 80% 60% / 0.30), 0px 4px 6px -1px hsl(270 80% 60% / 0.25);
-  --shadow-xl: 0px 2px 0px 0px hsl(270 80% 60% / 0.35), 0px 8px 10px -1px hsl(270 80% 60% / 0.30);
-  --shadow-2xl: 0px 2px 0px 0px hsl(270 80% 60% / 0.40);
+  --shadow-2xs: 0px 1px 0px 0px hsl(32 11% 15% / 0.03);
+  --shadow-xs: 0px 1px 2px 0px hsl(32 11% 15% / 0.06);
+  --shadow-sm: 0px 1px 2px 0px hsl(32 11% 15% / 0.08), 0px 1px 3px -1px hsl(32 11% 15% / 0.08);
+  --shadow: 0px 1px 2px 0px hsl(32 11% 15% / 0.08), 0px 4px 12px -8px hsl(32 11% 15% / 0.18);
+  --shadow-md: 0px 4px 18px -12px hsl(32 11% 15% / 0.24);
+  --shadow-lg: 0px 8px 28px -16px hsl(32 11% 15% / 0.28);
+  --shadow-xl: 0px 16px 42px -24px hsl(32 11% 15% / 0.32);
+  --shadow-2xl: 0px 24px 64px -32px hsl(32 11% 15% / 0.35);
   
   --tracking-normal: 0em;
   --spacing: 0.25rem;
@@ -190,7 +222,7 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground selection:bg-primary/30;
-    background-image: radial-gradient(circle at 50% -20%, hsl(270 80% 60% / 0.05), transparent 60%);
+    background-image: none;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -266,5 +298,80 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
+  }
+
+  .matrice-work {
+    background: var(--matrice-ivoire);
+    color: var(--matrice-encre);
+  }
+
+  .matrice-work [class~="bg-[#09090e]"],
+  .matrice-work [class~="bg-[#0a0a0f]"],
+  .matrice-work [class~="bg-[#0d0b14]"],
+  .matrice-work [class~="bg-[#0d0d14]"],
+  .matrice-work [class~="bg-[#0d0d15]"],
+  .matrice-work [class~="bg-[#10101a]"],
+  .matrice-work [class~="bg-[#12101a]"],
+  .matrice-work [class~="bg-black/20"],
+  .matrice-work [class~="bg-black/10"],
+  .matrice-work [class~="bg-white/[0.018]"],
+  .matrice-work [class~="bg-white/[0.02]"],
+  .matrice-work [class~="bg-white/[0.03]"],
+  .matrice-work [class~="bg-white/[0.04]"],
+  .matrice-work [class~="bg-white/[0.05]"],
+  .matrice-work [class~="bg-white/5"] {
+    background-color: #ffffff !important;
+  }
+
+  .matrice-work [class~="bg-white/[0.06]"],
+  .matrice-work [class~="bg-white/[0.08]"],
+  .matrice-work [class~="bg-white/[0.10]"],
+  .matrice-work [class~="bg-white/10"] {
+    background-color: color-mix(in srgb, var(--matrice-sable) 48%, transparent) !important;
+  }
+
+  .matrice-work [class~="text-white"],
+  .matrice-work [class~="text-white/90"],
+  .matrice-work [class~="text-white/88"],
+  .matrice-work [class~="text-white/82"],
+  .matrice-work [class~="text-white/80"],
+  .matrice-work [class~="text-white/72"],
+  .matrice-work [class~="text-white/70"],
+  .matrice-work [class~="text-white/65"],
+  .matrice-work [class~="text-white/60"],
+  .matrice-work [class~="text-white/58"],
+  .matrice-work [class~="text-white/55"],
+  .matrice-work [class~="text-white/50"],
+  .matrice-work [class~="text-white/45"],
+  .matrice-work [class~="text-white/40"],
+  .matrice-work [class~="text-white/38"],
+  .matrice-work [class~="text-white/36"],
+  .matrice-work [class~="text-white/35"],
+  .matrice-work [class~="text-white/34"],
+  .matrice-work [class~="text-white/30"],
+  .matrice-work [class~="text-white/28"],
+  .matrice-work [class~="text-white/25"],
+  .matrice-work [class~="text-white/24"],
+  .matrice-work [class~="text-white/20"],
+  .matrice-work [class~="text-white/15"] {
+    color: color-mix(in srgb, var(--matrice-encre) 78%, transparent) !important;
+  }
+
+  .matrice-work [class*="border-white/"],
+  .matrice-work [class*="border-white["] {
+    border-color: var(--matrice-sable) !important;
+  }
+
+  .matrice-work [class*="bg-violet"],
+  .matrice-work [class*="from-violet"],
+  .matrice-work [class*="to-indigo"] {
+    --tw-gradient-from: var(--matrice-terracotta) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: var(--matrice-or-fonce) var(--tw-gradient-to-position) !important;
+    background-color: color-mix(in srgb, var(--matrice-terracotta) 14%, transparent) !important;
+  }
+
+  .matrice-work [class*="text-violet"],
+  .matrice-work [class*="text-indigo"] {
+    color: var(--matrice-or-fonce) !important;
   }
 }

@@ -62,15 +62,15 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#09090e] text-white">
+    <div className="min-h-[100dvh] bg-matrice-ivoire text-matrice-encre">
       <header className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
         <Link href={`${BASE}/`} className="flex items-center gap-3 text-sm font-semibold">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/15 text-violet-200">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-matrice-terracotta/12 text-matrice-terracotta">
             <Sparkles className="h-4 w-4" />
           </span>
           Matrice Narrative
         </Link>
-        <Link href={`${BASE}/pricing`} className="hidden items-center gap-2 text-sm text-white/55 transition hover:text-white sm:flex">
+        <Link href={`${BASE}/pricing`} className="hidden items-center gap-2 text-sm text-matrice-encre/62 transition hover:text-matrice-terracotta sm:flex">
           Voir les tarifs
           <ArrowRight className="h-4 w-4" />
         </Link>
@@ -78,20 +78,20 @@ export default function SignupPage() {
 
       <main className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
         <section>
-          <Link href={`${BASE}/`} className="inline-flex items-center gap-2 text-sm text-white/50 transition hover:text-white">
+          <Link href={`${BASE}/`} className="inline-flex items-center gap-2 text-sm text-matrice-encre/52 transition hover:text-matrice-encre">
             <ArrowLeft className="h-4 w-4" />
             Retour
           </Link>
-          <p className="mt-10 text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/75">Creation de compte</p>
-          <h1 className="mt-5 max-w-xl text-4xl font-semibold tracking-normal text-white sm:text-5xl">
+          <p className="mt-10 text-sm font-semibold uppercase tracking-[0.2em] text-matrice-or-fonce">Creation de compte</p>
+          <h1 className="mt-5 max-w-xl text-4xl font-semibold tracking-normal text-matrice-encre sm:text-5xl">
             Active ton espace createur avec une verification email.
           </h1>
-          <p className="mt-6 max-w-lg text-base leading-8 text-white/58">
+          <p className="mt-6 max-w-lg text-base leading-8 text-matrice-encre/62">
             Le compte gratuit donne acces aux premieres fondations. Les modules avances restent verrouilles tant que
             l'abonnement n'est pas active.
           </p>
 
-          <div className="mt-8 grid gap-3 text-sm text-white/65">
+          <div className="mt-8 grid gap-3 text-sm text-matrice-encre/70">
             {["Email confirme avant connexion", "Quotas Free controles cote serveur", "Studio et espace avance separes"].map((item) => (
               <div key={item} className="flex items-center gap-3">
                 <CheckCircle2 className="h-4 w-4 text-emerald-300" />
@@ -101,7 +101,7 @@ export default function SignupPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-white/[0.08] bg-[#10101a] p-5 shadow-2xl shadow-black/35 sm:p-7">
+        <section className="rounded-2xl border border-matrice-sable bg-white p-5 shadow-2xl shadow-black/10 sm:p-7">
           {state.status === "success" ? (
             <div className="flex min-h-[420px] flex-col justify-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-400/12 text-emerald-300">
@@ -109,14 +109,14 @@ export default function SignupPage() {
               </div>
               <h2 className="mt-6 text-2xl font-semibold">Confirme ton email</h2>
               <p className="mt-4 text-sm leading-7 text-white/58">
-                Un lien de verification a ete prepare pour <span className="text-white">{state.email}</span>.
-                Statut : <span className="text-violet-200">{state.delivery}</span>.
+                Un lien de verification a ete prepare pour <span className="text-matrice-encre">{state.email}</span>.
+                Statut : <span className="text-matrice-or-fonce">{state.delivery}</span>.
               </p>
-              <p className="mt-4 text-sm leading-7 text-white/45">
+              <p className="mt-4 text-sm leading-7 text-matrice-encre/50">
                 Tant que le domaine Resend n'est pas verifie, l'envoi reel dependra de l'expediteur configure sur le VPS.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button onClick={resend} className="bg-white text-black hover:bg-white/90">
+                <Button onClick={resend} className="bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
                   Renvoyer le lien
                 </Button>
                 <Button asChild variant="secondary">
@@ -128,29 +128,29 @@ export default function SignupPage() {
             <form onSubmit={submit} className="space-y-5">
               <div>
                 <h2 className="text-2xl font-semibold">Commencer</h2>
-                <p className="mt-2 text-sm text-white/50">Cree un compte Free, puis confirme ton email.</p>
+                <p className="mt-2 text-sm text-matrice-encre/55">Cree un compte Free, puis confirme ton email.</p>
               </div>
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-matrice-encre/72">
                 Nom
                 <Input
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
-                  className="mt-2 border-white/[0.12] bg-black/25 text-white"
+                  className="mt-2 border-matrice-sable bg-matrice-ivoire/60 text-matrice-encre"
                   placeholder="Ton nom ou pseudo"
                 />
               </label>
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-matrice-encre/72">
                 Email
                 <Input
                   type="email"
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  className="mt-2 border-white/[0.12] bg-black/25 text-white"
+                  className="mt-2 border-matrice-sable bg-matrice-ivoire/60 text-matrice-encre"
                   placeholder="toi@email.com"
                 />
               </label>
-              <label className="block text-sm text-white/70">
+              <label className="block text-sm text-matrice-encre/72">
                 Mot de passe
                 <Input
                   type="password"
@@ -158,11 +158,11 @@ export default function SignupPage() {
                   minLength={8}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="mt-2 border-white/[0.12] bg-black/25 text-white"
+                  className="mt-2 border-matrice-sable bg-matrice-ivoire/60 text-matrice-encre"
                   placeholder="8 caracteres minimum"
                 />
               </label>
-              <Link href={`${BASE}/forgot-password`} className="block text-right text-sm text-white/45 transition hover:text-white">
+              <Link href={`${BASE}/forgot-password`} className="block text-right text-sm text-matrice-encre/50 transition hover:text-matrice-terracotta">
                 Mot de passe oublie ?
               </Link>
 
@@ -172,12 +172,12 @@ export default function SignupPage() {
                 </div>
               )}
 
-              <Button type="submit" disabled={state.status === "submitting"} className="h-11 w-full bg-violet-500 text-white hover:bg-violet-400">
+              <Button type="submit" disabled={state.status === "submitting"} className="h-11 w-full bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
                 {state.status === "submitting" ? "Creation..." : "Creer mon compte"}
                 <ArrowRight className="h-4 w-4" />
               </Button>
 
-              <div className="flex gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] p-4 text-sm leading-6 text-white/52">
+              <div className="flex gap-3 rounded-xl border border-matrice-sable bg-matrice-ivoire/60 p-4 text-sm leading-6 text-matrice-encre/58">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
                 Aucun paiement maintenant. Stripe arrive en Phase 2C.
               </div>
