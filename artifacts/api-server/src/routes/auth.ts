@@ -115,6 +115,90 @@ router.get("/auth/me", (req, res) => {
   res.json({ user });
 });
 
+router.patch("/auth/me", async (req, res) => {
+  try {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: "AUTH_REQUIRED" });
+      return;
+    }
+
+    const { displayName } = req.body as { displayName?: string };
+    if (typeof displayName !== "string" || displayName.trim().length < 1 || displayName.trim().length > 80) {
+      res.status(400).json({ error: "DISPLAY_NAME_INVALID" });
+      return;
+    }
+
+    const [user] = await db
+      .update(appUsersTable)
+      .set({ displayName: displayName.trim(), updatedAt: new Date() })
+      .where(eq(appUsersTable.id, authUser.id))
+      .returning();
+
+    res.json({ user: publicUser(user), token: createUserToken(user) });
+  } catch (err) {
+    req.log.error({ err }, "Failed to update user profile");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/auth/change-password", async (req, res) => {
+  try {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: "AUTH_REQUIRED" });
+      return;
+    }
+
+    const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
+    if (!currentPassword || !newPassword || newPassword.length < 8) {
+      res.status(400).json({ error: "PASSWORD_REQUIRED" });
+      return;
+    }
+
+    const [user] = await db.select().from(appUsersTable).where(eq(appUsersTable.id, authUser.id)).limit(1);
+    if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
+      res.status(401).json({ error: "INVALID_CURRENT_PASSWORD" });
+      return;
+    }
+
+    const [updatedUser] = await db
+      .update(appUsersTable)
+      .set({ passwordHash: hashPassword(newPassword), updatedAt: new Date() })
+      .where(eq(appUsersTable.id, authUser.id))
+      .returning();
+
+    res.json({ user: publicUser(updatedUser), token: createUserToken(updatedUser) });
+  } catch (err) {
+    req.log.error({ err }, "Failed to change password");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/auth/logout", (_req, res) => {
+  res.json({ ok: true });
+});
+
+router.delete("/auth/me", async (req, res) => {
+  try {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: "AUTH_REQUIRED" });
+      return;
+    }
+
+    await db
+      .update(appUsersTable)
+      .set({ status: "deleted", updatedAt: new Date() })
+      .where(eq(appUsersTable.id, authUser.id));
+
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to delete user account");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.post("/auth/onboarding/complete", async (req, res) => {
   try {
     const authUser = getAuthUser(req);

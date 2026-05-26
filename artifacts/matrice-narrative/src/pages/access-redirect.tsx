@@ -52,6 +52,16 @@ export default function AccessRedirectPage() {
             <Link href={`${BASE}/`}>Accueil</Link>
           </Button>
         </div>
+        {location === "/auth-required" && (
+          <Link
+            href={`${BASE}/login`}
+            className="mt-4 inline-flex items-center gap-2 text-sm text-white/70 transition hover:text-[#C9A961]"
+          >
+            J&apos;ai déjà un compte
+            <ArrowRight className="h-4 w-4" />
+            Se connecter
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -24,6 +24,8 @@ import Home from "./pages/home";
 import PricingPage from "./pages/pricing";
 
 import SignupPage from "./pages/signup";
+import LoginPage from "./pages/login";
+import ProfilePage from "./pages/profile";
 
 import VerifyEmailPage from "./pages/verify-email";
 
@@ -132,6 +134,10 @@ function Router() {
       <Route path="/pricing" component={PricingPage} />
 
       <Route path="/signup" component={SignupPage} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/connexion" component={LoginPage} />
+      <Route path="/profile" component={ProfilePage} />
+      <Route path="/compte" component={ProfilePage} />
 
       <Route path="/verify-email" component={VerifyEmailPage} />
 
