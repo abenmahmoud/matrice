@@ -4,6 +4,9 @@ import { eq, sql } from "drizzle-orm";
 import { createAuthActionToken, createUserToken, getAuthUser, hashPassword, verifyPassword } from "../lib/auth.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../services/emailService.js";
 import { normalizeInviteCode, validateInviteCodeState } from "../services/betaInviteService.js";
+import { welcomeEmail } from "../services/emailTemplates.js";
+import { notify } from "../services/notificationService.js";
+import { ensureWelcomeStep } from "../services/onboardingService.js";
 
 const router: IRouter = Router();
 const VERIFICATION_RESEND_COOLDOWN_MS = 1000 * 60;
@@ -105,6 +108,17 @@ router.post("/auth/signup", async (req, res) => {
         userAgent: req.get("user-agent") ?? null,
       });
     }
+
+    await ensureWelcomeStep(user.id);
+    void notify({
+      userId: user.id,
+      type: betaCode ? "beta_welcome" : "welcome",
+      title: betaCode ? "Bienvenue dans la beta Matrice" : "Bienvenue sur Matrice",
+      body: betaCode ? "Ton acces beta Premium est active. On commence par ton premier projet." : "On commence par ton premier projet.",
+      actionUrl: "/onboarding",
+      actionLabel: "Demarrer",
+      email: welcomeEmail({ displayName: user.displayName || user.email, betaExpiresAt }),
+    }).catch((err) => req.log.warn({ err }, "Welcome notification failed"));
 
     const emailDelivery = await sendUserVerificationEmail(user);
     if (emailDelivery.status === "failed") {

@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useGetDashboardSummary, useListProjects, type Project } from "@workspace/api-client-react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -26,10 +27,14 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { NextActionBanner, type OnboardingProgress } from "@/components/onboarding/OnboardingBits";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { apiFetch } from "@/lib/apiFetch";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 const FORMAT_CONFIG: Record<string, { icon: React.ElementType; color: string; border: string; bg: string; glow: string }> = {
   Roman: { icon: BookOpen, color: "text-violet-300", border: "border-violet-500/25", bg: "bg-violet-600/10", glow: "rgba(139,92,246,0.08)" },
@@ -208,6 +213,10 @@ export default function Dashboard() {
   const [stageFilter, setStageFilter] = useState("active");
   const { data: projects = [], isLoading } = useListProjects();
   const { data: summary } = useGetDashboardSummary();
+  const { data: onboarding } = useQuery({
+    queryKey: ["onboarding", "progress"],
+    queryFn: async () => (await apiFetch(`${BASE}/api/onboarding/progress`)).json() as Promise<OnboardingProgress>,
+  });
   const formats = useMemo(
     () => Array.from(new Set(projects.map((project) => project.targetFormat).filter(Boolean))),
     [projects],
@@ -265,6 +274,9 @@ export default function Dashboard() {
         </div>
 
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <NextActionBanner progress={onboarding} />
+          </div>
           {isLoading ? (
             <div className="flex items-center justify-center py-24">
               <Loader2 className="w-7 h-7 animate-spin text-primary/50" />

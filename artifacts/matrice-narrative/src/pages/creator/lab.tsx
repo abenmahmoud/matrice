@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { Activity, Eye, FlaskConical, Server, Sparkles } from "lucide-react";
+import { Activity, Eye, FlaskConical, Mic2, Server, Sparkles } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AdminButton } from "@/components/admin/AdminBits";
 import { apiFetch } from "@/lib/apiFetch";
@@ -40,6 +40,7 @@ export default function CreatorLabPage() {
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/creator-lab/system"><AdminButton variant="secondary"><Server className="h-4 w-4" /> Systeme</AdminButton></Link>
             <Link href="/creator-lab/preview"><AdminButton variant="secondary"><Eye className="h-4 w-4" /> Preview release</AdminButton></Link>
+            <Link href="/creator-lab/voice"><AdminButton variant="secondary"><Mic2 className="h-4 w-4" /> Voice Lab</AdminButton></Link>
           </div>
         </header>
 

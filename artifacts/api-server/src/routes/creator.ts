@@ -18,6 +18,7 @@ router.get("/creator/lab/features", requireCreatorMode, (_req, res) => {
   res.json({
     features: [
       { id: "audiobook_voice_clone", name: "Livre audio voix auteur", status: "experimental", description: "Generation livre audio narre par voix auteur via TTS local.", readiness: 0.3 },
+      { id: "voice_lab_free", name: "Voice Lab gratuit", status: "experimental", description: "Preparation consentement et moteurs open source MIT/Apache sans generation couteuse.", readiness: 0.45 },
       { id: "voice_off_short_video", name: "Voix-off formats courts multilangues", status: "planned", description: "Generation de voix off pour hooks video et pitchs sociaux.", readiness: 0.1 },
       { id: "lentille_video_ai", name: "Lentille Video IA", status: "planned", description: "Analyse pre-production film/serie avec vision multimodale.", readiness: 0.0 },
       { id: "collaborative_writing", name: "Ecriture collaborative temps reel", status: "concept", description: "Edition multi-utilisateurs sur une meme oeuvre.", readiness: 0.0 },

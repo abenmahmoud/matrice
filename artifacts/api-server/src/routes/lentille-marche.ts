@@ -4,7 +4,10 @@ import { and, count, desc, eq, gte } from "drizzle-orm";
 import { db, lentilleAnalysesTable, projectsTable } from "@workspace/db";
 import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
 import { DeepSeekNotConfiguredError } from "../services/deepseekClient.js";
+import { lentilleDoneEmail } from "../services/emailTemplates.js";
 import { analyseLentille, type LentilleFormatTarget, type LentilleInput } from "../services/lentilleService.js";
+import { notify } from "../services/notificationService.js";
+import { markStepCompleted } from "../services/onboardingService.js";
 
 const router: IRouter = Router();
 
@@ -177,6 +180,25 @@ router.post("/lentille-marche/analyse", async (req, res) => {
       tokensUsed: result.meta.tokens,
       costEur: result.meta.cost_eur.toFixed(6),
     });
+
+    await markStepCompleted(user.id, "first_lentille", { analysis_id: id });
+    const projectTitle = validation.input.project_id
+      ? (await db.select({ title: projectsTable.title }).from(projectsTable).where(eq(projectsTable.id, validation.input.project_id)).limit(1))[0]?.title ?? "Projet"
+      : "Projet";
+    void notify({
+      userId: user.id,
+      type: "lentille_done",
+      title: "Lentille Marche terminee",
+      body: `Score global : ${result.scores.global}/100 pour "${projectTitle}".`,
+      actionUrl: `/lentille-marche/${id}`,
+      actionLabel: "Voir l'analyse",
+      email: lentilleDoneEmail({
+        displayName: user.displayName || user.email,
+        projectTitle,
+        scoreGlobal: result.scores.global,
+        analysisUrl: `${process.env["MATRICE_BASE_URL"] ?? "https://matrice.essuf.fr"}/lentille-marche/${id}`,
+      }),
+    }).catch((err) => req.log.warn({ err }, "Lentille notification failed"));
 
     res.status(201).json({ id, result });
   } catch (err) {
