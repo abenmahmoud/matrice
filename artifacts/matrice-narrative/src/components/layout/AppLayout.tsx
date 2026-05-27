@@ -4,7 +4,7 @@ import {
   Home, LayoutDashboard, Plus, BookOpen, Brain, Users, Network, Globe2,
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
-  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck,
+  Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck, FileSignature,
   CircleUserRound, ChevronDown, LogOut, UserRound, type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -72,6 +72,7 @@ const PHASES = [
     ],
     extra: [
       { name: "Passeport d'Œuvre", href: "passport", icon: BookMarked },
+      { name: "Mandat editorial", href: "mandate", icon: FileSignature },
       { name: "Note d'Intention", href: "note-intention", icon: ScrollText },
       { name: "Exports", href: "exports", icon: Download },
     ],

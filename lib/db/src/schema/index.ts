@@ -14,3 +14,4 @@ export * from "./subscriptions";
 export * from "./invoices";
 export * from "./exportJobs";
 export * from "./lentilleMarche";
+export * from "./delegationMandate";
