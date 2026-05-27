@@ -4,11 +4,14 @@ import path from "node:path";
 import { Router, type IRouter, type NextFunction, type Request, type Response } from "express";
 import { and, desc, eq, isNotNull, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { db, exportJobsTable, workPassportsTable } from "@workspace/db";
+import { appUsersTable, db, exportJobsTable, workPassportsTable } from "@workspace/db";
 import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
+import { exportReadyEmail } from "../services/emailTemplates.js";
 import { generateDocxManuscript } from "../services/exports/docxGenerator.js";
 import { generateEpub } from "../services/exports/epubGenerator.js";
 import { generateKdpPdf } from "../services/exports/kdpPdfGenerator.js";
+import { notify } from "../services/notificationService.js";
+import { markStepCompleted } from "../services/onboardingService.js";
 
 const router: IRouter = Router();
 const EXPORTS_DIR = process.env["EXPORTS_DIR"] || "/opt/matrice/exports";
@@ -232,16 +235,34 @@ async function processExportJob(jobId: string): Promise<void> {
 
   await fs.mkdir(outputDir, { recursive: true });
   await fs.writeFile(outputPath, buffer);
+  const downloadToken = crypto.randomBytes(32).toString("base64url");
 
   await updateJob(jobId, {
     status: "completed",
     progressPct: 100,
     outputFilePath: outputPath,
     outputFileSizeBytes: buffer.length,
-    outputDownloadToken: crypto.randomBytes(32).toString("base64url"),
+    outputDownloadToken: downloadToken,
     outputExpiresAt: new Date(Date.now() + TOKEN_TTL_MS),
     completedAt: new Date(),
   });
+
+  await markStepCompleted(job.userId, "first_export", { format: job.format, job_id: job.id });
+  const [user] = await db.select().from(appUsersTable).where(eq(appUsersTable.id, job.userId)).limit(1);
+  const [passport] = await db.select({ officialTitle: workPassportsTable.officialTitle }).from(workPassportsTable).where(eq(workPassportsTable.id, job.workPassportId)).limit(1);
+  const title = passport?.officialTitle ?? "Oeuvre";
+  const downloadUrl = `${process.env["MATRICE_BASE_URL"] ?? "https://matrice.essuf.fr"}/api/exports/download/${downloadToken}`;
+  if (user) {
+    await notify({
+      userId: job.userId,
+      type: "export_ready",
+      title: "Export pret",
+      body: `Ton export ${job.format} de "${title}" est disponible.`,
+      actionUrl: `/api/exports/download/${downloadToken}`,
+      actionLabel: "Telecharger",
+      email: exportReadyEmail({ displayName: user.displayName || user.email, projectTitle: title, format: job.format, downloadUrl }),
+    });
+  }
 }
 
 async function updateJob(jobId: string, patch: Partial<typeof exportJobsTable.$inferInsert>): Promise<void> {

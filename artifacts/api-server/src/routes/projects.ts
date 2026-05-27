@@ -12,6 +12,7 @@ import { getSkillsContextString } from "../services/skillsInjectionService.js";
 import { eq, and, asc } from "drizzle-orm";
 import { getAuthUser } from "../lib/auth.js";
 import { getProductAccess } from "../lib/productAccess.js";
+import { markStepCompleted } from "../services/onboardingService.js";
 import {
   generateNarrativeMatrix, generateEmotionalCore, generateEmotionalPath,
   generateCharacters, generateRelationships, generateWorldAndTimeline,
@@ -196,6 +197,7 @@ router.post("/projects", async (req, res) => {
       await db.update(appUsersTable)
         .set({ projectsCreated: user.projectsCreated + 1, updatedAt: new Date() })
         .where(eq(appUsersTable.id, user.id));
+      await markStepCompleted(user.id, "first_project", { project_id: project.id });
     }
     res.status(201).json(project);
   } catch (err) {

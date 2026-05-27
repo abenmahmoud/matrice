@@ -5,13 +5,14 @@ import {
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
   Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck, FileSignature,
-  CircleUserRound, ChevronDown, LogOut, UserRound, FlaskConical, type LucideIcon
+  CircleUserRound, ChevronDown, LogOut, UserRound, FlaskConical, Bell, type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
 import { apiFetch } from "@/lib/apiFetch";
 import { clearUserToken, getUserToken } from "@/lib/userAuth";
 import { MobileNav, type MobileNavSection } from "@/components/layout/MobileNav";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -145,6 +146,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Memoire Studio", href: "/memory", icon: BrainCircuit },
     { name: "Modules experimentaux", href: "/experimental-modules", icon: Sparkles },
     { name: "Lentille Marché 2026", href: "/lentille-marche", icon: Sparkles },
+    { name: "Onboarding", href: "/onboarding", icon: CheckCircle2 },
+    { name: "Support", href: "/support", icon: MessageCircle },
     ...(authUser?.role === "owner" && authUser.creatorModeEnabled
       ? [{ name: "Creator Lab", href: "/creator-lab", icon: FlaskConical }]
       : []),
@@ -341,7 +344,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </Link>
           </div>
           {authUser ? (
-            <details className="relative">
+            <div className="ml-auto flex items-center gap-2">
+              <NotificationBell />
+              <details className="relative">
               <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 rounded-xl border border-matrice-sable bg-white px-3 py-2 text-sm text-matrice-encre/75 transition hover:bg-matrice-sable/35 hover:text-matrice-encre">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-matrice-terracotta/15 text-matrice-terracotta">
                   {(authUser.displayName || authUser.email).slice(0, 1).toUpperCase()}
@@ -351,8 +356,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </summary>
               <div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-matrice-sable bg-white p-1 shadow-2xl shadow-black/10">
                 <MenuLink href="/profile" icon={UserRound} label="Mon profil" />
+                <MenuLink href="/profile/notifications" icon={Bell} label="Notifications" />
                 <MenuLink href="/locked-works" icon={ShieldCheck} label="Mes oeuvres" />
                 <MenuLink href="/dashboard" icon={LayoutDashboard} label="Tableau de bord" />
+                <MenuLink href="/support" icon={MessageCircle} label="Support" />
                 {(authUser.role === "admin" || authUser.role === "owner") && <MenuLink href="/admin" icon={CircleUserRound} label="Admin" />}
                 {authUser.role === "owner" && authUser.creatorModeEnabled && <MenuLink href="/creator-lab" icon={FlaskConical} label="Creator Lab" />}
                 <div className="my-1 h-px bg-matrice-sable" />
@@ -365,7 +372,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   Déconnexion
                 </button>
               </div>
-            </details>
+              </details>
+            </div>
           ) : (
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
               <Link href="/login" className="flex min-h-[44px] items-center whitespace-nowrap text-sm text-matrice-encre/75 transition hover:text-matrice-encre">

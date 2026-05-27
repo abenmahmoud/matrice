@@ -1,159 +1,93 @@
-import { useState } from "react";
-import { Link, useLocation } from "wouter";
-import { ArrowRight, BookOpen, CheckCircle2, Clapperboard, PenLine, Sparkles } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { NextActionBanner, ProgressBar, StepCard, type OnboardingProgress } from "@/components/onboarding/OnboardingBits";
 import { Button } from "@/components/ui/button";
-import { userAuthHeaders } from "@/lib/userAuth";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-const FORMAT_OPTIONS = [
-  { id: "roman", label: "Roman", icon: BookOpen },
-  { id: "scenario", label: "Scenario", icon: Clapperboard },
-  { id: "serie", label: "Serie", icon: Sparkles },
-];
-
-const GOAL_OPTIONS = ["Structurer une idee", "Ecrire des scenes", "Preparer un pitch", "Construire une bible"];
-const RHYTHM_OPTIONS = ["Exploration lente", "Sprint createur", "Production intensive"];
-
 export default function OnboardingPage() {
-  const [, navigate] = useLocation();
-  const [step, setStep] = useState(1);
-  const [format, setFormat] = useState("roman");
-  const [goal, setGoal] = useState(GOAL_OPTIONS[0]);
-  const [rhythm, setRhythm] = useState(RHYTHM_OPTIONS[0]);
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
-  const [message, setMessage] = useState("");
-
-  async function complete() {
-    setStatus("submitting");
-    const response = await fetch(`${BASE}/api/auth/onboarding/complete`, {
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useQuery({
+    queryKey: ["onboarding", "progress"],
+    queryFn: async () => {
+      const response = await apiFetch(`${BASE}/api/onboarding/progress`);
+      if (!response.ok) throw new Error("ONBOARDING_FAILED");
+      return response.json() as Promise<OnboardingProgress>;
+    },
+  });
+  const skipStep = useMutation({
+    mutationFn: (stepId: string) => apiFetch(`${BASE}/api/onboarding/skip`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...userAuthHeaders(),
-      },
-      body: JSON.stringify({ format, goal, rhythm }),
-    });
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
-
-    if (!response.ok) {
-      setMessage(payload.error ?? "ONBOARDING_FAILED");
-      setStatus("error");
-      return;
-    }
-
-    navigate(`${BASE}/projects/new`);
-  }
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ step_id: stepId }),
+    }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["onboarding"] }),
+  });
 
   return (
-    <div className="min-h-[100dvh] bg-matrice-ivoire text-matrice-encre">
-      <header className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5 sm:px-8">
-        <Link href={`${BASE}/`} className="flex items-center gap-3 text-sm font-semibold">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-matrice-terracotta/12 text-matrice-terracotta">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          Matrice Narrative
-        </Link>
-        <span className="text-sm text-matrice-encre/45">Etape {step}/3</span>
-      </header>
-
-      <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8">
-        <div className="mb-10 grid grid-cols-3 gap-2">
-          {[1, 2, 3].map((item) => (
-            <div key={item} className={`h-1.5 rounded-full ${item <= step ? "bg-matrice-terracotta" : "bg-matrice-sable"}`} />
-          ))}
-        </div>
-
-        <section className="rounded-3xl border border-matrice-sable bg-white p-6 shadow-2xl shadow-black/10 sm:p-9">
-          {step === 1 && (
+    <AppLayout>
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <header className="rounded-2xl border border-matrice-sable bg-white p-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-matrice-or-fonce">Onboarding beta</p>
+          <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-matrice-or-fonce">Format</p>
-              <h1 className="mt-4 text-3xl font-semibold sm:text-4xl">Quel type de projet veux-tu construire ?</h1>
-              <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                {FORMAT_OPTIONS.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => setFormat(option.id)}
-                    className={`rounded-2xl border p-5 text-left transition ${
-                      format === option.id ? "border-matrice-terracotta/60 bg-matrice-terracotta/12" : "border-matrice-sable bg-matrice-ivoire/60"
-                    }`}
-                  >
-                    <option.icon className="h-6 w-6 text-matrice-terracotta" />
-                    <span className="mt-5 block font-semibold">{option.label}</span>
-                  </button>
-                ))}
-              </div>
+              <h1 className="font-serif text-4xl text-matrice-encre">Démarrage guidé</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-matrice-encre/70">
+                Les premières actions qui transforment un compte vide en atelier prêt : projet, Lentille, export, mandat et notifications.
+              </p>
             </div>
-          )}
-
-          {step === 2 && (
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-matrice-or-fonce">Objectif</p>
-              <h1 className="mt-4 text-3xl font-semibold sm:text-4xl">Quelle premiere victoire veux-tu obtenir ?</h1>
-              <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                {GOAL_OPTIONS.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setGoal(option)}
-                    className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
-                      goal === option ? "border-matrice-terracotta/60 bg-matrice-terracotta/12" : "border-matrice-sable bg-matrice-ivoire/60"
-                    }`}
-                  >
-                    <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {step === 3 && (
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-matrice-or-fonce">Rythme</p>
-              <h1 className="mt-4 text-3xl font-semibold sm:text-4xl">Choisis ton mode de travail.</h1>
-              <div className="mt-8 grid gap-3">
-                {RHYTHM_OPTIONS.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => setRhythm(option)}
-                    className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition ${
-                      rhythm === option ? "border-matrice-terracotta/60 bg-matrice-terracotta/12" : "border-matrice-sable bg-matrice-ivoire/60"
-                    }`}
-                  >
-                    <PenLine className="h-4 w-4 text-matrice-terracotta" />
-                    {option}
-                  </button>
-                ))}
-              </div>
-              {status === "error" && (
-                <div className="mt-5 rounded-xl border border-matrice-error/25 bg-matrice-error/10 p-3 text-sm text-matrice-error">
-                  {message}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="mt-10 flex justify-between gap-3">
-            <Button variant="ghost" disabled={step === 1} onClick={() => setStep((current) => Math.max(1, current - 1))}>
-              Retour
-            </Button>
-            {step < 3 ? (
-              <Button onClick={() => setStep((current) => current + 1)} className="bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
-                Continuer
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            ) : (
-              <Button onClick={complete} disabled={status === "submitting"} className="bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
-                {status === "submitting" ? "Finalisation..." : "Creer mon premier projet"}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
+            {data?.next_action && (
+              <Link href={data.next_action.url}>
+                <Button className="rounded-xl bg-matrice-encre text-matrice-ivoire hover:bg-matrice-bleu-nuit">
+                  Reprendre
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             )}
+          </div>
+          <div className="mt-6">
+            <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-[0.14em] text-matrice-encre/55">
+              <span>Progression</span>
+              <span>{data?.progress_percent ?? 0}%</span>
+            </div>
+            <ProgressBar value={data?.progress_percent ?? 0} />
+          </div>
+        </header>
+
+        {data && <NextActionBanner progress={data} />}
+
+        {isLoading ? (
+          <div className="rounded-2xl border border-matrice-sable bg-white p-6 text-matrice-encre/65">Chargement...</div>
+        ) : (
+          <section className="grid gap-4 lg:grid-cols-2">
+            {data?.all_steps.map((step) => (
+              <StepCard
+                key={step.id}
+                step={step}
+                completed={data.completed_steps.includes(step.id)}
+                skipped={data.skipped_steps.includes(step.id)}
+                active={data.current_step?.id === step.id}
+                onSkip={() => skipStep.mutate(step.id)}
+              />
+            ))}
+          </section>
+        )}
+
+        <section className="rounded-2xl border border-matrice-sable bg-white p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <Sparkles className="mt-1 h-5 w-5 text-matrice-terracotta" />
+            <div>
+              <h2 className="font-serif text-2xl text-matrice-encre">Beta testeurs</h2>
+              <p className="mt-1 text-sm leading-6 text-matrice-encre/70">
+                Le support est intégré partout. Si un testeur bloque, il peut ouvrir un ticket depuis /support et BraveHeart voit la demande dans /admin/support.
+              </p>
+            </div>
           </div>
         </section>
       </main>
-    </div>
+    </AppLayout>
   );
 }

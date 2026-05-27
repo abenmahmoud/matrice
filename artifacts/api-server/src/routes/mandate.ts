@@ -11,7 +11,10 @@ import {
 } from "@workspace/db";
 import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
 import { createMandateEnvelope, EssufSignNotConfiguredError } from "../services/essufSignClient.js";
+import { mandateSignedEmail } from "../services/emailTemplates.js";
 import { generateMandatePdf } from "../services/mandatePdfService.js";
+import { notify } from "../services/notificationService.js";
+import { markStepCompleted } from "../services/onboardingService.js";
 
 const router = Router();
 
@@ -129,6 +132,7 @@ router.post("/projects/:projectId/mandate", async (req, res) => {
       status: "draft",
     }).returning();
 
+    await markStepCompleted(user.id, "first_mandate", { mandate_id: mandate.id, project_id: project.id });
     res.status(201).json({ mandate });
   } catch (err) {
     req.log.error({ err }, "Mandate creation failed");
@@ -266,14 +270,28 @@ router.post("/mandates/webhook", async (req, res) => {
     const eventDate = event.signed_at ? new Date(event.signed_at) : new Date();
     if (event.status === "completed" || event.status === "signed") {
       const hash = event.final_pdf_hash ?? event.pdf_signed_hash ?? null;
+      const verifyUrl = event.verify_url ?? (hash ? `${(process.env["ESSUF_SIGN_BASE_URL"] ?? "https://sign.essuf.fr").replace(/\/$/, "")}/verify/${hash}` : null);
       await db.update(delegationMandateTable).set({
         status: "active",
         finalPdfHash: hash,
         otsHash: event.ots_hash ?? hash,
-        verifyUrl: event.verify_url ?? (hash ? `${(process.env["ESSUF_SIGN_BASE_URL"] ?? "https://sign.essuf.fr").replace(/\/$/, "")}/verify/${hash}` : null),
+        verifyUrl,
         signedAt: eventDate,
         updatedAt: new Date(),
       }).where(eq(delegationMandateTable.id, mandate.id));
+      const [project] = await db.select({ title: projectsTable.title }).from(projectsTable).where(eq(projectsTable.id, mandate.projectId)).limit(1);
+      const [user] = await db.select().from(appUsersTable).where(eq(appUsersTable.id, mandate.userId)).limit(1);
+      if (user && verifyUrl) {
+        await notify({
+          userId: mandate.userId,
+          type: "mandate_signed",
+          title: "Mandat signe",
+          body: `Ton mandat pour "${project?.title ?? "ton projet"}" est maintenant actif.`,
+          actionUrl: `/projects/${mandate.projectId}/mandate`,
+          actionLabel: "Voir le mandat",
+          email: mandateSignedEmail({ displayName: user.displayName || user.email, projectTitle: project?.title ?? "Projet", verifyUrl }),
+        });
+      }
     } else if (event.status === "declined") {
       await db.update(delegationMandateTable).set({
         status: "declined",
