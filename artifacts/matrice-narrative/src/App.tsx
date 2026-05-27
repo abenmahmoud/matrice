@@ -73,8 +73,15 @@ import ProjectMandatePage from "./pages/project-mandate";
 import BillingPage from "./pages/billing";
 
 import AdminPage from "./pages/admin";
+import AdminDashboardPage from "./pages/admin/dashboard";
 import AdminFinancePage from "./pages/admin/finance";
 import AdminAuthorsPage from "./pages/admin/authors";
+import AdminUsersPage from "./pages/admin/users";
+import AdminUserDetailPage from "./pages/admin/user-detail";
+import AdminInvitesPage from "./pages/admin/invites";
+import AdminAuditLogPage from "./pages/admin/audit-log";
+import CreatorLabPage, { CreatorPreviewPage } from "./pages/creator/lab";
+import CreatorSystemPage from "./pages/creator/system";
 
 import AnalysePage from "./pages/analyse";
 import LentilleMarchePage from "./pages/lentille-marche";
@@ -230,10 +237,18 @@ function Router() {
       <Route path="/projects/:id/mandate" component={ProjectMandatePage} />
       <Route path="/projects/:id/passport" component={WorkPassportPage} />
       <Route path="/billing" component={BillingPage} />
+      <Route path="/creator-lab/system" component={CreatorSystemPage} />
+      <Route path="/creator-lab/preview" component={CreatorPreviewPage} />
+      <Route path="/creator-lab" component={CreatorLabPage} />
       <Route path="/studio" component={AdminPage} />
+      <Route path="/admin/dashboard" component={AdminDashboardPage} />
+      <Route path="/admin/users/:id" component={AdminUserDetailPage} />
+      <Route path="/admin/users" component={AdminUsersPage} />
+      <Route path="/admin/invites" component={AdminInvitesPage} />
+      <Route path="/admin/audit" component={AdminAuditLogPage} />
       <Route path="/admin/finance" component={AdminFinancePage} />
       <Route path="/admin/authors" component={AdminAuthorsPage} />
-      <Route path="/admin" component={AdminPage} />
+      <Route path="/admin" component={AdminDashboardPage} />
       <Route component={NotFound} />
 
     </Switch>

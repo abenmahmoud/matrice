@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
             </label>
 
             {status === "error" && (
-              <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100">
+              <div className="rounded-xl border border-matrice-error/25 bg-matrice-error/10 p-3 text-sm text-matrice-error">
                 {message}
               </div>
             )}

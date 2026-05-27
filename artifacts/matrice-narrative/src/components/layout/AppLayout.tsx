@@ -5,7 +5,7 @@ import {
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
   Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck, FileSignature,
-  CircleUserRound, ChevronDown, LogOut, UserRound, type LucideIcon
+  CircleUserRound, ChevronDown, LogOut, UserRound, FlaskConical, type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -28,6 +28,8 @@ type AuthUser = {
   role: string;
   plan: string;
   isEmailVerified: boolean;
+  creatorModeEnabled?: boolean;
+  isBetaTester?: boolean;
 };
 
 const PHASES = [
@@ -143,6 +145,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Memoire Studio", href: "/memory", icon: BrainCircuit },
     { name: "Modules experimentaux", href: "/experimental-modules", icon: Sparkles },
     { name: "Lentille Marché 2026", href: "/lentille-marche", icon: Sparkles },
+    ...(authUser?.role === "owner" && authUser.creatorModeEnabled
+      ? [{ name: "Creator Lab", href: "/creator-lab", icon: FlaskConical }]
+      : []),
     { name: "Analyser un texte", href: "/analyse", icon: ScanText },
     { name: "Nouvelle vision", href: "/projects/new", icon: Plus },
   ];
@@ -212,8 +217,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className={cn(
                     "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all cursor-pointer",
                     active
-                      ? "bg-matrice-terracotta/12 text-matrice-terracotta font-medium"
-                      : "text-matrice-encre/62 hover:bg-matrice-sable/45 hover:text-matrice-encre"
+                      ? "border border-matrice-terracotta/25 bg-matrice-terracotta/12 text-matrice-encre font-medium"
+                      : "text-matrice-encre/72 hover:bg-matrice-sable/45 hover:text-matrice-encre"
                   )}>
                     <item.icon className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate">{item.name}</span>
@@ -239,8 +244,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className={cn(
                     "flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all cursor-pointer",
                     location === `/projects/${projectId}`
-                      ? "bg-matrice-terracotta/12 text-matrice-terracotta font-medium"
-                      : "text-matrice-encre/62 hover:bg-matrice-sable/45 hover:text-matrice-encre"
+                      ? "border border-matrice-terracotta/25 bg-matrice-terracotta/12 text-matrice-encre font-medium"
+                      : "text-matrice-encre/72 hover:bg-matrice-sable/45 hover:text-matrice-encre"
                   )}>
                     <LayoutGrid className="w-4 h-4 flex-shrink-0" />
                     <span>Vue d'ensemble</span>
@@ -265,8 +270,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             <div className={cn(
                               "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer",
                               active
-                                ? "bg-matrice-terracotta/12 text-matrice-terracotta font-medium"
-                                : "text-matrice-encre/58 hover:bg-matrice-sable/45 hover:text-matrice-encre"
+                                ? "border border-matrice-terracotta/25 bg-matrice-terracotta/12 text-matrice-encre font-medium"
+                                : "text-matrice-encre/72 hover:bg-matrice-sable/45 hover:text-matrice-encre"
                             )}>
                               <item.icon className="w-3.5 h-3.5 flex-shrink-0" />
                               <span className="flex-1 truncate">{item.name}</span>
@@ -286,8 +291,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             <div className={cn(
                               "flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer",
                               active
-                                ? "bg-matrice-terracotta/12 text-matrice-terracotta font-medium"
-                                : "text-matrice-encre/58 hover:bg-matrice-sable/45 hover:text-matrice-encre"
+                                ? "border border-matrice-terracotta/25 bg-matrice-terracotta/12 text-matrice-encre font-medium"
+                                : "text-matrice-encre/72 hover:bg-matrice-sable/45 hover:text-matrice-encre"
                             )}>
                               <item.icon className="w-3.5 h-3.5 flex-shrink-0" />
                               <span className="flex-1 truncate">{item.name}</span>
@@ -337,7 +342,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           {authUser ? (
             <details className="relative">
-              <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 rounded-xl border border-matrice-sable bg-white px-3 py-2 text-sm text-matrice-encre/70 transition hover:bg-matrice-sable/35 hover:text-matrice-encre">
+              <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 rounded-xl border border-matrice-sable bg-white px-3 py-2 text-sm text-matrice-encre/75 transition hover:bg-matrice-sable/35 hover:text-matrice-encre">
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-matrice-terracotta/15 text-matrice-terracotta">
                   {(authUser.displayName || authUser.email).slice(0, 1).toUpperCase()}
                 </span>
@@ -349,11 +354,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <MenuLink href="/locked-works" icon={ShieldCheck} label="Mes oeuvres" />
                 <MenuLink href="/dashboard" icon={LayoutDashboard} label="Tableau de bord" />
                 {(authUser.role === "admin" || authUser.role === "owner") && <MenuLink href="/admin" icon={CircleUserRound} label="Admin" />}
+                {authUser.role === "owner" && authUser.creatorModeEnabled && <MenuLink href="/creator-lab" icon={FlaskConical} label="Creator Lab" />}
                 <div className="my-1 h-px bg-matrice-sable" />
                 <button
                   type="button"
                   onClick={() => void logout()}
-                  className="flex min-h-[44px] w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-matrice-encre/62 transition hover:bg-matrice-sable/40 hover:text-matrice-encre"
+                  className="flex min-h-[44px] w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-matrice-encre/72 transition hover:bg-matrice-sable/40 hover:text-matrice-encre"
                 >
                   <LogOut className="h-4 w-4" />
                   Déconnexion
@@ -362,10 +368,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </details>
           ) : (
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
-              <Link href="/login" className="flex min-h-[44px] items-center whitespace-nowrap text-sm text-matrice-encre/62 transition hover:text-matrice-terracotta">
+              <Link href="/login" className="flex min-h-[44px] items-center whitespace-nowrap text-sm text-matrice-encre/75 transition hover:text-matrice-encre">
                 Se connecter
               </Link>
-              <Link href="/signup" className="flex min-h-[44px] items-center whitespace-nowrap rounded-lg bg-matrice-terracotta px-3 text-sm font-medium text-white transition hover:bg-matrice-terracotta/90 sm:px-4">
+              <Link href="/signup" className="flex min-h-[44px] items-center whitespace-nowrap rounded-lg bg-matrice-encre px-3 text-sm font-medium text-matrice-ivoire transition hover:bg-matrice-bleu-nuit sm:px-4">
                 Créer un compte
               </Link>
             </div>
@@ -382,7 +388,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 function MenuLink({ href, icon: Icon, label }: { href: string; icon: LucideIcon; label: string }) {
   return (
     <Link href={href}>
-      <div className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-matrice-encre/62 transition hover:bg-matrice-sable/40 hover:text-matrice-encre">
+      <div className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-sm text-matrice-encre/72 transition hover:bg-matrice-sable/40 hover:text-matrice-encre">
         <Icon className="h-4 w-4" />
         {label}
       </div>

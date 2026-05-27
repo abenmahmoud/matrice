@@ -15,3 +15,4 @@ export * from "./invoices";
 export * from "./exportJobs";
 export * from "./lentilleMarche";
 export * from "./delegationMandate";
+export * from "./adminCreatorBeta";

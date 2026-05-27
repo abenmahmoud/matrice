@@ -123,7 +123,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={state.status === "submitting"}
-              className="w-full bg-[#C97B5C] hover:bg-[#b66a4d] text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
+              className="w-full bg-matrice-encre hover:bg-matrice-bleu-nuit text-matrice-ivoire font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition disabled:bg-matrice-sable disabled:text-matrice-encre/40 disabled:cursor-not-allowed min-h-[48px]"
             >
               {state.status === "submitting" ? (
                 "Connexion..."

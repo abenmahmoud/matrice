@@ -72,7 +72,7 @@ export default function ExperimentalModulesPage() {
                       Reserve Studio
                     </span>
                   )}
-                  {!module.isEnabled && <span className="rounded-full bg-red-400/10 px-3 py-1 text-red-100">Desactive</span>}
+                  {!module.isEnabled && <span className="rounded-full bg-matrice-error/10 px-3 py-1 text-matrice-error">Desactive</span>}
                 </div>
               </article>
             ))}
