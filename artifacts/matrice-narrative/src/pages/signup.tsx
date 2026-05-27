@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link } from "wouter";
 import { ArrowLeft, ArrowRight, CheckCircle2, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,11 +21,26 @@ function deliveryLabel(delivery: unknown): string {
   return "Email prepare";
 }
 
+function signupErrorLabel(error: string | undefined): string {
+  if (error === "INVALID_INVITE_CODE") return "Code d'invitation invalide.";
+  if (error === "INVITE_CODE_EXHAUSTED") return "Ce code d'invitation a deja ete utilise.";
+  if (error === "INVITE_CODE_EXPIRED") return "Ce code d'invitation a expire.";
+  if (error === "EMAIL_ALREADY_EXISTS") return "Un compte existe deja avec cet email.";
+  if (error === "EMAIL_AND_PASSWORD_REQUIRED") return "Email et mot de passe sont requis.";
+  return error ?? "Creation impossible.";
+}
+
 export default function SignupPage() {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [inviteCode, setInviteCode] = useState("");
   const [state, setState] = useState<SignupState>({ status: "idle" });
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("invite");
+    if (code) setInviteCode(code.trim().toUpperCase());
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -34,12 +49,12 @@ export default function SignupPage() {
     const response = await fetch(`${BASE}/api/auth/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ displayName, email, password }),
+      body: JSON.stringify({ displayName, email, password, invite_code: inviteCode.trim() || undefined }),
     });
     const payload = (await response.json().catch(() => ({}))) as { error?: string; emailDelivery?: unknown };
 
     if (!response.ok) {
-      setState({ status: "error", message: payload.error ?? "SIGNUP_FAILED" });
+      setState({ status: "error", message: signupErrorLabel(payload.error) });
       return;
     }
 
@@ -94,7 +109,7 @@ export default function SignupPage() {
           <div className="mt-8 grid gap-3 text-sm text-matrice-encre/70">
             {["Email confirme avant connexion", "Quotas Free controles cote serveur", "Studio et espace avance separes"].map((item) => (
               <div key={item} className="flex items-center gap-3">
-                <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+                <CheckCircle2 className="h-4 w-4 text-matrice-success" />
                 {item}
               </div>
             ))}
@@ -108,7 +123,7 @@ export default function SignupPage() {
                 <Mail className="h-6 w-6" />
               </div>
               <h2 className="mt-6 text-2xl font-semibold">Confirme ton email</h2>
-              <p className="mt-4 text-sm leading-7 text-white/58">
+              <p className="mt-4 text-sm leading-7 text-matrice-encre/65">
                 Un lien de verification a ete prepare pour <span className="text-matrice-encre">{state.email}</span>.
                 Statut : <span className="text-matrice-or-fonce">{state.delivery}</span>.
               </p>
@@ -116,7 +131,7 @@ export default function SignupPage() {
                 Tant que le domaine Resend n'est pas verifie, l'envoi reel dependra de l'expediteur configure sur le VPS.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Button onClick={resend} className="bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
+                <Button onClick={resend}>
                   Renvoyer le lien
                 </Button>
                 <Button asChild variant="secondary">
@@ -162,23 +177,38 @@ export default function SignupPage() {
                   placeholder="8 caracteres minimum"
                 />
               </label>
+              <label className="block text-sm text-matrice-encre/72">
+                Code d'invitation <span className="text-matrice-encre/50">(optionnel)</span>
+                <Input
+                  value={inviteCode}
+                  onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
+                  className="mt-2 border-matrice-sable bg-matrice-ivoire/60 text-matrice-encre"
+                  placeholder="MATRICE-BETA-XXXXXX"
+                  pattern="MATRICE-BETA-[A-HJ-NP-Z2-9]{6}"
+                />
+                {inviteCode && (
+                  <span className="mt-2 block text-xs font-medium text-matrice-or-fonce">
+                    Code beta detecte : plan premium offert selon invitation.
+                  </span>
+                )}
+              </label>
               <Link href={`${BASE}/forgot-password`} className="block text-right text-sm text-matrice-encre/50 transition hover:text-matrice-terracotta">
                 Mot de passe oublie ?
               </Link>
 
               {state.status === "error" && (
-                <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100">
+                <div className="rounded-xl border border-matrice-error/25 bg-matrice-error/10 p-3 text-sm text-matrice-error">
                   {state.message}
                 </div>
               )}
 
-              <Button type="submit" disabled={state.status === "submitting"} className="h-11 w-full bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
+              <Button type="submit" disabled={state.status === "submitting"} className="h-11 w-full">
                 {state.status === "submitting" ? "Creation..." : "Creer mon compte"}
                 <ArrowRight className="h-4 w-4" />
               </Button>
 
               <div className="flex gap-3 rounded-xl border border-matrice-sable bg-matrice-ivoire/60 p-4 text-sm leading-6 text-matrice-encre/58">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-matrice-success" />
                 Aucun paiement maintenant. Stripe arrive en Phase 2C.
               </div>
             </form>

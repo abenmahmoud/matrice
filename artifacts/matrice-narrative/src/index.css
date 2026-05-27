@@ -94,6 +94,9 @@
   --matrice-ivoire: #F5F1E8;
   --matrice-sable: #E8DFC9;
   --matrice-encre: #2A2520;
+  --matrice-encre-40: rgb(42 37 32 / 0.40);
+  --matrice-encre-70: rgb(42 37 32 / 0.70);
+  --matrice-encre-90: rgb(42 37 32 / 0.90);
   --matrice-or-fonce: #8B6F2E;
   --matrice-terracotta: #C97B5C;
   --matrice-bleu-nuit: #2B3A4A;
@@ -250,6 +253,14 @@
     min-height: 44px;
   }
 
+  label {
+    color: var(--matrice-encre);
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif tracking-tight;
   }
@@ -328,6 +339,26 @@
   .matrice-work {
     background: var(--matrice-ivoire);
     color: var(--matrice-encre);
+  }
+
+  .matrice-work a:not([class*="bg-"]):not([class*="text-white"]) {
+    color: var(--matrice-or-fonce);
+  }
+
+  .matrice-work a:not([class*="bg-"]):hover {
+    color: var(--matrice-encre);
+  }
+
+  .matrice-work .bg-matrice-terracotta.text-white,
+  .matrice-work .bg-matrice-terracotta[class*="text-white"] {
+    background-color: var(--matrice-encre) !important;
+    color: var(--matrice-ivoire) !important;
+  }
+
+  .bg-matrice-terracotta.text-white,
+  .bg-matrice-terracotta[class*="text-white"] {
+    background-color: var(--matrice-encre) !important;
+    color: var(--matrice-ivoire) !important;
   }
 
   .matrice-work [class~="bg-[#09090e]"],

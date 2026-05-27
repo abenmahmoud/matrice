@@ -6,6 +6,7 @@ import {
   BookMarked,
   CheckCircle2,
   CreditCard,
+  FlaskConical,
   KeyRound,
   Loader2,
   Save,
@@ -34,6 +35,9 @@ type User = {
   plan: string;
   status: string;
   isEmailVerified: boolean;
+  creatorModeEnabled?: boolean;
+  isBetaTester?: boolean;
+  betaExpiresAt?: string | null;
   generationsUsed: number;
   projectsCreated: number;
 };
@@ -118,7 +122,7 @@ export default function ProfilePage() {
                   type="button"
                   onClick={() => setActiveTab(tab.key)}
                   className={active
-                    ? "flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-[#C97B5C] px-3 py-2 text-sm font-medium text-white"
+                    ? "flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-matrice-encre px-3 py-2 text-sm font-medium text-matrice-ivoire"
                     : "flex min-h-[48px] items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-[#2A2520]/65 transition hover:bg-[#F5F1E8] hover:text-[#2A2520]"}
                 >
                   <Icon className="h-4 w-4" />
@@ -219,7 +223,7 @@ function AccountTab({ user }: { user: User }) {
                 )}
               </div>
             </div>
-            <Button type="submit" disabled={updateName.isPending} className="bg-[#C97B5C] text-white hover:bg-[#b66a4d]">
+            <Button type="submit" disabled={updateName.isPending}>
               {updateName.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
               Enregistrer
             </Button>
@@ -265,7 +269,54 @@ function AccountTab({ user }: { user: User }) {
           </form>
         </CardContent>
       </Card>
+      {user.role === "owner" && <CreatorModeCard user={user} />}
     </div>
+  );
+}
+
+function CreatorModeCard({ user }: { user: User }) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const toggle = useMutation({
+    mutationFn: async () => {
+      const response = await apiFetch(`${BASE}/api/creator/toggle-mode`, { method: "POST" });
+      const payload = (await response.json().catch(() => ({}))) as { creator_mode_enabled?: boolean; error?: string };
+      if (!response.ok) throw new Error(payload.error ?? "Mode Createur indisponible");
+      return payload;
+    },
+    onSuccess: async (payload) => {
+      await queryClient.invalidateQueries({ queryKey: ["auth-me"] });
+      toast({ title: payload.creator_mode_enabled ? "Mode Createur active" : "Mode Createur desactive" });
+    },
+    onError: (error) => toast({ title: "Erreur", description: error instanceof Error ? error.message : undefined, variant: "destructive" }),
+  });
+
+  return (
+    <Card className="border-essuf-or/60 bg-white lg:col-span-2">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-[#2A2520]">
+          <FlaskConical className="h-5 w-5 text-[#8B6F2E]" />
+          Creator Mode BraveHeart
+          <Badge variant="creator">{user.creatorModeEnabled ? "Actif" : "Off"}</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-2xl text-sm leading-6 text-[#2A2520]/70">
+          Active le laboratoire prive pour voir les features WIP, inspecter le systeme et garder la main avant ouverture beta.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {user.creatorModeEnabled && (
+            <Link href="/creator-lab">
+              <Button variant="secondary">Ouvrir le Lab</Button>
+            </Link>
+          )}
+          <Button onClick={() => toggle.mutate()} disabled={toggle.isPending}>
+            {toggle.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FlaskConical className="mr-2 h-4 w-4" />}
+            {user.creatorModeEnabled ? "Desactiver" : "Activer"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -305,7 +356,7 @@ function SubscriptionTab({ plan }: { plan: string }) {
         )}
         <div className="flex flex-wrap gap-3">
           <Link href="/billing">
-            <Button className="bg-[#C97B5C] text-white hover:bg-[#b66a4d]">Gérer la facturation</Button>
+            <Button>Gérer la facturation</Button>
           </Link>
           <Link href="/pricing">
             <Button variant="outline">Voir les formules</Button>
@@ -358,7 +409,7 @@ function WorksTab() {
         })}
       </div>
       <Link href="/locked-works">
-        <Button className="bg-[#C97B5C] text-white hover:bg-[#b66a4d]">Voir mes oeuvres verrouillées</Button>
+        <Button>Voir mes oeuvres verrouillées</Button>
       </Link>
     </div>
   );

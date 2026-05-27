@@ -100,8 +100,8 @@ export function MobileNav({ sections, user, onLogout }: MobileNavProps) {
                               className={cn(
                                 "flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
                                 link.active
-                                  ? "bg-matrice-terracotta/12 text-matrice-terracotta"
-                                  : "text-matrice-encre/70 hover:bg-matrice-sable/45 hover:text-matrice-encre"
+                                  ? "border border-matrice-terracotta/25 bg-matrice-terracotta/12 text-matrice-encre"
+                                  : "text-matrice-encre/75 hover:bg-matrice-sable/45 hover:text-matrice-encre"
                               )}
                             >
                               <Icon className="h-5 w-5 shrink-0" />

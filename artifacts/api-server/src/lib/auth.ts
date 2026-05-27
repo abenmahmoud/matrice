@@ -14,6 +14,11 @@ export type AuthenticatedUser = Pick<
   | "generationsUsed"
   | "projectsCreated"
   | "isEmailVerified"
+  | "creatorModeEnabled"
+  | "isBetaTester"
+  | "betaStartedAt"
+  | "betaExpiresAt"
+  | "onboardingStep"
   | "onboardingCompletedAt"
 >;
 
@@ -85,6 +90,11 @@ async function resolveUserFromToken(token: string | null): Promise<Authenticated
       generationsUsed: user.generationsUsed,
       projectsCreated: user.projectsCreated,
       isEmailVerified: user.isEmailVerified,
+      creatorModeEnabled: user.creatorModeEnabled,
+      isBetaTester: user.isBetaTester,
+      betaStartedAt: user.betaStartedAt,
+      betaExpiresAt: user.betaExpiresAt,
+      onboardingStep: user.onboardingStep,
       onboardingCompletedAt: user.onboardingCompletedAt,
     };
   } catch {
@@ -100,5 +110,44 @@ export async function authContextMiddleware(req: Request, res: Response, next: N
   void res;
   const user = await resolveUserFromToken(readBearerToken(req));
   (req as Request & { authUser?: AuthenticatedUser | null }).authUser = user;
+  next();
+}
+
+export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  const user = getAuthUser(req);
+  if (!user) {
+    res.status(401).json({ error: "AUTH_REQUIRED" });
+    return;
+  }
+  if (user.role !== "admin" && user.role !== "owner") {
+    res.status(403).json({ error: "ADMIN_REQUIRED" });
+    return;
+  }
+  next();
+}
+
+export function requireOwner(req: Request, res: Response, next: NextFunction): void {
+  const user = getAuthUser(req);
+  if (!user) {
+    res.status(401).json({ error: "AUTH_REQUIRED" });
+    return;
+  }
+  if (user.role !== "owner") {
+    res.status(403).json({ error: "OWNER_REQUIRED" });
+    return;
+  }
+  next();
+}
+
+export function requireCreatorMode(req: Request, res: Response, next: NextFunction): void {
+  const user = getAuthUser(req);
+  if (!user) {
+    res.status(401).json({ error: "AUTH_REQUIRED" });
+    return;
+  }
+  if (user.role !== "owner" || !user.creatorModeEnabled) {
+    res.status(403).json({ error: "CREATOR_MODE_REQUIRED" });
+    return;
+  }
   next();
 }

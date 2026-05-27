@@ -1,8 +1,9 @@
 import { Router, type IRouter } from "express";
-import { db, appUsersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { betaCodeUsagesTable, betaInviteCodesTable, db, appUsersTable } from "@workspace/db";
+import { eq, sql } from "drizzle-orm";
 import { createAuthActionToken, createUserToken, getAuthUser, hashPassword, verifyPassword } from "../lib/auth.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../services/emailService.js";
+import { normalizeInviteCode, validateInviteCodeState } from "../services/betaInviteService.js";
 
 const router: IRouter = Router();
 const VERIFICATION_RESEND_COOLDOWN_MS = 1000 * 60;
@@ -19,6 +20,11 @@ function publicUser(user: typeof appUsersTable.$inferSelect) {
     generationsUsed: user.generationsUsed,
     projectsCreated: user.projectsCreated,
     isEmailVerified: user.isEmailVerified,
+    creatorModeEnabled: user.creatorModeEnabled,
+    isBetaTester: user.isBetaTester,
+    betaStartedAt: user.betaStartedAt,
+    betaExpiresAt: user.betaExpiresAt,
+    onboardingStep: user.onboardingStep,
     onboardingCompletedAt: user.onboardingCompletedAt,
   };
 }
@@ -36,12 +42,33 @@ async function sendUserVerificationEmail(user: typeof appUsersTable.$inferSelect
 
 router.post("/auth/signup", async (req, res) => {
   try {
-    const { email, password, displayName } = req.body as { email?: string; password?: string; displayName?: string };
+    const { email, password, displayName, inviteCode, invite_code } = req.body as {
+      email?: string;
+      password?: string;
+      displayName?: string;
+      inviteCode?: string;
+      invite_code?: string;
+    };
     const normalizedEmail = email?.trim().toLowerCase();
     if (!normalizedEmail || !password || password.length < 8) {
       res.status(400).json({ error: "EMAIL_AND_PASSWORD_REQUIRED" });
       return;
     }
+
+    const normalizedInviteCode = normalizeInviteCode(inviteCode ?? invite_code);
+    const [betaCode] = normalizedInviteCode
+      ? await db.select().from(betaInviteCodesTable).where(eq(betaInviteCodesTable.code, normalizedInviteCode)).limit(1)
+      : [];
+    const inviteValidation = normalizedInviteCode ? validateInviteCodeState(betaCode) : { ok: true as const };
+    if (!inviteValidation.ok) {
+      res.status(inviteValidation.status).json({ error: inviteValidation.error });
+      return;
+    }
+
+    const betaStartedAt = betaCode ? new Date() : null;
+    const betaExpiresAt = betaCode && betaStartedAt
+      ? new Date(betaStartedAt.getTime() + betaCode.durationMonths * 30 * 24 * 60 * 60 * 1000)
+      : null;
 
     const existing = await db.select({ id: appUsersTable.id }).from(appUsersTable).where(eq(appUsersTable.email, normalizedEmail)).limit(1);
     if (existing.length > 0) {
@@ -55,13 +82,29 @@ router.post("/auth/signup", async (req, res) => {
         email: normalizedEmail,
         passwordHash: hashPassword(password),
         displayName: displayName?.trim() ?? "",
-        plan: "free",
+        plan: betaCode?.planGranted ?? "free",
         role: "user",
+        isBetaTester: Boolean(betaCode),
+        betaStartedAt,
+        betaExpiresAt,
         isEmailVerified: false,
         emailVerificationToken: createAuthActionToken(),
         emailVerificationSentAt: new Date(),
       })
       .returning();
+
+    if (betaCode) {
+      await db
+        .update(betaInviteCodesTable)
+        .set({ usesCount: sql`${betaInviteCodesTable.usesCount} + 1` })
+        .where(eq(betaInviteCodesTable.code, betaCode.code));
+      await db.insert(betaCodeUsagesTable).values({
+        code: betaCode.code,
+        userId: user.id,
+        ipAddress: req.ip ?? null,
+        userAgent: req.get("user-agent") ?? null,
+      });
+    }
 
     const emailDelivery = await sendUserVerificationEmail(user);
     if (emailDelivery.status === "failed") {
