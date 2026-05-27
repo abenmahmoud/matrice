@@ -10,7 +10,7 @@ import type { LentilleAnalysisRow } from "@/components/lentille/types";
 import {
   BookOpen, Brain, Users, Network, Globe2, Search, Activity,
   Book, Film, Tv, Presentation, Download, FileSearch, BookMarked,
-  ArrowRight, Sparkles, CheckCircle2, Circle, Loader2, Wand2, BookText, LockKeyhole
+  ArrowRight, Sparkles, CheckCircle2, Circle, Loader2, Wand2, BookText, LockKeyhole, FileSignature
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -125,6 +125,8 @@ const PHASES = [
     extraModules: [
       { name: "Passeport d'Œuvre", href: "passport", icon: BookMarked,
         desc: "Identite, trace de version, checklist de depot et reconnaissance." },
+      { name: "Mandat editorial", href: "mandate", icon: FileSignature,
+        desc: "Mandat de representation signe via Essuf-Sign avec hash public." },
       { name: "Exports", href: "exports", icon: Download,
         desc: "PDF, Markdown, Fountain, JSON — tous vos documents exportables." },
     ],

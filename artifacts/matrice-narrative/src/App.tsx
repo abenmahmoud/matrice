@@ -69,6 +69,7 @@ import PitchPage from "./pages/pitch";
 
 import ExportsPage from "./pages/exports";
 import WorkPassportPage from "./pages/work-passport";
+import ProjectMandatePage from "./pages/project-mandate";
 import BillingPage from "./pages/billing";
 
 import AdminPage from "./pages/admin";
@@ -226,6 +227,7 @@ function Router() {
       <Route path="/projects/:id/exports" component={ExportsPage} />
 
       <Route path="/projects/:id/analyse" component={ProjectAnalysePage} />
+      <Route path="/projects/:id/mandate" component={ProjectMandatePage} />
       <Route path="/projects/:id/passport" component={WorkPassportPage} />
       <Route path="/billing" component={BillingPage} />
       <Route path="/studio" component={AdminPage} />
