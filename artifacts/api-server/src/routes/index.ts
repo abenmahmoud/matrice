@@ -1,10 +1,8 @@
- 
- 
-import { Router, type IRouter } from "express";
-import healthRouter from "./health.js";
-import projectsRouter from "./projects.js";
-import skillsRouter from "./skills.js";
-import researchLabRouter from "./researchLab.js";
+import { Router, type IRouter } from "express";
+import healthRouter from "./health.js";
+import projectsRouter from "./projects.js";
+import skillsRouter from "./skills.js";
+import researchLabRouter from "./researchLab.js";
 import adminRouter from "./admin.js";
 import adminFinanceRouter from "./admin-finance.js";
 import adminUsersRouter from "./admin-users.js";
@@ -15,9 +13,10 @@ import creatorRouter from "./creator.js";
 import notificationsRouter from "./notifications.js";
 import onboardingRouter from "./onboarding.js";
 import supportRouter from "./support.js";
+import creditsRouter from "./credits.js";
 import adminDataRouter from "./adminData.js";
-import manuscriptsRouter from "./manuscripts.js";
-import memoryRouter from "./memory.js";
+import manuscriptsRouter from "./manuscripts.js";
+import memoryRouter from "./memory.js";
 import experimentalModulesRouter from "./experimentalModules.js";
 import lentilleMarcheRouter from "./lentille-marche.js";
 import mandateRouter from "./mandate.js";
@@ -26,20 +25,20 @@ import paymentRouter from "./payments.js";
 import openTimestampsRouter from "./openTimestamps.js";
 import publicVerifyRouter from "./publicVerify.js";
 import exportsRouter from "./exports.js";
-import { adminAuthMiddleware } from "../middleware/adminAuth.js";
-import accessRouter from "./access.js";
-import { productAccessMiddleware } from "../lib/productAccess.js";
-import { authContextMiddleware } from "../lib/auth.js";
-import { aiModelContextMiddleware } from "../lib/aiConfig.js";
-import { creativeMemoryContextMiddleware } from "../services/creativeMemoryContext.js";
-
-const router: IRouter = Router();
-
-// Public
-router.use(healthRouter);
+import { adminAuthMiddleware } from "../middleware/adminAuth.js";
+import accessRouter from "./access.js";
+import { productAccessMiddleware } from "../lib/productAccess.js";
+import { authContextMiddleware } from "../lib/auth.js";
+import { aiModelContextMiddleware } from "../lib/aiConfig.js";
+import { creativeMemoryContextMiddleware } from "../services/creativeMemoryContext.js";
+
+const router: IRouter = Router();
+
+// Public
+router.use(healthRouter);
 router.use(adminRouter);
 router.use(adminFinanceRouter);
-router.use(authContextMiddleware);
+router.use(authContextMiddleware);
 router.use(authRouter);
 router.use(accessRouter);
 router.use(experimentalModulesRouter);
@@ -52,6 +51,7 @@ router.use(creatorRouter);
 router.use(onboardingRouter);
 router.use(notificationsRouter);
 router.use(supportRouter);
+router.use(creditsRouter);
 router.use(aiModelContextMiddleware);
 router.use("/memory", memoryRouter);
 router.use(paymentRouter);
@@ -63,10 +63,10 @@ router.use(productAccessMiddleware);
 router.use(workPassportRouter);
 router.use(projectsRouter);
 router.use(manuscriptsRouter);
-
-// Admin-protected
-router.use(adminAuthMiddleware, skillsRouter);
-router.use(adminAuthMiddleware, researchLabRouter);
-router.use(adminAuthMiddleware, adminDataRouter);
-
-export default router;
+
+// Admin-protected
+router.use(adminAuthMiddleware, skillsRouter);
+router.use(adminAuthMiddleware, researchLabRouter);
+router.use(adminAuthMiddleware, adminDataRouter);
+
+export default router;
