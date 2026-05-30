@@ -15,3 +15,9 @@
 - Page `/billing` affiche solde mensuel/achete/total, historique ledger, abonnement, portail Stripe, changement de plan et factures.
 - Header applicatif affiche le solde credits et pointe vers la facturation.
 - Les erreurs 402 `INSUFFICIENT_CREDITS` ne redirigent plus vers `/upgrade` : elles declenchent une banniere claire avec bouton "Recharger".
+
+## 2026-05-31 - Commit 5 landing v2
+
+- Page `/` remplacee par la landing editoriale "Matrice - OS creatif du recit" inspiree de la maquette HTML fournie.
+- Le positionnement public aligne creation, production, protection blockchain, mandat et credits.
+- Les apercus tarifs affichent uniquement Free, Studio, Premium, plus le cout clair des actions.
