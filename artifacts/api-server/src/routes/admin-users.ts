@@ -16,7 +16,7 @@ import { sendPasswordResetEmail } from "../services/emailService.js";
 import { logAdminAction } from "../services/adminAuditService.js";
 
 const router = Router();
-router.use(requireAdmin);
+router.use("/admin", requireAdmin);
 
 const VALID_PLANS = ["free", "studio", "premium", "pro", "publish", "enterprise"] as const;
 const VALID_STATUSES = ["active", "suspended", "deleted"] as const;

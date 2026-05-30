@@ -14,7 +14,8 @@ import { stripe } from "../services/stripeService.js";
 
 const router: IRouter = Router();
 
-router.use(adminAuthMiddleware);
+router.use("/admin/finance", adminAuthMiddleware);
+router.use("/admin/authors", adminAuthMiddleware);
 
 function centsToEuroString(cents: number): string {
   return (cents / 100).toFixed(2);

@@ -6,7 +6,7 @@ import { generateBetaInviteCode } from "../services/betaInviteService.js";
 import { logAdminAction } from "../services/adminAuditService.js";
 
 const router = Router();
-router.use(requireAdmin);
+router.use("/admin", requireAdmin);
 
 router.post("/admin/invites/generate", async (req, res) => {
   const admin = getAuthUser(req);

@@ -7,7 +7,7 @@ import { supportReplyEmail } from "../services/emailTemplates.js";
 import { notify } from "../services/notificationService.js";
 
 const router: IRouter = Router();
-router.use(requireAdmin);
+router.use("/admin", requireAdmin);
 
 router.get("/admin/support/tickets", async (req, res) => {
   const params = z.object({
