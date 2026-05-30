@@ -1,11 +1,10 @@
 import type { NextFunction, Request, Response } from "express";
-import { db, appUsersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
 import { getAuthUser } from "./auth.js";
 import { generateAdminToken } from "../middleware/adminAuth.js";
+import { ACTION_COSTS, getBalance, spendCredits } from "../services/creditsService.js";
 
 export type ProductMode = "private" | "commercial";
-export type ProductPlan = "private" | "free" | "pro" | "studio" | "publish" | "enterprise";
+export type ProductPlan = "private" | "free" | "pro" | "studio" | "premium" | "publish" | "enterprise";
 export type ViewerRole = "owner" | "user" | "public";
 
 export type ProductAccess = {
@@ -43,7 +42,9 @@ function readPlan(): ProductPlan {
   const mode = readProductMode();
   if (mode === "private") return "private";
   const plan = process.env["MATRICE_DEFAULT_PLAN"];
-  return plan === "pro" || plan === "studio" || plan === "publish" || plan === "enterprise" ? plan : "free";
+  return plan === "pro" || plan === "studio" || plan === "premium" || plan === "publish" || plan === "enterprise"
+    ? plan
+    : "free";
 }
 
 function hasValidAdminToken(req?: Request): boolean {
@@ -74,12 +75,17 @@ export function getProductAccess(req?: Request): ProductAccess {
         : { role: "public", authenticated: false, source: "anonymous" };
 
   const userPlan: ProductPlan =
-    user?.plan === "pro" || user?.plan === "studio" || user?.plan === "publish" || user?.plan === "enterprise"
+    user?.plan === "pro" ||
+    user?.plan === "studio" ||
+    user?.plan === "premium" ||
+    user?.plan === "publish" ||
+    user?.plan === "enterprise"
       ? user.plan
       : "free";
   const plan: ProductPlan = viewer.role === "owner" ? "private" : user ? userPlan : readPlan();
   const isPrivate = viewer.role === "owner";
-  const isPaid = isPrivate || plan === "pro" || plan === "studio" || plan === "publish" || plan === "enterprise";
+  const isPaid =
+    isPrivate || plan === "pro" || plan === "studio" || plan === "premium" || plan === "publish" || plan === "enterprise";
 
   return {
     mode,
@@ -117,24 +123,6 @@ export function isGenerationRequest(req: Request): boolean {
   );
 }
 
-function isAdvancedGeneration(req: Request): boolean {
-  if (!isGenerationRequest(req)) return false;
-
-  const path = req.path;
-  if (path === "/manuscripts/analyze") return true;
-  if (!path.startsWith("/projects/")) return false;
-
-  const freeGeneration = /^\/projects\/[^/]+\/generate-(matrix|emotional-core)$/.test(path);
-  if (freeGeneration) return false;
-
-  return (
-    /^\/projects\/[^/]+\/generate-/.test(path) ||
-    /^\/projects\/[^/]+\/director-mode$/.test(path) ||
-    /^\/projects\/[^/]+\/characters\/[^/]+\/dialogue$/.test(path) ||
-    /^\/projects\/[^/]+\/check-scene-hpsa$/.test(path)
-  );
-}
-
 export async function productAccessMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   const access = getProductAccess(req);
 
@@ -143,33 +131,48 @@ export async function productAccessMiddleware(req: Request, res: Response, next:
     return;
   }
 
-  if (access.isPaid || !isGenerationRequest(req)) {
+  if (!isGenerationRequest(req)) {
     next();
     return;
   }
 
   const user = getAuthUser(req);
-  if (user && user.generationsUsed >= access.limits.freeGenerationLimit) {
-    res.status(402).json({
-      error: "FREE_GENERATION_LIMIT_REACHED",
-      access,
-    });
+  if (!user) {
+    res.status(401).json({ error: "AUTH_REQUIRED", access });
     return;
   }
 
-  if (!isAdvancedGeneration(req)) {
-    if (user) {
-      await db
-        .update(appUsersTable)
-        .set({ generationsUsed: user.generationsUsed + 1, updatedAt: new Date() })
-        .where(eq(appUsersTable.id, user.id));
-    }
+  if (user.role === "owner" || user.role === "admin") {
     next();
     return;
   }
 
-  res.status(402).json({
-    error: "PAYWALL_REQUIRED",
-    access,
+  const needed = ACTION_COSTS.generation;
+  const balance = await getBalance(user.id);
+
+  if (balance.total < needed) {
+    res.status(402).json({ error: "INSUFFICIENT_CREDITS", needed, balance: balance.total });
+    return;
+  }
+
+  res.once("finish", () => {
+    if (res.statusCode < 200 || res.statusCode >= 400) return;
+
+    void spendCredits(
+      user.id,
+      needed,
+      "generation",
+      JSON.stringify({ method: req.method, path: req.originalUrl }),
+    )
+      .then((result) => {
+        if (!result.ok) {
+          req.log.warn({ userId: user.id, path: req.originalUrl }, "Generation credit debit failed");
+        }
+      })
+      .catch((err) => {
+        req.log.warn({ err, userId: user.id, path: req.originalUrl }, "Generation credit debit errored");
+      });
   });
+
+  next();
 }

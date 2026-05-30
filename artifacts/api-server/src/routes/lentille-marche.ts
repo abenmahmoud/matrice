@@ -3,6 +3,7 @@ import { Router, type IRouter, type Request, type Response } from "express";
 import { and, count, desc, eq, gte } from "drizzle-orm";
 import { db, lentilleAnalysesTable, projectsTable } from "@workspace/db";
 import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
+import { ACTION_COSTS, getBalance, spendCredits } from "../services/creditsService.js";
 import { DeepSeekNotConfiguredError } from "../services/deepseekClient.js";
 import { lentilleDoneEmail } from "../services/emailTemplates.js";
 import { analyseLentille, type LentilleFormatTarget, type LentilleInput } from "../services/lentilleService.js";
@@ -150,6 +151,15 @@ router.post("/lentille-marche/analyse", async (req, res) => {
       }
     }
 
+    if (user.role !== "owner" && user.role !== "admin") {
+      const needed = ACTION_COSTS.lentille;
+      const balance = await getBalance(user.id);
+      if (balance.total < needed) {
+        res.status(402).json({ error: "INSUFFICIENT_CREDITS", needed, balance: balance.total });
+        return;
+      }
+    }
+
     const result = await analyseLentille(validation.input);
     const id = randomUUID();
 
@@ -180,6 +190,18 @@ router.post("/lentille-marche/analyse", async (req, res) => {
       tokensUsed: result.meta.tokens,
       costEur: result.meta.cost_eur.toFixed(6),
     });
+
+    if (user.role !== "owner" && user.role !== "admin") {
+      const debit = await spendCredits(
+        user.id,
+        ACTION_COSTS.lentille,
+        "lentille",
+        JSON.stringify({ analysis_id: id, project_id: validation.input.project_id ?? null }),
+      );
+      if (!debit.ok) {
+        req.log.warn({ userId: user.id, analysisId: id }, "Lentille credit debit failed");
+      }
+    }
 
     await markStepCompleted(user.id, "first_lentille", { analysis_id: id });
     const projectTitle = validation.input.project_id

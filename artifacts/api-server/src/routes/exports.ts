@@ -6,6 +6,7 @@ import { and, desc, eq, isNotNull, lt } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { appUsersTable, db, exportJobsTable, workPassportsTable } from "@workspace/db";
 import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
+import { ACTION_COSTS, getBalance, spendCredits } from "../services/creditsService.js";
 import { exportReadyEmail } from "../services/emailTemplates.js";
 import { generateDocxManuscript } from "../services/exports/docxGenerator.js";
 import { generateEpub } from "../services/exports/epubGenerator.js";
@@ -155,6 +156,15 @@ router.post("/cron/cleanup-exports", requireCronSecret, async (_req, res) => {
 
 async function startExport(req: AuthenticatedRequest, res: Response, format: FormatType): Promise<void> {
   try {
+    if (req.exportUser.role !== "owner" && req.exportUser.role !== "admin") {
+      const needed = ACTION_COSTS.export;
+      const balance = await getBalance(req.exportUser.id);
+      if (balance.total < needed) {
+        res.status(402).json({ error: "INSUFFICIENT_CREDITS", needed, balance: balance.total });
+        return;
+      }
+    }
+
     const jobId = await createAndProcessJob(req.exportUser.id, routeParam(req, "id"), format);
     res.status(202).json({ jobId, status: "processing" });
   } catch (err) {
@@ -247,8 +257,20 @@ async function processExportJob(jobId: string): Promise<void> {
     completedAt: new Date(),
   });
 
-  await markStepCompleted(job.userId, "first_export", { format: job.format, job_id: job.id });
   const [user] = await db.select().from(appUsersTable).where(eq(appUsersTable.id, job.userId)).limit(1);
+  if (user?.role !== "owner" && user?.role !== "admin") {
+    const debit = await spendCredits(
+      job.userId,
+      ACTION_COSTS.export,
+      "export",
+      JSON.stringify({ job_id: job.id, format: job.format, work_passport_id: job.workPassportId }),
+    );
+    if (!debit.ok) {
+      console.warn(`[exports] debit credits impossible pour ${job.id}`);
+    }
+  }
+
+  await markStepCompleted(job.userId, "first_export", { format: job.format, job_id: job.id });
   const [passport] = await db.select({ officialTitle: workPassportsTable.officialTitle }).from(workPassportsTable).where(eq(workPassportsTable.id, job.workPassportId)).limit(1);
   const title = passport?.officialTitle ?? "Oeuvre";
   const downloadUrl = `${process.env["MATRICE_BASE_URL"] ?? "https://matrice.essuf.fr"}/api/exports/download/${downloadToken}`;
