@@ -8,3 +8,10 @@
 - Erreur standard si solde insuffisant : HTTP 402 `{ error: "INSUFFICIENT_CREDITS", needed, balance }`.
 - Owner/admin restent exemptes du debit pour garder les audits et tests internes fluides.
 
+## 2026-05-31 - Commit 4 frontend
+
+- Page `/pricing` remplace les anciens paliers Pro/Publish par Free, Studio et Premium, avec toggle mensuel/annuel et checkout Stripe.
+- Packs de recharge visibles et relies a `/api/payments/recharge`.
+- Page `/billing` affiche solde mensuel/achete/total, historique ledger, abonnement, portail Stripe, changement de plan et factures.
+- Header applicatif affiche le solde credits et pointe vers la facturation.
+- Les erreurs 402 `INSUFFICIENT_CREDITS` ne redirigent plus vers `/upgrade` : elles declenchent une banniere claire avec bouton "Recharger".

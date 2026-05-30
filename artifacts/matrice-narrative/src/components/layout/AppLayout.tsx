@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -5,7 +6,7 @@ import {
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
   Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck, FileSignature,
-  CircleUserRound, ChevronDown, LogOut, UserRound, FlaskConical, Bell, type LucideIcon
+  CircleUserRound, ChevronDown, LogOut, UserRound, FlaskConical, Bell, Coins, X, type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -31,6 +32,17 @@ type AuthUser = {
   isEmailVerified: boolean;
   creatorModeEnabled?: boolean;
   isBetaTester?: boolean;
+};
+
+type CreditBalance = {
+  monthly: number;
+  extra: number;
+  total: number;
+};
+
+type CreditWarning = {
+  needed: number;
+  balance: number;
 };
 
 const PHASES = [
@@ -104,6 +116,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [match, params] = useRoute("/projects/:id/*?");
   const projectId = match ? params?.id : null;
   const token = getUserToken();
+  const [creditWarning, setCreditWarning] = useState<CreditWarning | null>(null);
 
   const { data: project } = useGetProject(projectId as string, {
     query: { enabled: !!projectId && projectId !== "new", queryKey: [`/api/projects/${projectId}`] }
@@ -129,6 +142,30 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     staleTime: 30_000,
   });
 
+  const { data: creditBalance } = useQuery<CreditBalance | null>({
+    queryKey: ["credits-balance-header", token ?? "anonymous"],
+    queryFn: async () => {
+      if (!token) return null;
+      const response = await apiFetch(`${BASE}/api/credits/balance`);
+      if (!response.ok) return null;
+      const payload = (await response.json()) as { balance: CreditBalance };
+      return payload.balance;
+    },
+    enabled: !!token && !!authUser,
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+
+  useEffect(() => {
+    function onInsufficientCredits(event: Event) {
+      const detail = (event as CustomEvent<CreditWarning>).detail;
+      setCreditWarning(detail);
+    }
+
+    window.addEventListener("matrice:insufficient-credits", onInsufficientCredits);
+    return () => window.removeEventListener("matrice:insufficient-credits", onInsufficientCredits);
+  }, []);
+
   async function logout() {
     await fetch(`${BASE}/api/auth/logout`, {
       method: "POST",
@@ -142,6 +179,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const rootNav = [
     { name: "Accueil", href: "/", icon: Home },
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Credits & facturation", href: "/billing", icon: Coins },
     { name: "Œuvres verrouillées", href: "/locked-works", icon: ShieldCheck },
     { name: "Memoire Studio", href: "/memory", icon: BrainCircuit },
     { name: "Modules experimentaux", href: "/experimental-modules", icon: Sparkles },
@@ -345,6 +383,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           {authUser ? (
             <div className="ml-auto flex items-center gap-2">
+              <Link
+                href="/billing"
+                className="hidden min-h-[40px] items-center gap-1.5 rounded-lg border border-matrice-sable bg-white px-3 text-sm font-medium text-matrice-encre/75 transition hover:bg-matrice-sable/35 hover:text-matrice-encre sm:inline-flex"
+                title="Solde credits"
+              >
+                <Coins className="h-4 w-4 text-matrice-or-fonce" />
+                {creditBalance?.total ?? "--"}
+              </Link>
               <NotificationBell />
               <details className="relative">
               <summary className="flex min-h-[44px] cursor-pointer list-none items-center gap-3 rounded-xl border border-matrice-sable bg-white px-3 py-2 text-sm text-matrice-encre/75 transition hover:bg-matrice-sable/35 hover:text-matrice-encre">
@@ -357,6 +403,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="absolute right-0 z-40 mt-2 w-56 overflow-hidden rounded-xl border border-matrice-sable bg-white p-1 shadow-2xl shadow-black/10">
                 <MenuLink href="/profile" icon={UserRound} label="Mon profil" />
                 <MenuLink href="/profile/notifications" icon={Bell} label="Notifications" />
+                <MenuLink href="/billing" icon={Coins} label="Credits & facturation" />
                 <MenuLink href="/locked-works" icon={ShieldCheck} label="Mes oeuvres" />
                 <MenuLink href="/dashboard" icon={LayoutDashboard} label="Tableau de bord" />
                 <MenuLink href="/support" icon={MessageCircle} label="Support" />
@@ -386,6 +433,28 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           )}
         </header>
         <div className="flex-1 overflow-y-auto">
+          {creditWarning ? (
+            <div className="sticky top-0 z-[120] border-b border-matrice-warning/35 bg-matrice-warning/15 px-4 py-3 text-sm text-matrice-encre">
+              <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
+                <p>
+                  Credits insuffisants : il faut {creditWarning.needed} credit{creditWarning.needed > 1 ? "s" : ""}, solde actuel {creditWarning.balance}.
+                </p>
+                <div className="flex items-center gap-2">
+                  <Link href="/billing" className="rounded-md bg-matrice-encre px-3 py-1.5 text-xs font-medium text-matrice-ivoire">
+                    Recharger
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setCreditWarning(null)}
+                    className="rounded-md p-1 text-matrice-encre/70 hover:bg-matrice-sable/50 hover:text-matrice-encre"
+                    aria-label="Fermer"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
           {children}
         </div>
       </main>

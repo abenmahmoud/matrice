@@ -158,7 +158,10 @@ async function apiStartExport(projectId: string, format: ExportFormat) {
     method: "POST",
     headers: authHeaders(),
   });
-  const body = await res.json().catch(() => ({})) as { jobId?: string; status?: string; error?: string };
+  const body = await res.json().catch(() => ({})) as { jobId?: string; status?: string; error?: string; needed?: number; balance?: number };
+  if (res.status === 402 && body.error === "INSUFFICIENT_CREDITS") {
+    window.dispatchEvent(new CustomEvent("matrice:insufficient-credits", { detail: body }));
+  }
   if (!res.ok || !body.jobId) throw new Error(body.error || "Export impossible");
   return body as { jobId: string; status: string };
 }

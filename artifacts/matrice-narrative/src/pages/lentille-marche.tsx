@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { LentilleHistory } from "@/components/lentille/LentilleHistory";
 import type { LentilleHistoryItem } from "@/components/lentille/types";
 import { apiFetch } from "@/lib/apiFetch";
-import { userAuthHeaders } from "@/lib/userAuth";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -101,9 +100,9 @@ export default function LentilleMarchePage() {
           .filter(Boolean)
           .slice(0, 10),
       };
-      const response = await fetch(`${BASE}/api/lentille-marche/analyse`, {
+      const response = await apiFetch(`${BASE}/api/lentille-marche/analyse`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...userAuthHeaders() },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({})) as { id?: string; error?: string; message?: string };

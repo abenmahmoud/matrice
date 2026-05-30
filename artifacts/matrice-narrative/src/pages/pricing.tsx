@@ -1,264 +1,272 @@
+import { useState } from "react";
 import { Link } from "wouter";
-import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle2,
-  Crown,
-  FlaskConical,
-  LockKeyhole,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, CreditCard, Loader2, Sparkles, WalletCards } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { apiFetch } from "@/lib/apiFetch";
+import { getUserToken } from "@/lib/userAuth";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
+type Interval = "monthly" | "yearly";
+type PaidPlan = "studio" | "premium";
+type CreditPack = "pack_100" | "pack_300" | "pack_1000";
+
 const PLANS = [
   {
-    name: "Free",
-    price: "0 EUR",
-    period: "pour tester",
-    description: "Decouvrir Matrice avec un projet et les fondations narratives.",
-    cta: "Commencer",
-    href: `${BASE}/signup`,
+    key: "free",
+    label: "Free",
+    monthly: 0,
+    yearly: 0,
+    credits: 50,
+    description: "Pour tester Matrice avec une vraie premiere oeuvre.",
+    features: ["50 credits offerts", "1 projet actif", "Generation IA de base", "Onboarding beta", "Support communaute"],
     featured: false,
-    features: [
-      "1 projet actif",
-      "2 generations offertes",
-      "Matrice narrative",
-      "Noyau emotionnel",
-      "Progression limitee",
-    ],
   },
   {
-    name: "Pro",
-    price: "9.90 EUR",
-    period: "par mois",
-    description: "Pour construire serieusement un roman, un scenario ou une bible de serie.",
-    cta: "Choisir Pro",
-    href: `${BASE}/signup`,
+    key: "studio",
+    label: "Studio",
+    monthly: 4.99,
+    yearly: 47.9,
+    credits: 300,
+    description: "Pour ecrire regulierement sans friction.",
+    features: ["300 credits / mois", "Projets illimites", "Exports EPUB, DOCX, PDF", "Mandat editorial", "Support prioritaire"],
+    featured: false,
+  },
+  {
+    key: "premium",
+    label: "Premium",
+    monthly: 9.99,
+    yearly: 95.9,
+    credits: 800,
+    description: "Pour porter une oeuvre jusqu'a la vente.",
+    features: ["800 credits / mois", "Lentille Marche 2026", "Protection blockchain", "Mandat Essuf-Sign", "Acces beta avance"],
     featured: true,
-    features: [
-      "Projets personnels illimites",
-      "Modules avances",
-      "Scenes, pitch et dossiers",
-      "Exports narratifs",
-      "Priorite modele Pro",
-    ],
   },
-  {
-    name: "Studio",
-    price: "19.90 EUR",
-    period: "par mois",
-    description: "Pour usage intensif, ateliers, producteurs independants et labs creatifs.",
-    cta: "Choisir Studio",
-    href: `${BASE}/signup`,
-    featured: false,
-    features: [
-      "Usage intensif",
-      "Workflow projets multiples",
-      "Analyses plus profondes",
-      "Modules experimentaux eligibles",
-      "Support prioritaire",
-    ],
-  },
-  {
-    name: "Publish",
-    price: "29.90 EUR",
-    period: "par mois",
-    description: "Pour les auteurs qui publient. Tout Studio + certification + export KDP.",
-    cta: "Choisir Publish",
-    href: `${BASE}/studio`,
-    featured: false,
-    features: [
-      "Gestion equipe",
-      "Acces controle",
-      "Parametrage dedie",
-      "Accompagnement",
-      "Contrat sur mesure",
-    ],
-  },
+] as const;
+
+const PACKS: Array<{ key: CreditPack; credits: number; price: string; label: string }> = [
+  { key: "pack_100", credits: 100, price: "3,99 EUR", label: "Recharge courte" },
+  { key: "pack_300", credits: 300, price: "9,99 EUR", label: "Recharge atelier" },
+  { key: "pack_1000", credits: 1000, price: "24,99 EUR", label: "Recharge production" },
 ];
 
-const COMPARISON = [
-  { label: "Matrice + noyau emotionnel", free: true, pro: true, studio: true, publish: true },
-  { label: "Modules avances", free: false, pro: true, studio: true, publish: true },
-  { label: "Quotas eleves", free: false, pro: true, studio: true, publish: true },
-  { label: "Modules experimentaux", free: false, pro: false, studio: true, publish: true },
-  { label: "Gestion abonnements Studio", free: false, pro: true, studio: true, publish: true },
-  { label: "Espace Studio avance", free: false, pro: false, studio: true, publish: true },
-];
-
-function BoolCell({ value }: { value: boolean }) {
-  return (
-    <td className="px-4 py-4 text-center">
-      {value ? (
-        <CheckCircle2 className="mx-auto h-4 w-4 text-emerald-300" />
-      ) : (
-        <span className="mx-auto block h-px w-5 bg-white/15" />
-      )}
-    </td>
-  );
+function formatPrice(plan: typeof PLANS[number], interval: Interval): string {
+  if (plan.monthly === 0) return "0 EUR";
+  return `${(interval === "monthly" ? plan.monthly : plan.yearly).toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} EUR`;
 }
 
 export default function PricingPage() {
+  const [interval, setInterval] = useState<Interval>("yearly");
+  const [loading, setLoading] = useState<string | null>(null);
+  const { toast } = useToast();
+  const token = getUserToken();
+
+  async function startCheckout(plan: PaidPlan) {
+    if (!token) {
+      window.location.href = `${BASE}/signup?plan=${plan}&interval=${interval}`;
+      return;
+    }
+
+    setLoading(`${plan}:${interval}`);
+    try {
+      const response = await apiFetch(`${BASE}/api/payments/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, interval }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.error ?? "Checkout indisponible");
+      }
+      window.location.href = payload.url;
+    } catch (err) {
+      toast({
+        title: "Paiement indisponible",
+        description: err instanceof Error ? err.message : "Impossible d'ouvrir Stripe pour le moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function startRecharge(pack: CreditPack) {
+    if (!token) {
+      window.location.href = `${BASE}/signup?pack=${pack}`;
+      return;
+    }
+
+    setLoading(pack);
+    try {
+      const response = await apiFetch(`${BASE}/api/payments/recharge`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pack }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.error ?? "Recharge indisponible");
+      }
+      window.location.href = payload.url;
+    } catch (err) {
+      toast({
+        title: "Recharge indisponible",
+        description: err instanceof Error ? err.message : "Impossible d'ouvrir Stripe pour le moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
+  }
+
   return (
-    <div className="min-h-[100dvh] bg-[#09090e] text-white">
-      <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-[#09090e]/85 backdrop-blur-xl">
+    <div className="min-h-[100dvh] bg-matrice-ivoire text-matrice-encre">
+      <header className="border-b border-matrice-sable bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
-          <Link href={`${BASE}/`} className="flex items-center gap-3 text-sm font-semibold text-white">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/15 text-violet-200">
-              <Sparkles className="h-4 w-4" />
-            </span>
-            Matrice Narrative
+          <Link href={`${BASE}/`} className="font-serif text-sm font-bold uppercase tracking-[0.18em] text-matrice-or-fonce">
+            Matrice
           </Link>
-          <nav className="hidden items-center gap-7 text-sm text-white/55 md:flex">
-            <Link href={`${BASE}/#workflow`} className="transition hover:text-white">Workflow</Link>
-            <Link href={`${BASE}/dashboard`} className="transition hover:text-white">Dashboard</Link>
-            <Link href={`${BASE}/studio`} className="transition hover:text-white">Studio</Link>
+          <nav className="hidden items-center gap-6 text-sm text-matrice-encre/70 md:flex">
+            <Link href={`${BASE}/#credits`} className="hover:text-matrice-encre">Credits</Link>
+            <Link href={`${BASE}/billing`} className="hover:text-matrice-encre">Facturation</Link>
+            <Link href={`${BASE}/dashboard`} className="hover:text-matrice-encre">Dashboard</Link>
           </nav>
-          <Button asChild className="bg-white text-black hover:bg-white/90">
-            <Link href={`${BASE}/signup`}>
-              Commencer
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+          <Button asChild>
+            <Link href={`${BASE}/signup`}>Commencer</Link>
           </Button>
         </div>
       </header>
 
       <main>
-        <section className="mx-auto max-w-7xl px-5 pb-16 pt-16 sm:px-8 lg:pb-20 lg:pt-20">
-          <Link href={`${BASE}/`} className="inline-flex items-center gap-2 text-sm text-white/50 transition hover:text-white">
-            <ArrowLeft className="h-4 w-4" />
-            Retour landing
-          </Link>
+        <section className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-matrice-or-fonce">Tarifs beta</p>
+            <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-normal sm:text-5xl">
+              Des credits clairs pour payer uniquement l'usage reel.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-matrice-encre/70">
+              Generation IA, export, Lentille Marche : chaque action consomme un cout visible. Les abonnements
+              rechargent tes credits chaque mois, les packs restent disponibles en plus.
+            </p>
+          </div>
 
-          <div className="mt-10 grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/75">Tarifs</p>
-              <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-normal text-white sm:text-5xl lg:text-6xl">
-                Un acces gratuit pour decouvrir, des paliers Studio pour avancer vraiment.
-              </h1>
-            </div>
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 text-sm leading-6 text-white/58">
-              <div className="mb-4 flex items-center gap-2 text-white">
-                <ShieldCheck className="h-4 w-4 text-emerald-300" />
-                Paiement prepare, verrouillage deja cote serveur
+          <div className="rounded-lg border border-matrice-sable bg-white p-4 shadow-sm">
+            <div className="grid grid-cols-3 gap-2 text-center text-sm">
+              <div>
+                <p className="text-2xl font-semibold">1</p>
+                <p className="text-matrice-encre/60">generation</p>
               </div>
-              Les limites ne sont pas seulement visuelles : les routes API distinguent public, utilisateur gratuit, Pro et Studio.
-              La Phase 2A pose l'onboarding; Stripe arrive ensuite en Phase 2C.
+              <div>
+                <p className="text-2xl font-semibold">5</p>
+                <p className="text-matrice-encre/60">export</p>
+              </div>
+              <div>
+                <p className="text-2xl font-semibold">10</p>
+                <p className="text-matrice-encre/60">lentille</p>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="border-y border-white/[0.08] bg-white/[0.025]">
-          <div className="mx-auto grid max-w-7xl gap-4 px-5 py-12 sm:px-8 lg:grid-cols-4">
-            {PLANS.map((plan) => (
-              <article
-                key={plan.name}
-                className={`relative flex min-h-[470px] flex-col rounded-2xl border p-5 ${
-                  plan.featured
-                    ? "border-violet-300/45 bg-violet-500/12 shadow-2xl shadow-violet-950/30"
-                    : "border-white/[0.08] bg-[#10101a]"
-                }`}
-              >
-                {plan.featured && (
-                  <div className="absolute right-4 top-4 rounded-full bg-violet-300 px-3 py-1 text-xs font-semibold text-black">
-                    Recommande
+        <section className="border-y border-matrice-sable bg-white/65">
+          <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
+            <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+              <div>
+                <h2 className="text-2xl font-semibold">Abonnements</h2>
+                <p className="mt-1 text-sm text-matrice-encre/65">Annuel = 20% d'economie. Sans engagement cache.</p>
+              </div>
+              <div className="inline-flex rounded-lg border border-matrice-sable bg-matrice-ivoire p-1">
+                {(["monthly", "yearly"] as Interval[]).map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setInterval(value)}
+                    className={`rounded-md px-4 py-2 text-sm font-medium transition ${
+                      interval === value ? "bg-matrice-encre text-matrice-ivoire" : "text-matrice-encre/70 hover:text-matrice-encre"
+                    }`}
+                  >
+                    {value === "monthly" ? "Mensuel" : "Annuel -20%"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-3">
+              {PLANS.map((plan) => (
+                <article
+                  key={plan.key}
+                  className={`flex min-h-[460px] flex-col rounded-lg border bg-matrice-ivoire p-6 shadow-sm ${
+                    plan.featured ? "border-matrice-or-fonce ring-2 ring-matrice-or-fonce/20" : "border-matrice-sable"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-matrice-sable text-matrice-encre">
+                      {plan.key === "premium" ? <Sparkles className="h-5 w-5" /> : <CreditCard className="h-5 w-5" />}
+                    </div>
+                    {plan.featured ? (
+                      <span className="rounded-full bg-matrice-or-fonce px-3 py-1 text-xs font-semibold text-matrice-ivoire">
+                        Premium
+                      </span>
+                    ) : null}
                   </div>
-                )}
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/[0.06] text-violet-200">
-                  {plan.name === "Free" && <Sparkles className="h-5 w-5" />}
-                  {plan.name === "Pro" && <Crown className="h-5 w-5" />}
-                  {plan.name === "Studio" && <FlaskConical className="h-5 w-5" />}
-                  {plan.name === "Publish" && <ShieldCheck className="h-5 w-5" />}
-                </div>
-                <h2 className="mt-6 text-2xl font-semibold">{plan.name}</h2>
-                <p className="mt-3 min-h-[72px] text-sm leading-6 text-white/55">{plan.description}</p>
-                <div className="mt-6">
-                  <span className="text-3xl font-semibold">{plan.price}</span>
-                  <span className="ml-2 text-sm text-white/45">{plan.period}</span>
-                </div>
-                <Button asChild className={`mt-6 w-full ${plan.featured ? "bg-white text-black hover:bg-white/90" : ""}`} variant={plan.featured ? "default" : "secondary"}>
-                  <Link href={plan.href}>
-                    {plan.cta}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  <h3 className="mt-6 text-2xl font-semibold">{plan.label}</h3>
+                  <p className="mt-3 min-h-[56px] text-sm leading-6 text-matrice-encre/65">{plan.description}</p>
+                  <div className="mt-6">
+                    <span className="text-3xl font-semibold">{formatPrice(plan, interval)}</span>
+                    <span className="ml-2 text-sm text-matrice-encre/55">
+                      {plan.key === "free" ? "" : interval === "monthly" ? "/ mois" : "/ an"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm font-medium text-matrice-or-fonce">{plan.credits} credits inclus</p>
+                  {plan.key === "free" ? (
+                    <Button asChild className="mt-6 w-full">
+                      <Link href={`${BASE}/signup`}>Creer un compte</Link>
+                    </Button>
+                  ) : (
+                    <Button className="mt-6 w-full" onClick={() => startCheckout(plan.key)} disabled={!!loading}>
+                      {loading === `${plan.key}:${interval}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                      Choisir {plan.label}
+                    </Button>
+                  )}
+                  <ul className="mt-6 space-y-3 text-sm text-matrice-encre/72">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex gap-2">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-matrice-success" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="credits" className="mx-auto max-w-7xl px-5 py-12 sm:px-8">
+          <div className="mb-6 flex items-center gap-3">
+            <WalletCards className="h-6 w-6 text-matrice-or-fonce" />
+            <div>
+              <h2 className="text-2xl font-semibold">Recharges credits</h2>
+              <p className="text-sm text-matrice-encre/65">Les credits achetes ne disparaissent pas au renouvellement mensuel.</p>
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {PACKS.map((pack) => (
+              <article key={pack.key} className="rounded-lg border border-matrice-sable bg-white p-5 shadow-sm">
+                <p className="text-sm font-medium text-matrice-encre/60">{pack.label}</p>
+                <p className="mt-2 text-3xl font-semibold">{pack.credits} credits</p>
+                <p className="mt-1 text-matrice-or-fonce">{pack.price}</p>
+                <Button variant="outline" className="mt-5 w-full" onClick={() => startRecharge(pack.key)} disabled={!!loading}>
+                  {loading === pack.key ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+                  Recharger
                 </Button>
-                <ul className="mt-6 space-y-3 text-sm text-white/65">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-2">
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
               </article>
             ))}
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-20">
-          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/75">Comparaison</p>
-              <h2 className="mt-4 text-3xl font-semibold text-white sm:text-4xl">Ce qui est ouvert, bloque, ou reserve au Studio.</h2>
-              <p className="mt-5 text-sm leading-6 text-white/55">
-                L'espace Studio reste gere separement. Les utilisateurs publics voient l'experience produit,
-                les quotas et les abonnements, pas les modules avances reserves.
-              </p>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-white/[0.08]">
-              <table className="w-full border-collapse text-sm">
-                <thead className="bg-white/[0.04] text-white/70">
-                  <tr>
-                    <th className="px-4 py-4 text-left font-medium">Capacite</th>
-                    <th className="px-4 py-4 font-medium">Free</th>
-                    <th className="px-4 py-4 font-medium">Pro</th>
-                    <th className="px-4 py-4 font-medium">Studio</th>
-                    <th className="px-4 py-4 font-medium">Publish</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/[0.08] bg-[#10101a]">
-                  {COMPARISON.map((row) => (
-                    <tr key={row.label}>
-                      <td className="px-4 py-4 text-white/70">{row.label}</td>
-                      <BoolCell value={row.free} />
-                      <BoolCell value={row.pro} />
-                      <BoolCell value={row.studio} />
-                      <BoolCell value={row.publish} />
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-t border-white/[0.08] bg-[#0d0d15]">
-          <div className="mx-auto grid max-w-7xl gap-6 px-5 py-12 sm:px-8 lg:grid-cols-3">
-            <div className="flex gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
-              <LockKeyhole className="mt-1 h-5 w-5 text-violet-200" />
-              <div>
-                <h3 className="font-semibold text-white">Limites serveur</h3>
-                <p className="mt-2 text-sm leading-6 text-white/55">Les quotas sont verifies par l'API, pas seulement par l'interface.</p>
-              </div>
-            </div>
-            <div className="flex gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
-              <ShieldCheck className="mt-1 h-5 w-5 text-emerald-300" />
-              <div>
-                <h3 className="font-semibold text-white">Studio protege</h3>
-                <p className="mt-2 text-sm leading-6 text-white/55">L'acces Studio reste debloque et separe du public.</p>
-              </div>
-            </div>
-            <div className="flex gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5">
-              <FlaskConical className="mt-1 h-5 w-5 text-blue-300" />
-              <div>
-                <h3 className="font-semibold text-white">Lab evolutif</h3>
-                <p className="mt-2 text-sm leading-6 text-white/55">Les modules experimentaux arrivent ensuite, avec activation par plan.</p>
-              </div>
-            </div>
           </div>
         </section>
       </main>
