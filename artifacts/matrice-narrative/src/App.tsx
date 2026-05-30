@@ -24,6 +24,8 @@ import Home from "./pages/home";
 import PricingPage from "./pages/pricing";
 
 import SignupPage from "./pages/signup";
+import LoginPage from "./pages/login";
+import ProfilePage from "./pages/profile";
 
 import VerifyEmailPage from "./pages/verify-email";
 
@@ -32,12 +34,21 @@ import ForgotPasswordPage from "./pages/forgot-password";
 import ResetPasswordPage from "./pages/reset-password";
 
 import OnboardingPage from "./pages/onboarding";
+import OnboardingWelcomePage from "./pages/onboarding-welcome";
+import OnboardingStepPage from "./pages/onboarding-step";
+import NotificationsPage from "./pages/notifications";
+import NotificationPreferencesPage from "./pages/profile-notifications";
+import SupportPage from "./pages/support";
+import NewSupportTicketPage from "./pages/support/new";
+import SupportTicketDetailPage from "./pages/support/ticket-detail";
 
 import AccessRedirectPage from "./pages/access-redirect";
+import VerifyWorkPage from "./pages/verify-work";
 
 import ExperimentalModulesPage from "./pages/experimental-modules";
 
 import Dashboard from "./pages/dashboard";
+import MyLockedWorksPage from "./pages/my-locked-works";
 
 import NewProject from "./pages/new-project";
 
@@ -65,11 +76,26 @@ import PitchPage from "./pages/pitch";
 
 import ExportsPage from "./pages/exports";
 import WorkPassportPage from "./pages/work-passport";
+import ProjectMandatePage from "./pages/project-mandate";
 import BillingPage from "./pages/billing";
 
 import AdminPage from "./pages/admin";
+import AdminDashboardPage from "./pages/admin/dashboard";
+import AdminFinancePage from "./pages/admin/finance";
+import AdminAuthorsPage from "./pages/admin/authors";
+import AdminUsersPage from "./pages/admin/users";
+import AdminUserDetailPage from "./pages/admin/user-detail";
+import AdminInvitesPage from "./pages/admin/invites";
+import AdminAuditLogPage from "./pages/admin/audit-log";
+import AdminSupportPage from "./pages/admin/support";
+import AdminSupportTicketPage from "./pages/admin/support/ticket-detail";
+import CreatorLabPage, { CreatorPreviewPage } from "./pages/creator/lab";
+import CreatorSystemPage from "./pages/creator/system";
+import VoiceLabPage from "./pages/creator/voice-lab";
 
 import AnalysePage from "./pages/analyse";
+import LentilleMarchePage from "./pages/lentille-marche";
+import LentilleMarcheDetailPage from "./pages/lentille-marche-detail";
 
 import ProjectAnalysePage from "./pages/project-analyse";
 
@@ -130,6 +156,11 @@ function Router() {
       <Route path="/pricing" component={PricingPage} />
 
       <Route path="/signup" component={SignupPage} />
+      <Route path="/login" component={LoginPage} />
+      <Route path="/connexion" component={LoginPage} />
+      <Route path="/profile" component={ProfilePage} />
+      <Route path="/profile/notifications" component={NotificationPreferencesPage} />
+      <Route path="/compte" component={ProfilePage} />
 
       <Route path="/verify-email" component={VerifyEmailPage} />
 
@@ -137,21 +168,31 @@ function Router() {
 
       <Route path="/reset-password" component={ResetPasswordPage} />
 
+      <Route path="/onboarding/welcome" component={OnboardingWelcomePage} />
+      <Route path="/onboarding/:stepId" component={OnboardingStepPage} />
       <Route path="/onboarding" component={OnboardingPage} />
+      <Route path="/notifications" component={NotificationsPage} />
+      <Route path="/support/tickets/:id" component={SupportTicketDetailPage} />
+      <Route path="/support/new" component={NewSupportTicketPage} />
+      <Route path="/support" component={SupportPage} />
 
       <Route path="/auth-required" component={AccessRedirectPage} />
 
       <Route path="/upgrade" component={AccessRedirectPage} />
 
       <Route path="/forbidden" component={AccessRedirectPage} />
+      <Route path="/verify/:hash" component={VerifyWorkPage} />
 
       <Route path="/experimental-modules" component={ExperimentalModulesPage} />
 
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/locked-works" component={MyLockedWorksPage} />
 
       <Route path="/memory" component={MemoryPage} />
 
       <Route path="/analyse" component={AnalysePage} />
+      <Route path="/lentille-marche/:id" component={LentilleMarcheDetailPage} />
+      <Route path="/lentille-marche" component={LentilleMarchePage} />
 
       <Route path="/projects/new" component={NewProject} />
 
@@ -210,10 +251,24 @@ function Router() {
       <Route path="/projects/:id/exports" component={ExportsPage} />
 
       <Route path="/projects/:id/analyse" component={ProjectAnalysePage} />
+      <Route path="/projects/:id/mandate" component={ProjectMandatePage} />
       <Route path="/projects/:id/passport" component={WorkPassportPage} />
       <Route path="/billing" component={BillingPage} />
+      <Route path="/creator-lab/system" component={CreatorSystemPage} />
+      <Route path="/creator-lab/voice" component={VoiceLabPage} />
+      <Route path="/creator-lab/preview" component={CreatorPreviewPage} />
+      <Route path="/creator-lab" component={CreatorLabPage} />
       <Route path="/studio" component={AdminPage} />
-      <Route path="/admin" component={AdminPage} />
+      <Route path="/admin/dashboard" component={AdminDashboardPage} />
+      <Route path="/admin/users/:id" component={AdminUserDetailPage} />
+      <Route path="/admin/users" component={AdminUsersPage} />
+      <Route path="/admin/invites" component={AdminInvitesPage} />
+      <Route path="/admin/support/:id" component={AdminSupportTicketPage} />
+      <Route path="/admin/support" component={AdminSupportPage} />
+      <Route path="/admin/audit" component={AdminAuditLogPage} />
+      <Route path="/admin/finance" component={AdminFinancePage} />
+      <Route path="/admin/authors" component={AdminAuthorsPage} />
+      <Route path="/admin" component={AdminDashboardPage} />
       <Route component={NotFound} />
 
     </Switch>

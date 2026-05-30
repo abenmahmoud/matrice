@@ -37,10 +37,10 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-[#09090e] px-5 text-white">
-      <div className="w-full max-w-lg rounded-2xl border border-white/[0.08] bg-[#10101a] p-7 shadow-2xl shadow-black/35">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-matrice-ivoire px-5 text-matrice-encre">
+      <div className="w-full max-w-lg rounded-2xl border border-matrice-sable bg-white p-7 shadow-2xl shadow-black/10">
         <Link href={`${BASE}/`} className="mb-8 flex w-fit items-center gap-3 text-sm font-semibold">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-500/15 text-violet-200">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-matrice-terracotta/12 text-matrice-terracotta">
             <Sparkles className="h-4 w-4" />
           </span>
           Matrice Narrative
@@ -50,8 +50,8 @@ export default function ResetPasswordPage() {
           <div className="py-8 text-center">
             <CheckCircle2 className="mx-auto h-11 w-11 text-emerald-300" />
             <h1 className="mt-6 text-2xl font-semibold">Mot de passe modifie</h1>
-            <p className="mt-3 text-sm leading-6 text-white/55">Tu peux reprendre ton travail dans Matrice.</p>
-            <Button asChild className="mt-8 bg-violet-500 text-white hover:bg-violet-400">
+            <p className="mt-3 text-sm leading-6 text-matrice-encre/62">Tu peux reprendre ton travail dans Matrice.</p>
+            <Button asChild className="mt-8 bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
               <Link href={`${BASE}/dashboard`}>
                 Aller au dashboard
                 <ArrowRight className="h-4 w-4" />
@@ -60,14 +60,14 @@ export default function ResetPasswordPage() {
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/15 text-violet-200">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-matrice-terracotta/12 text-matrice-terracotta">
               <KeyRound className="h-5 w-5" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold">Nouveau mot de passe</h1>
-              <p className="mt-2 text-sm leading-6 text-white/55">Choisis un mot de passe de 8 caracteres minimum.</p>
+              <p className="mt-2 text-sm leading-6 text-matrice-encre/62">Choisis un mot de passe de 8 caracteres minimum.</p>
             </div>
-            <label className="block text-sm text-white/70">
+            <label className="block text-sm text-matrice-encre/72">
               Mot de passe
               <Input
                 type="password"
@@ -75,18 +75,18 @@ export default function ResetPasswordPage() {
                 minLength={8}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="mt-2 border-white/[0.12] bg-black/25 text-white"
+                className="mt-2 border-matrice-sable bg-matrice-ivoire/60 text-matrice-encre"
                 placeholder="Nouveau mot de passe"
               />
             </label>
 
             {status === "error" && (
-              <div className="rounded-xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100">
+              <div className="rounded-xl border border-matrice-error/25 bg-matrice-error/10 p-3 text-sm text-matrice-error">
                 {message}
               </div>
             )}
 
-            <Button type="submit" disabled={status === "submitting" || !token} className="h-11 w-full bg-violet-500 text-white hover:bg-violet-400">
+            <Button type="submit" disabled={status === "submitting" || !token} className="h-11 w-full bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
               {status === "submitting" ? "Modification..." : "Modifier le mot de passe"}
               <ArrowRight className="h-4 w-4" />
             </Button>

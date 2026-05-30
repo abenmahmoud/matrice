@@ -2,6 +2,8 @@ import { db, workPassportsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import type { WorkPassport, InsertWorkPassport } from "@workspace/db";
 import { createHash } from "crypto";
+import { logger } from "../lib/logger.js";
+import { stampHash } from "./openTimestampsService.js";
 import {
   generateWorkPassportDraft,
   type EmotionalCore,
@@ -83,22 +85,40 @@ export async function sealWorkPassport(
 
   const hashInput = canonicalPassportPayload(passport);
   const contentHash = createHash("sha256").update(hashInput).digest("hex");
+  const sealedAt = new Date();
+  const otsResult = await stampPassportHash(contentHash, passport.id);
 
   const [updated] = await db
     .update(workPassportsTable)
     .set({
-      sealedAt: new Date(),
+      sealedAt,
       contentHash,
-      proofMode: passport.proofMode || "internal_hash",
-      proofProvider: passport.proofProvider || "Matrice Narrative",
-      proofNotes: passport.proofNotes ||
-        "Empreinte SHA-256 interne creee par Matrice. Pour une preuve externe, utiliser un depot officiel ou un horodatage qualifie.",
+      proofMode: otsResult ? "opentimestamps" : (passport.proofMode || "internal_hash"),
+      proofProvider: otsResult ? "OpenTimestamps / Bitcoin" : (passport.proofProvider || "Matrice Narrative"),
+      proofExternalReference: otsResult ? "OpenTimestamps Bitcoin en attente de confirmation" : passport.proofExternalReference,
+      proofRegisteredAt: otsResult ? sealedAt : passport.proofRegisteredAt,
+      proofNotes: otsResult
+        ? "Empreinte SHA-256 horodatee via OpenTimestamps. La preuve est ancree gratuitement dans le calendrier public Bitcoin, puis confirmee apres inclusion dans un bloc."
+        : passport.proofNotes ||
+          "Empreinte SHA-256 interne creee par Matrice. Pour une preuve externe, utiliser un depot officiel ou un horodatage qualifie.",
+      otsProof: otsResult?.ots ?? passport.otsProof,
+      otsStatus: otsResult?.status ?? passport.otsStatus ?? "pending",
+      otsBlockchain: "bitcoin",
       version: (passport.version ?? 1) + 1,
-      updatedAt: new Date(),
+      updatedAt: sealedAt,
     })
     .where(eq(workPassportsTable.id, passport.id))
     .returning();
   return updated;
+}
+
+async function stampPassportHash(contentHash: string, passportId: string) {
+  try {
+    return await stampHash(contentHash);
+  } catch (err) {
+    logger.warn({ err, passportId }, "Horodatage OpenTimestamps indisponible pendant le scellement");
+    return null;
+  }
 }
 
 export function generatePassportMarkdown(passport: WorkPassport): string {
@@ -173,6 +193,10 @@ ${(passport.clichRisks ?? []).map((c: string) => `- ${c}`).join("\n") || "_Non i
 | **Fournisseur / registre** | ${passport.proofProvider || "Matrice Narrative"} |
 | **Reference externe** | ${passport.proofExternalReference || "_Non definie_"} |
 | **Date d'enregistrement externe** | ${passport.proofRegisteredAt ? new Date(passport.proofRegisteredAt).toLocaleDateString("fr-FR") : "_Non enregistree_"} |
+| **Statut OpenTimestamps** | ${passport.otsStatus || "_Non lance_"} |
+| **Blockchain** | ${passport.otsBlockchain || "_Non definie_"} |
+| **Bloc Bitcoin** | ${passport.otsBlockHeight ?? "_En attente_"} |
+| **Transaction Bitcoin** | ${passport.otsTxId || "_En attente_"} |
 
 ${passport.proofNotes || "Le scellement actuel prepare une preuve interne. Pour une force probante externe, effectuer un depot officiel adapte."}
 

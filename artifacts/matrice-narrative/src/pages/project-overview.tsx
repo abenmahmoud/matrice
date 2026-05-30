@@ -6,10 +6,11 @@ import { cn } from "@/lib/utils";
 import { useAdmin } from "@/context/AdminContext";
 import { apiFetch } from "@/lib/apiFetch";
 import { getUserToken, userAuthHeaders } from "@/lib/userAuth";
+import type { LentilleAnalysisRow } from "@/components/lentille/types";
 import {
   BookOpen, Brain, Users, Network, Globe2, Search, Activity,
   Book, Film, Tv, Presentation, Download, FileSearch, BookMarked,
-  ArrowRight, Sparkles, CheckCircle2, Circle, Loader2, Wand2, BookText, LockKeyhole
+  ArrowRight, Sparkles, CheckCircle2, Circle, Loader2, Wand2, BookText, LockKeyhole, FileSignature
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -87,7 +88,7 @@ const PHASES = [
       { key: "hpsa" as keyof StatusMap, name: "Scores H.P.S.A.", href: "hpsa", icon: Activity,
         desc: "7 dimensions : Humour, Pleur, Suspense, Attractivité, Profondeur, Originalité, Cohérence." },
       { key: "research" as keyof StatusMap, name: "Notes de Recherche", href: "research", icon: Search,
-        desc: "Références, tendances, risques de clichés, opportunités d'originalité." },
+        desc: "Références, risques de clichés, opportunités d'originalité." },
     ],
   },
   {
@@ -124,6 +125,8 @@ const PHASES = [
     extraModules: [
       { name: "Passeport d'Œuvre", href: "passport", icon: BookMarked,
         desc: "Identite, trace de version, checklist de depot et reconnaissance." },
+      { name: "Mandat editorial", href: "mandate", icon: FileSignature,
+        desc: "Mandat de representation signe via Essuf-Sign avec hash public." },
       { name: "Exports", href: "exports", icon: Download,
         desc: "PDF, Markdown, Fountain, JSON — tous vos documents exportables." },
     ],
@@ -283,6 +286,16 @@ export default function ProjectOverview() {
     staleTime: 60_000,
   });
 
+  const { data: lentilleLatest } = useQuery<{ analyse: LentilleAnalysisRow | null }>({
+    queryKey: [`/api/lentille-marche/project/${id}/latest`],
+    queryFn: async () => {
+      const response = await apiFetch(`${BASE}/api/lentille-marche/project/${id}/latest`);
+      return response.json() as Promise<{ analyse: LentilleAnalysisRow | null }>;
+    },
+    enabled: !!id && !!getUserToken(),
+    staleTime: 30_000,
+  });
+
   if (projectLoading || statusLoading) {
     return (
       <AppLayout>
@@ -329,7 +342,7 @@ export default function ProjectOverview() {
             <div className="absolute -bottom-20 -right-20 w-72 h-72 rounded-full bg-indigo-600/6 blur-[100px]" />
           </div>
 
-          <div className="relative z-10 max-w-6xl mx-auto px-8 py-10">
+          <div className="relative z-10 mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
             <div className="flex flex-col lg:flex-row lg:items-start gap-8">
 
               {/* Left: project info */}
@@ -348,7 +361,7 @@ export default function ProjectOverview() {
                 </div>
 
                 {/* Title */}
-                <h1 className="text-4xl sm:text-5xl font-serif font-bold text-white tracking-tight leading-none mb-6">
+                <h1 className="mobile-safe-wrap mb-6 font-serif text-3xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
                   {project.title}
                 </h1>
 
@@ -365,7 +378,7 @@ export default function ProjectOverview() {
 
                 {/* Spark quote */}
                 {spark && (
-                  <blockquote className="border-l-2 border-violet-500/40 pl-4 py-1">
+                  <blockquote className="border-l-2 border-violet-500/40 py-1 pl-4">
                     <p className="text-sm text-white/35 italic leading-relaxed line-clamp-3">
                       "{spark.length > 180 ? spark.slice(0, 180) + "…" : spark}"
                     </p>
@@ -374,7 +387,7 @@ export default function ProjectOverview() {
               </div>
 
               {/* Right: progress + next step */}
-              <div className="flex flex-col items-center lg:items-end gap-5 flex-shrink-0">
+              <div className="flex w-full flex-col items-center gap-5 sm:w-auto lg:items-end">
                 <ProgressArc pct={completionPct} />
 
                 <div className="text-center lg:text-right">
@@ -410,7 +423,7 @@ export default function ProjectOverview() {
         </div>
 
         {/* ── CREATIVE PIPELINE ─────────────────────── */}
-        <div className="max-w-6xl mx-auto px-8 py-12 space-y-14">
+        <div className="mx-auto max-w-6xl space-y-10 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
 
           {/* Completion banner when all done */}
           {completedCount === totalCount && (
@@ -440,10 +453,48 @@ export default function ProjectOverview() {
             </div>
           )}
 
+          <div className="rounded-2xl border border-amber-400/25 bg-gradient-to-br from-amber-300/[0.10] via-white/[0.035] to-rose-400/[0.08] p-5 sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200/80">
+                  <Sparkles className="h-4 w-4" />
+                  Lentille Marché 2026
+                </div>
+                <h2 className="mt-2 font-serif text-2xl font-bold text-white">Audit production</h2>
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/45">
+                  Analyse ce projet sous l'angle microdrama, IA-prod, pression spatiale, personnage déplacé et hybridation.
+                </p>
+              </div>
+
+              {lentilleLatest?.analyse ? (
+                <div className="flex flex-col gap-3 sm:items-end">
+                  <div className="flex items-center gap-3">
+                    <span className="font-serif text-4xl font-bold text-amber-200">{lentilleLatest.analyse.scoreGlobal}</span>
+                    <div className="text-xs text-white/35">
+                      <p className="uppercase tracking-[0.16em]">Score global</p>
+                      <p className="mt-1 text-white/55">{lentilleLatest.analyse.formatRecommendation}</p>
+                    </div>
+                  </div>
+                  <Link href={`/lentille-marche/${lentilleLatest.analyse.id}`}>
+                    <button className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-amber-200 px-4 text-sm font-bold text-black transition hover:bg-amber-100">
+                      Voir l'audit <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </Link>
+                </div>
+              ) : (
+                <Link href={`/lentille-marche?project_id=${id}`}>
+                  <button className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-amber-200 px-4 text-sm font-bold text-black transition hover:bg-amber-100">
+                    Lancer une analyse production <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Link>
+              )}
+            </div>
+          </div>
+
           {PHASES.map((phase) => (
-            <div key={phase.n}>
+            <div key={phase.n} className="min-w-0">
               {/* Phase header */}
-              <div className="flex items-center gap-4 mb-6">
+              <div className="mb-6 flex flex-wrap items-center gap-3 sm:gap-4">
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border flex-shrink-0",
                   `${phase.bg} ${phase.border} ${phase.accent}`

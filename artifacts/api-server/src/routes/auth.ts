@@ -1,8 +1,12 @@
 import { Router, type IRouter } from "express";
-import { db, appUsersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { betaCodeUsagesTable, betaInviteCodesTable, db, appUsersTable } from "@workspace/db";
+import { eq, sql } from "drizzle-orm";
 import { createAuthActionToken, createUserToken, getAuthUser, hashPassword, verifyPassword } from "../lib/auth.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../services/emailService.js";
+import { normalizeInviteCode, validateInviteCodeState } from "../services/betaInviteService.js";
+import { welcomeEmail } from "../services/emailTemplates.js";
+import { notify } from "../services/notificationService.js";
+import { ensureWelcomeStep } from "../services/onboardingService.js";
 
 const router: IRouter = Router();
 const VERIFICATION_RESEND_COOLDOWN_MS = 1000 * 60;
@@ -19,6 +23,11 @@ function publicUser(user: typeof appUsersTable.$inferSelect) {
     generationsUsed: user.generationsUsed,
     projectsCreated: user.projectsCreated,
     isEmailVerified: user.isEmailVerified,
+    creatorModeEnabled: user.creatorModeEnabled,
+    isBetaTester: user.isBetaTester,
+    betaStartedAt: user.betaStartedAt,
+    betaExpiresAt: user.betaExpiresAt,
+    onboardingStep: user.onboardingStep,
     onboardingCompletedAt: user.onboardingCompletedAt,
   };
 }
@@ -36,12 +45,33 @@ async function sendUserVerificationEmail(user: typeof appUsersTable.$inferSelect
 
 router.post("/auth/signup", async (req, res) => {
   try {
-    const { email, password, displayName } = req.body as { email?: string; password?: string; displayName?: string };
+    const { email, password, displayName, inviteCode, invite_code } = req.body as {
+      email?: string;
+      password?: string;
+      displayName?: string;
+      inviteCode?: string;
+      invite_code?: string;
+    };
     const normalizedEmail = email?.trim().toLowerCase();
     if (!normalizedEmail || !password || password.length < 8) {
       res.status(400).json({ error: "EMAIL_AND_PASSWORD_REQUIRED" });
       return;
     }
+
+    const normalizedInviteCode = normalizeInviteCode(inviteCode ?? invite_code);
+    const [betaCode] = normalizedInviteCode
+      ? await db.select().from(betaInviteCodesTable).where(eq(betaInviteCodesTable.code, normalizedInviteCode)).limit(1)
+      : [];
+    const inviteValidation = normalizedInviteCode ? validateInviteCodeState(betaCode) : { ok: true as const };
+    if (!inviteValidation.ok) {
+      res.status(inviteValidation.status).json({ error: inviteValidation.error });
+      return;
+    }
+
+    const betaStartedAt = betaCode ? new Date() : null;
+    const betaExpiresAt = betaCode && betaStartedAt
+      ? new Date(betaStartedAt.getTime() + betaCode.durationMonths * 30 * 24 * 60 * 60 * 1000)
+      : null;
 
     const existing = await db.select({ id: appUsersTable.id }).from(appUsersTable).where(eq(appUsersTable.email, normalizedEmail)).limit(1);
     if (existing.length > 0) {
@@ -55,13 +85,40 @@ router.post("/auth/signup", async (req, res) => {
         email: normalizedEmail,
         passwordHash: hashPassword(password),
         displayName: displayName?.trim() ?? "",
-        plan: "free",
+        plan: betaCode?.planGranted ?? "free",
         role: "user",
+        isBetaTester: Boolean(betaCode),
+        betaStartedAt,
+        betaExpiresAt,
         isEmailVerified: false,
         emailVerificationToken: createAuthActionToken(),
         emailVerificationSentAt: new Date(),
       })
       .returning();
+
+    if (betaCode) {
+      await db
+        .update(betaInviteCodesTable)
+        .set({ usesCount: sql`${betaInviteCodesTable.usesCount} + 1` })
+        .where(eq(betaInviteCodesTable.code, betaCode.code));
+      await db.insert(betaCodeUsagesTable).values({
+        code: betaCode.code,
+        userId: user.id,
+        ipAddress: req.ip ?? null,
+        userAgent: req.get("user-agent") ?? null,
+      });
+    }
+
+    await ensureWelcomeStep(user.id);
+    void notify({
+      userId: user.id,
+      type: betaCode ? "beta_welcome" : "welcome",
+      title: betaCode ? "Bienvenue dans la beta Matrice" : "Bienvenue sur Matrice",
+      body: betaCode ? "Ton acces beta Premium est active. On commence par ton premier projet." : "On commence par ton premier projet.",
+      actionUrl: "/onboarding",
+      actionLabel: "Demarrer",
+      email: welcomeEmail({ displayName: user.displayName || user.email, betaExpiresAt }),
+    }).catch((err) => req.log.warn({ err }, "Welcome notification failed"));
 
     const emailDelivery = await sendUserVerificationEmail(user);
     if (emailDelivery.status === "failed") {
@@ -113,6 +170,90 @@ router.get("/auth/me", (req, res) => {
     return;
   }
   res.json({ user });
+});
+
+router.patch("/auth/me", async (req, res) => {
+  try {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: "AUTH_REQUIRED" });
+      return;
+    }
+
+    const { displayName } = req.body as { displayName?: string };
+    if (typeof displayName !== "string" || displayName.trim().length < 1 || displayName.trim().length > 80) {
+      res.status(400).json({ error: "DISPLAY_NAME_INVALID" });
+      return;
+    }
+
+    const [user] = await db
+      .update(appUsersTable)
+      .set({ displayName: displayName.trim(), updatedAt: new Date() })
+      .where(eq(appUsersTable.id, authUser.id))
+      .returning();
+
+    res.json({ user: publicUser(user), token: createUserToken(user) });
+  } catch (err) {
+    req.log.error({ err }, "Failed to update user profile");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/auth/change-password", async (req, res) => {
+  try {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: "AUTH_REQUIRED" });
+      return;
+    }
+
+    const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
+    if (!currentPassword || !newPassword || newPassword.length < 8) {
+      res.status(400).json({ error: "PASSWORD_REQUIRED" });
+      return;
+    }
+
+    const [user] = await db.select().from(appUsersTable).where(eq(appUsersTable.id, authUser.id)).limit(1);
+    if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
+      res.status(401).json({ error: "INVALID_CURRENT_PASSWORD" });
+      return;
+    }
+
+    const [updatedUser] = await db
+      .update(appUsersTable)
+      .set({ passwordHash: hashPassword(newPassword), updatedAt: new Date() })
+      .where(eq(appUsersTable.id, authUser.id))
+      .returning();
+
+    res.json({ user: publicUser(updatedUser), token: createUserToken(updatedUser) });
+  } catch (err) {
+    req.log.error({ err }, "Failed to change password");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/auth/logout", (_req, res) => {
+  res.json({ ok: true });
+});
+
+router.delete("/auth/me", async (req, res) => {
+  try {
+    const authUser = getAuthUser(req);
+    if (!authUser) {
+      res.status(401).json({ error: "AUTH_REQUIRED" });
+      return;
+    }
+
+    await db
+      .update(appUsersTable)
+      .set({ status: "deleted", updatedAt: new Date() })
+      .where(eq(appUsersTable.id, authUser.id));
+
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to delete user account");
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 router.post("/auth/onboarding/complete", async (req, res) => {

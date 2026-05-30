@@ -25,54 +25,54 @@ export default function ExperimentalModulesPage() {
   const modules = data?.modules ?? [];
 
   return (
-    <div className="min-h-[100dvh] bg-[#09090e] px-5 py-10 text-white sm:px-8">
+    <div className="matrice-work min-h-[100dvh] bg-matrice-ivoire px-5 py-10 text-matrice-encre sm:px-8">
       <main className="mx-auto max-w-6xl">
-        <Link href={`${BASE}/dashboard`} className="inline-flex items-center gap-2 text-sm text-white/50 transition hover:text-white">
+        <Link href={`${BASE}/dashboard`} className="inline-flex items-center gap-2 text-sm text-matrice-encre/55 transition hover:text-matrice-terracotta">
           <ArrowLeft className="h-4 w-4" />
           Dashboard
         </Link>
         <div className="mt-10 grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <section>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-violet-300/75">Lab experimental</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-matrice-or-fonce">Lab experimental</p>
             <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">Modules actives par plan.</h1>
-            <p className="mt-5 text-sm leading-7 text-white/55">
+            <p className="mt-5 text-sm leading-7 text-matrice-encre/62">
               Cette page expose ce qui peut etre active pour Studio ou Enterprise. Les modules reserves
               restent invisibles a l'usage public meme quand la table existe.
             </p>
-            <Button asChild className="mt-7 bg-violet-500 text-white hover:bg-violet-400">
+            <Button asChild className="mt-7 bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
               <Link href={`${BASE}/pricing`}>Voir les paliers</Link>
             </Button>
           </section>
 
           <section className="grid gap-4">
-            {isLoading && <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 text-white/55">Chargement...</div>}
+            {isLoading && <div className="rounded-2xl border border-matrice-sable bg-white p-5 text-matrice-encre/62">Chargement...</div>}
             {!isLoading && modules.length === 0 && (
-              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6">
-                <FlaskConical className="h-7 w-7 text-violet-200" />
+              <div className="rounded-2xl border border-matrice-sable bg-white p-6">
+                <FlaskConical className="h-7 w-7 text-matrice-terracotta" />
                 <h2 className="mt-5 text-xl font-semibold">Aucun module configure</h2>
-                <p className="mt-2 text-sm leading-6 text-white/50">Le Studio pourra ajouter les modules experimentaux apres migration VPS.</p>
+                <p className="mt-2 text-sm leading-6 text-matrice-encre/55">Le Studio pourra ajouter les modules experimentaux apres migration VPS.</p>
               </div>
             )}
             {modules.map((module) => (
-              <article key={module.id} className="rounded-2xl border border-white/[0.08] bg-[#10101a] p-5">
+              <article key={module.id} className="rounded-2xl border border-matrice-sable bg-white p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h2 className="text-xl font-semibold">{module.name}</h2>
-                    <p className="mt-2 text-sm leading-6 text-white/50">{module.description || module.slug}</p>
+                    <p className="mt-2 text-sm leading-6 text-matrice-encre/55">{module.description || module.slug}</p>
                   </div>
-                  <div className={`rounded-full px-3 py-1 text-xs font-semibold ${module.available ? "bg-emerald-400/15 text-emerald-200" : "bg-white/[0.06] text-white/45"}`}>
+                  <div className={`rounded-full px-3 py-1 text-xs font-semibold ${module.available ? "bg-emerald-400/15 text-emerald-700" : "bg-matrice-sable/70 text-matrice-encre/55"}`}>
                     {module.available ? "Disponible" : "Verrouille"}
                   </div>
                 </div>
-                <div className="mt-5 flex flex-wrap gap-2 text-xs text-white/45">
-                  <span className="rounded-full bg-white/[0.05] px-3 py-1">Plan minimum: {module.minimumPlan}</span>
+                <div className="mt-5 flex flex-wrap gap-2 text-xs text-matrice-encre/55">
+                  <span className="rounded-full bg-matrice-sable/70 px-3 py-1">Plan minimum: {module.minimumPlan}</span>
                   {module.isOwnerOnly && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-400/10 px-3 py-1 text-violet-200">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-matrice-terracotta/10 px-3 py-1 text-matrice-terracotta">
                       <LockKeyhole className="h-3 w-3" />
                       Reserve Studio
                     </span>
                   )}
-                  {!module.isEnabled && <span className="rounded-full bg-red-400/10 px-3 py-1 text-red-100">Desactive</span>}
+                  {!module.isEnabled && <span className="rounded-full bg-matrice-error/10 px-3 py-1 text-matrice-error">Desactive</span>}
                 </div>
               </article>
             ))}
