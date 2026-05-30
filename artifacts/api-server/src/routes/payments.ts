@@ -1,9 +1,25 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { stripe, createCheckoutSession, createCustomerPortalSession, getUserSubscription, cancelSubscription, reactivateSubscription, getUserInvoices, handleWebhookEvent } from "../services/stripeService.js";
+import {
+  stripe,
+  createSubscriptionCheckout,
+  createCreditPackCheckout,
+  createCustomerPortalSession,
+  getUserSubscription,
+  cancelSubscription,
+  reactivateSubscription,
+  getUserInvoices,
+  handleWebhookEvent,
+  type BillingPlan,
+  type BillingInterval,
+  type CreditPack,
+} from "../services/stripeService.js";
 import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
 
 const router: IRouter = Router();
-const BILLING_PLANS = new Set(["pro", "studio", "publish"]);
+
+const PLANS = new Set<BillingPlan>(["studio", "premium"]);
+const INTERVALS = new Set<BillingInterval>(["monthly", "yearly"]);
+const PACKS = new Set<CreditPack>(["pack_100", "pack_300", "pack_1000"]);
 
 function requireUser(req: Request, res: Response): AuthenticatedUser | null {
   const user = getAuthUser(req);
@@ -14,26 +30,47 @@ function requireUser(req: Request, res: Response): AuthenticatedUser | null {
   return user;
 }
 
-function isBillingPlan(value: unknown): value is "pro" | "studio" | "publish" {
-  return typeof value === "string" && BILLING_PLANS.has(value);
-}
-
-// POST /api/payments/checkout — Creer session Stripe Checkout
+// POST /api/payments/checkout — Abonnement (studio|premium x monthly|yearly)
 router.post("/payments/checkout", async (req, res) => {
   try {
     const user = requireUser(req, res);
     if (!user) return;
 
-    const { plan } = req.body;
-    if (!isBillingPlan(plan)) {
-      res.status(400).json({ error: "Plan invalide. Choisissez pro, studio ou publish." });
+    const plan = req.body?.plan;
+    const interval = req.body?.interval ?? "monthly";
+    if (!PLANS.has(plan)) {
+      res.status(400).json({ error: "Plan invalide. Choisissez studio ou premium." });
+      return;
+    }
+    if (!INTERVALS.has(interval)) {
+      res.status(400).json({ error: "Periode invalide. Choisissez monthly ou yearly." });
       return;
     }
 
-    const session = await createCheckoutSession(user.id, user.email, plan);
+    const session = await createSubscriptionCheckout(user.id, user.email, plan, interval);
     res.json({ sessionId: session.id, url: session.url });
   } catch (err) {
-    req.log.error({ err }, "Erreur checkout");
+    req.log.error({ err }, "Erreur checkout abonnement");
+    res.status(500).json({ error: "Erreur lors de la creation du paiement" });
+  }
+});
+
+// POST /api/payments/recharge — Achat d'un pack de credits (paiement unique)
+router.post("/payments/recharge", async (req, res) => {
+  try {
+    const user = requireUser(req, res);
+    if (!user) return;
+
+    const pack = req.body?.pack;
+    if (!PACKS.has(pack)) {
+      res.status(400).json({ error: "Pack invalide. Choisissez pack_100, pack_300 ou pack_1000." });
+      return;
+    }
+
+    const session = await createCreditPackCheckout(user.id, user.email, pack);
+    res.json({ sessionId: session.id, url: session.url });
+  } catch (err) {
+    req.log.error({ err }, "Erreur recharge credits");
     res.status(500).json({ error: "Erreur lors de la creation du paiement" });
   }
 });
@@ -127,11 +164,7 @@ router.post("/payments/webhook", async (req, res) => {
       return;
     }
 
-    const event = stripe.webhooks.constructEvent(
-      req.body,
-      sig as string,
-      secret
-    );
+    const event = stripe.webhooks.constructEvent(req.body, sig as string, secret);
 
     await handleWebhookEvent(event);
     res.json({ received: true });

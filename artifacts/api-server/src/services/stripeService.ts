@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { db, appUsersTable, subscriptionsTable, invoicesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { renewMonthlyCredits, grantCredits, CREDIT_PACKS } from "./creditsService.js";
 
 // ---------------------------------------------------------------------------
 // Stripe Configuration (optionnel)
@@ -30,49 +31,97 @@ function ensureStripe(): Stripe {
 }
 
 // ---------------------------------------------------------------------------
-// Price IDs
+// Grille tarifaire — abonnements (mensuel/annuel) + packs de recharge
 // ---------------------------------------------------------------------------
 
-export const STRIPE_PRICES: Record<string, string> = {
-  pro: process.env["STRIPE_PRICE_PRO"] || "",
-  studio: process.env["STRIPE_PRICE_STUDIO"] || "",
-  publish: process.env["STRIPE_PRICE_PUBLISH"] || "",
+export type BillingPlan = "studio" | "premium";
+export type BillingInterval = "monthly" | "yearly";
+export type CreditPack = "pack_100" | "pack_300" | "pack_1000";
+
+// Price IDs Stripe (definis dans le .env / docker-compose).
+const SUBSCRIPTION_PRICES: Record<string, string> = {
+  studio_monthly: process.env["STRIPE_PRICE_STUDIO_MONTHLY"] || "",
+  studio_yearly: process.env["STRIPE_PRICE_STUDIO_YEARLY"] || "",
+  premium_monthly: process.env["STRIPE_PRICE_PREMIUM_MONTHLY"] || "",
+  premium_yearly: process.env["STRIPE_PRICE_PREMIUM_YEARLY"] || "",
 };
 
+const PACK_PRICES: Record<CreditPack, string> = {
+  pack_100: process.env["STRIPE_PRICE_CREDITS_100"] || "",
+  pack_300: process.env["STRIPE_PRICE_CREDITS_300"] || "",
+  pack_1000: process.env["STRIPE_PRICE_CREDITS_1000"] || "",
+};
+
+const PUBLIC_BASE_URL = process.env["MATRICE_PUBLIC_BASE_URL"] || "https://matrice.essuf.fr";
+
 // ---------------------------------------------------------------------------
-// Checkout Session
+// Checkout — Abonnement (studio/premium x mensuel/annuel)
 // ---------------------------------------------------------------------------
 
-export async function createCheckoutSession(
+export async function createSubscriptionCheckout(
   userId: string,
   email: string,
-  plan: "pro" | "studio" | "publish"
+  plan: BillingPlan,
+  interval: BillingInterval,
 ): Promise<Stripe.Checkout.Session> {
   const s = ensureStripe();
 
+  const customerId = await ensureCustomer(s, userId, email);
+  const priceKey = `${plan}_${interval}`;
+  const priceId = SUBSCRIPTION_PRICES[priceKey];
+  if (!priceId) throw new Error(`Price ID manquant pour ${priceKey}`);
+
+  return s.checkout.sessions.create({
+    customer: customerId,
+    payment_method_types: ["card"],
+    line_items: [{ price: priceId, quantity: 1 }],
+    mode: "subscription",
+    success_url: `${PUBLIC_BASE_URL}/billing?success=true`,
+    cancel_url: `${PUBLIC_BASE_URL}/pricing?canceled=true`,
+    metadata: { userId, plan, interval },
+    subscription_data: { metadata: { userId, plan, interval } },
+    tax_id_collection: { enabled: true },
+    automatic_tax: { enabled: true },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Checkout — Pack de recharge (paiement unique, credits permanents)
+// ---------------------------------------------------------------------------
+
+export async function createCreditPackCheckout(
+  userId: string,
+  email: string,
+  pack: CreditPack,
+): Promise<Stripe.Checkout.Session> {
+  const s = ensureStripe();
+
+  const customerId = await ensureCustomer(s, userId, email);
+  const priceId = PACK_PRICES[pack];
+  if (!priceId) throw new Error(`Price ID manquant pour ${pack}`);
+
+  return s.checkout.sessions.create({
+    customer: customerId,
+    payment_method_types: ["card"],
+    line_items: [{ price: priceId, quantity: 1 }],
+    mode: "payment",
+    success_url: `${PUBLIC_BASE_URL}/billing?recharge=true`,
+    cancel_url: `${PUBLIC_BASE_URL}/pricing?canceled=true`,
+    metadata: { userId, pack },
+    payment_intent_data: { metadata: { userId, pack } },
+    tax_id_collection: { enabled: true },
+    automatic_tax: { enabled: true },
+  });
+}
+
+async function ensureCustomer(s: Stripe, userId: string, email: string): Promise<string> {
   let customerId = await getStripeCustomerId(userId);
   if (!customerId) {
     const customer = await s.customers.create({ email, metadata: { userId } });
     customerId = customer.id;
     await db.update(appUsersTable).set({ stripeCustomerId: customerId }).where(eq(appUsersTable.id, userId));
   }
-
-  const priceId = STRIPE_PRICES[plan];
-  if (!priceId) throw new Error(`Price ID for plan ${plan} not configured`);
-
-  const session = await s.checkout.sessions.create({
-    customer: customerId,
-    payment_method_types: ["card"],
-    line_items: [{ price: priceId, quantity: 1 }],
-    mode: "subscription",
-    success_url: `${process.env["MATRICE_PUBLIC_BASE_URL"] || "https://matrice.essuf.fr"}/billing?success=true`,
-    cancel_url: `${process.env["MATRICE_PUBLIC_BASE_URL"] || "https://matrice.essuf.fr"}/pricing?canceled=true`,
-    metadata: { userId, plan },
-    subscription_data: { metadata: { userId, plan } },
-    tax_id_collection: { enabled: true },
-    automatic_tax: { enabled: true },
-  });
-  return session;
+  return customerId;
 }
 
 // ---------------------------------------------------------------------------
@@ -85,7 +134,7 @@ export async function createCustomerPortalSession(userId: string): Promise<strin
   if (!customerId) throw new Error("No Stripe customer found");
   const session = await s.billingPortal.sessions.create({
     customer: customerId,
-    return_url: `${process.env["MATRICE_PUBLIC_BASE_URL"] || "https://matrice.essuf.fr"}/billing`,
+    return_url: `${PUBLIC_BASE_URL}/billing`,
   });
   return session.url;
 }
@@ -129,10 +178,12 @@ export async function getUserInvoices(userId: string) {
   return stripeInvoices.data;
 }
 
+type InvoiceWithSub = Stripe.Invoice & {
+  subscription_details?: { metadata?: Record<string, string> };
+};
+
 export async function syncInvoiceToDB(stripeInvoice: Stripe.Invoice) {
-  const invoiceWithDetails = stripeInvoice as Stripe.Invoice & {
-    subscription_details?: { metadata?: Record<string, string> };
-  };
+  const invoiceWithDetails = stripeInvoice as InvoiceWithSub;
   const userId = invoiceWithDetails.subscription_details?.metadata?.userId ?? stripeInvoice.metadata?.userId;
   if (!userId) return;
   const amount = (stripeInvoice.total / 100).toFixed(2);
@@ -143,7 +194,7 @@ export async function syncInvoiceToDB(stripeInvoice: Stripe.Invoice) {
     amount: amount as any,
     currency: stripeInvoice.currency || "eur",
     status: stripeInvoice.status || "draft",
-    description: stripeInvoice.description || "Abonnement Matrice Narrative",
+    description: stripeInvoice.description || "Abonnement Matrice",
     periodStart: stripeInvoice.period_start ? new Date(stripeInvoice.period_start * 1000) : null,
     periodEnd: stripeInvoice.period_end ? new Date(stripeInvoice.period_end * 1000) : null,
     pdfUrl: stripeInvoice.invoice_pdf || null,
@@ -157,8 +208,8 @@ export async function syncInvoiceToDB(stripeInvoice: Stripe.Invoice) {
 // Webhook Handlers
 // ---------------------------------------------------------------------------
 
-function planFromMetadata(value: unknown): "free" | "pro" | "studio" | "publish" {
-  return value === "pro" || value === "studio" || value === "publish" ? value : "free";
+function planFromMetadata(value: unknown): "free" | "studio" | "premium" {
+  return value === "studio" || value === "premium" ? value : "free";
 }
 
 function stripeDate(value: number | null | undefined): Date | null {
@@ -220,20 +271,33 @@ export async function handleWebhookEvent(event: Stripe.Event) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
       const userId = session.metadata?.userId;
-      const plan = planFromMetadata(session.metadata?.plan);
-      if (session.subscription && stripe) {
+      if (session.mode === "subscription" && session.subscription && stripe) {
+        // Abonnement : on synchronise le plan. Les credits mensuels sont
+        // attribues sur invoice.paid (couvre 1er paiement + renouvellements),
+        // ce qui evite tout double credit.
         const subscriptionId =
           typeof session.subscription === "string" ? session.subscription : session.subscription.id;
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         await syncSubscriptionToDB(subscription);
-      } else if (userId) {
-        await db.update(appUsersTable).set({ plan, updatedAt: new Date() }).where(eq(appUsersTable.id, userId));
+      } else if (session.mode === "payment" && userId) {
+        // Pack de recharge : credits permanents ajoutes immediatement.
+        const pack = session.metadata?.pack as keyof typeof CREDIT_PACKS | undefined;
+        const amount = pack ? CREDIT_PACKS[pack] : undefined;
+        if (amount) {
+          await grantCredits(userId, amount, `recharge:${pack}`, session.id);
+        }
       }
       break;
     }
     case "invoice.paid": {
-      const invoice = event.data.object as Stripe.Invoice;
+      const invoice = event.data.object as InvoiceWithSub;
       await syncInvoiceToDB(invoice);
+      // Attribution / renouvellement des credits mensuels du plan.
+      const userId = invoice.subscription_details?.metadata?.userId ?? invoice.metadata?.userId;
+      const plan = planFromMetadata(invoice.subscription_details?.metadata?.plan);
+      if (userId && invoice.subscription_details?.metadata?.plan) {
+        await renewMonthlyCredits(userId, plan);
+      }
       break;
     }
     case "invoice.payment_failed": {
@@ -256,6 +320,8 @@ export async function handleWebhookEvent(event: Stripe.Event) {
           .update(appUsersTable)
           .set({ plan: "free", stripeSubscriptionId: null, updatedAt: new Date() })
           .where(eq(appUsersTable.id, userId));
+        // Retour au quota gratuit.
+        await renewMonthlyCredits(userId, "free");
       }
       break;
     }
