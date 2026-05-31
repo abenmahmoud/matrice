@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { db, appUsersTable, subscriptionsTable, invoicesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { renewMonthlyCredits, grantCredits, CREDIT_PACKS } from "./creditsService.js";
+import { handleConnectWebhookEvent } from "./connectPublishingService.js";
 
 // ---------------------------------------------------------------------------
 // Stripe Configuration (optionnel)
@@ -267,6 +268,7 @@ async function syncSubscriptionToDB(subscription: Stripe.Subscription): Promise<
 }
 
 export async function handleWebhookEvent(event: Stripe.Event) {
+  if (await handleConnectWebhookEvent(event)) return;
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;

@@ -1,8 +1,9 @@
 import type { FormEvent } from "react";
+import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "wouter";
-import { ArrowLeft, ExternalLink, Plus, ReceiptText, Trash2, WalletCards } from "lucide-react";
+import { ArrowLeft, ExternalLink, Link2, Plus, ReceiptText, ShieldCheck, Trash2, WalletCards } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,6 +60,28 @@ type SalesResponse = {
   totals: SalesSplit;
 };
 
+type PublishingFinance = {
+  payout_account: null | {
+    id: string;
+    status: string;
+    chargesEnabled: boolean;
+    payoutsEnabled: boolean;
+    detailsSubmitted: boolean;
+    requirementsCurrentlyDue: string[];
+  };
+  channel_connections: Array<{ id: string; channel: string; externalAccount?: string | null; status: string }>;
+  settlements: Array<{
+    id: string;
+    channel: string;
+    grossAmountCents: number;
+    applicationFeeAmountCents: number;
+    netAmountCents: number;
+    currency: string;
+    status: string;
+    kycStatus: string;
+  }>;
+};
+
 export default function ProjectPublishPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
@@ -70,6 +93,8 @@ export default function ProjectPublishPage() {
     currency: "EUR",
     note: "",
   });
+  const [channelForm, setChannelForm] = useState({ channel: "", external_account: "" });
+  const [checkoutForm, setCheckoutForm] = useState({ channel: "Matrice", amount_cents: "990", currency: "EUR" });
 
   const planQuery = useQuery({
     queryKey: ["publish-plan", id],
@@ -87,6 +112,16 @@ export default function ProjectPublishPage() {
       const response = await apiFetch(`${BASE}/api/projects/${id}/sales`);
       if (!response.ok) throw new Error("Ventes indisponibles");
       return response.json() as Promise<SalesResponse>;
+    },
+    enabled: !!id,
+  });
+
+  const financeQuery = useQuery({
+    queryKey: ["publishing-finance", id],
+    queryFn: async () => {
+      const response = await apiFetch(`${BASE}/api/projects/${id}/publishing/finance`);
+      if (!response.ok) throw new Error("Finance publication indisponible");
+      return response.json() as Promise<PublishingFinance>;
     },
     enabled: !!id,
   });
@@ -131,6 +166,58 @@ export default function ProjectPublishPage() {
       toast({ title: "Vente supprimee" });
       queryClient.invalidateQueries({ queryKey: ["sales", id] });
     },
+  });
+
+  const onboarding = useMutation({
+    mutationFn: async () => {
+      const response = await apiFetch(`${BASE}/api/connect/payout-account/onboarding`, { method: "POST" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error((payload as { error?: string }).error ?? "Onboarding indisponible");
+      return payload as { url: string };
+    },
+    onSuccess: (payload) => {
+      window.location.href = payload.url;
+    },
+    onError: (err) => toast({ title: "Stripe Connect indisponible", description: err instanceof Error ? err.message : undefined, variant: "destructive" }),
+  });
+
+  const connectChannel = useMutation({
+    mutationFn: async () => {
+      const response = await apiFetch(`${BASE}/api/projects/${id}/publishing/channels`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(channelForm),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error((payload as { error?: string }).error ?? "Canal impossible");
+      return payload;
+    },
+    onSuccess: () => {
+      setChannelForm({ channel: "", external_account: "" });
+      toast({ title: "Canal ajoute" });
+      queryClient.invalidateQueries({ queryKey: ["publishing-finance", id] });
+    },
+  });
+
+  const connectCheckout = useMutation({
+    mutationFn: async () => {
+      const response = await apiFetch(`${BASE}/api/projects/${id}/publishing/connect-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channel: checkoutForm.channel,
+          amount_cents: Number(checkoutForm.amount_cents),
+          currency: checkoutForm.currency,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error((payload as { error?: string }).error ?? "Checkout impossible");
+      return payload as { url: string };
+    },
+    onSuccess: (payload) => {
+      window.location.href = payload.url;
+    },
+    onError: (err) => toast({ title: "Paiement test indisponible", description: err instanceof Error ? err.message : undefined, variant: "destructive" }),
   });
 
   const plan = planQuery.data;
@@ -212,6 +299,68 @@ export default function ProjectPublishPage() {
                 </div>
                 <p className="mt-4 text-xs leading-5 text-matrice-encre/55">{plan.disclaimer}</p>
               </aside>
+            </section>
+
+            <section className="grid gap-6 lg:grid-cols-[1fr_1fr]">
+              <article className="rounded-2xl border border-matrice-sable bg-white p-5 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-matrice-success" />
+                  <h2 className="font-serif text-2xl text-matrice-encre">Stripe Connect auteur</h2>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-matrice-encre/65">
+                  Phase B en mode test : compte auteur connecté, destination charges, commission 10% via application_fee_amount. Aucun encaissement live tant que connect_live reste désactivé.
+                </p>
+                <div className="mt-4 rounded-xl border border-matrice-sable bg-matrice-ivoire/60 p-4 text-sm">
+                  {financeQuery.isLoading ? "Chargement..." : financeQuery.data?.payout_account ? (
+                    <div className="grid gap-1 text-matrice-encre/75">
+                      <span>Statut : <strong>{financeQuery.data.payout_account.status}</strong></span>
+                      <span>KYC : <strong>{financeQuery.data.payout_account.detailsSubmitted && financeQuery.data.payout_account.payoutsEnabled ? "complet" : "incomplet"}</strong></span>
+                      <span>Paiements : {financeQuery.data.payout_account.chargesEnabled ? "actifs" : "bloques"} · Payouts : {financeQuery.data.payout_account.payoutsEnabled ? "actifs" : "bloques"}</span>
+                    </div>
+                  ) : "Aucun compte auteur connecté."}
+                </div>
+                <Button onClick={() => onboarding.mutate()} disabled={onboarding.isPending} className="mt-4 rounded-xl bg-matrice-encre text-matrice-ivoire hover:bg-matrice-bleu-nuit">
+                  <Link2 className="h-4 w-4" />
+                  {financeQuery.data?.payout_account ? "Mettre a jour le KYC" : "Connecter Stripe Express"}
+                </Button>
+                <p className="mt-3 text-xs leading-5 text-matrice-encre/55">TODO : vérifier DAC7 + TVA commission avec comptable avant activation live.</p>
+              </article>
+
+              <article className="rounded-2xl border border-matrice-sable bg-white p-5 shadow-sm">
+                <h2 className="font-serif text-2xl text-matrice-encre">Vente test Connect</h2>
+                <p className="mt-2 text-sm leading-6 text-matrice-encre/65">Crée une Checkout Session Stripe test avec transfert destination auteur et fee native Matrice 10%.</p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  <Input value={checkoutForm.channel} onChange={(event) => setCheckoutForm((current) => ({ ...current, channel: event.target.value }))} placeholder="Canal" />
+                  <Input value={checkoutForm.amount_cents} onChange={(event) => setCheckoutForm((current) => ({ ...current, amount_cents: event.target.value }))} placeholder="990" />
+                  <Input value={checkoutForm.currency} maxLength={3} onChange={(event) => setCheckoutForm((current) => ({ ...current, currency: event.target.value.toUpperCase() }))} />
+                </div>
+                <Button onClick={() => connectCheckout.mutate()} disabled={connectCheckout.isPending} className="mt-4 rounded-xl bg-matrice-encre text-matrice-ivoire hover:bg-matrice-bleu-nuit">
+                  Lancer paiement test
+                </Button>
+                {financeQuery.data?.settlements.length ? (
+                  <div className="mt-4 grid gap-2 text-xs text-matrice-encre/65">
+                    {financeQuery.data.settlements.slice(0, 5).map((settlement) => (
+                      <div key={settlement.id} className="rounded-lg border border-matrice-sable p-2">
+                        {settlement.channel} · {settlement.status} · fee {formatMoney(settlement.applicationFeeAmountCents / 100, settlement.currency)}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </article>
+            </section>
+
+            <section className="rounded-2xl border border-matrice-sable bg-white p-5 shadow-sm">
+              <h2 className="font-serif text-2xl text-matrice-encre">Canaux connectes</h2>
+              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+                <Input value={channelForm.channel} onChange={(event) => setChannelForm((current) => ({ ...current, channel: event.target.value }))} placeholder="Amazon KDP, Filmhub..." />
+                <Input value={channelForm.external_account} onChange={(event) => setChannelForm((current) => ({ ...current, external_account: event.target.value }))} placeholder="Identifiant externe optionnel" />
+                <Button onClick={() => connectChannel.mutate()} disabled={connectChannel.isPending || channelForm.channel.trim().length < 2} className="rounded-xl bg-matrice-encre text-matrice-ivoire hover:bg-matrice-bleu-nuit">
+                  Ajouter
+                </Button>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {financeQuery.data?.channel_connections.map((connection) => <SmallBadge key={connection.id}>{connection.channel} · {connection.status}</SmallBadge>)}
+              </div>
             </section>
 
             <section className="grid gap-6 lg:grid-cols-[0.9fr_1.4fr]">
@@ -303,7 +452,7 @@ function TypeBadge({ label }: { label: string }) {
   return <span className="rounded-full bg-matrice-bleu-nuit px-3 py-1 text-sm font-semibold text-matrice-ivoire">{label}</span>;
 }
 
-function SmallBadge({ children }: { children: string }) {
+function SmallBadge({ children }: { children: ReactNode }) {
   return <span className="rounded-full bg-matrice-ivoire px-2 py-0.5 text-xs font-medium text-matrice-encre/70">{children}</span>;
 }
 
