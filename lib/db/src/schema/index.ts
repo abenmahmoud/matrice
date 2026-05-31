@@ -18,3 +18,4 @@ export * from "./credits";
 export * from "./sales";
 export * from "./community";
 export * from "./connectPublishing";
+export * from "./audiobook";
