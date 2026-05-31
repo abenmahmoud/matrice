@@ -172,18 +172,32 @@ export default function NewProject() {
   // Step 4 — Le Projet
   const [title, setTitle] = useState("");
   const [format, setFormat] = useState("Film long métrage");
-  const [genre, setGenre] = useState("Thriller");
-  const [tone, setTone] = useState("Sombre");
+  const [selectedGenres, setSelectedGenres] = useState<string[]>(["Thriller"]);
+  const [selectedTones, setSelectedTones] = useState<string[]>(["Sombre"]);
 
   const toggleMood = (id: string) => {
     setSelectedMoods(prev => prev.includes(id) ? prev.filter(m => m !== id) : [...prev, id]);
+  };
+
+  const toggleGenre = (value: string) => {
+    setSelectedGenres(prev => {
+      if (prev.includes(value)) return prev.length > 1 ? prev.filter(g => g !== value) : prev;
+      return [...prev, value];
+    });
+  };
+
+  const toggleTone = (value: string) => {
+    setSelectedTones(prev => {
+      if (prev.includes(value)) return prev.length > 1 ? prev.filter(t => t !== value) : prev;
+      return [...prev, value];
+    });
   };
 
   const canProceed = () => {
     if (step === 1) return spark.trim().length >= 10;
     if (step === 2) return selectedMoods.length >= 1;
     if (step === 3) return true;
-    if (step === 4) return title.trim().length >= 2;
+    if (step === 4) return title.trim().length >= 2 && selectedGenres.length >= 1 && selectedTones.length >= 1;
     return false;
   };
 
@@ -195,8 +209,8 @@ export default function NewProject() {
       const body = {
         title: title.trim(),
         rawIdea: spark.trim(),
-        genre,
-        tone,
+        genre: selectedGenres.join(", "),
+        tone: selectedTones.join(", "),
         targetFormat: format,
         inspirationSources: spark.trim(),
         visualMoods: moodLabels,
@@ -211,7 +225,22 @@ export default function NewProject() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error("Création échouée");
+      if (!res.ok) {
+        let message = "Création échouée";
+        try {
+          const payload = await res.json() as { error?: string };
+          if (payload.error === "FREE_PROJECT_LIMIT_REACHED") {
+            message = "Limite du plan gratuit atteinte. Les comptes admin peuvent générer sans cette limite après cette mise à jour.";
+          } else if (payload.error === "AUTH_REQUIRED") {
+            message = "Connexion requise. Reconnecte-toi puis relance la création.";
+          } else if (payload.error === "INVALID_PROJECT_INPUT") {
+            message = "Certains champs du projet sont incomplets ou invalides.";
+          }
+        } catch {
+          // Message par défaut conservé si l'API ne renvoie pas de JSON.
+        }
+        throw new Error(message);
+      }
       const project = await res.json() as { id: string };
 
       // Fire and forget: matrix generation (SSE)
@@ -238,8 +267,12 @@ export default function NewProject() {
         description: "Matrice narrative en cours de génération...",
       });
       setLocation(`/projects/${project.id}/matrix`);
-    } catch {
-      toast({ variant: "destructive", title: "Erreur", description: "Impossible de créer le projet." });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: err instanceof Error && err.message ? err.message : "Impossible de créer le projet.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -455,13 +488,14 @@ export default function NewProject() {
               {/* Genre + Tone */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-white/25 uppercase tracking-[0.15em] mb-3">Genre</label>
+                  <label className="block text-xs text-white/25 uppercase tracking-[0.15em] mb-2">Genres</label>
+                  <p className="text-[11px] text-white/25 mb-3">Selection multiple possible, ex. Comédie + Romance.</p>
                   <div className="flex flex-wrap gap-1.5">
                     {GENRES.map(g => (
-                      <button key={g} onClick={() => setGenre(g)}
+                      <button key={g} onClick={() => toggleGenre(g)}
                         className={cn(
                           "text-xs px-2.5 py-1.5 rounded-lg border transition-all font-medium",
-                          genre === g
+                          selectedGenres.includes(g)
                             ? "bg-violet-600/70 text-white border-violet-500/50"
                             : "bg-white/[0.02] text-white/35 border-white/[0.08] hover:text-white/60 hover:bg-white/[0.04]"
                         )}>
@@ -471,13 +505,14 @@ export default function NewProject() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs text-white/25 uppercase tracking-[0.15em] mb-3">Ton</label>
+                  <label className="block text-xs text-white/25 uppercase tracking-[0.15em] mb-2">Tons</label>
+                  <p className="text-[11px] text-white/25 mb-3">Combinez plusieurs registres si le projet le demande.</p>
                   <div className="flex flex-wrap gap-1.5">
                     {TONES.map(t => (
-                      <button key={t} onClick={() => setTone(t)}
+                      <button key={t} onClick={() => toggleTone(t)}
                         className={cn(
                           "text-xs px-2.5 py-1.5 rounded-lg border transition-all font-medium",
-                          tone === t
+                          selectedTones.includes(t)
                             ? "bg-indigo-600/70 text-white border-indigo-500/50"
                             : "bg-white/[0.02] text-white/35 border-white/[0.08] hover:text-white/60 hover:bg-white/[0.04]"
                         )}>
@@ -573,6 +608,18 @@ export default function NewProject() {
                   })}
                 </div>
               )}
+              <div className="flex flex-wrap gap-1.5">
+                {selectedGenres.map(g => (
+                  <span key={g} className="text-[10px] px-2 py-0.5 rounded-full bg-violet-600/15 text-violet-300 border border-violet-500/20">
+                    {g}
+                  </span>
+                ))}
+                {selectedTones.map(t => (
+                  <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-600/15 text-indigo-300 border border-indigo-500/20">
+                    {t}
+                  </span>
+                ))}
+              </div>
               {references && (
                 <p className="text-xs text-white/30">Références : {references.slice(0, 60)}{references.length > 60 ? "..." : ""}</p>
               )}

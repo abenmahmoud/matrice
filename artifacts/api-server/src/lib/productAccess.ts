@@ -82,10 +82,11 @@ export function getProductAccess(req?: Request): ProductAccess {
     user?.plan === "enterprise"
       ? user.plan
       : "free";
+  const isAdminUser = user?.role === "admin";
   const plan: ProductPlan = viewer.role === "owner" ? "private" : user ? userPlan : readPlan();
   const isPrivate = viewer.role === "owner";
   const isPaid =
-    isPrivate || plan === "pro" || plan === "studio" || plan === "premium" || plan === "publish" || plan === "enterprise";
+    isPrivate || isAdminUser || plan === "pro" || plan === "studio" || plan === "premium" || plan === "publish" || plan === "enterprise";
 
   return {
     mode,
