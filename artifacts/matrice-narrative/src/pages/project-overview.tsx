@@ -51,7 +51,7 @@ type NarrativeMatrixConcept = {
 // ---------------------------------------------------------------------------
 const PHASES = [
   {
-    n: "I", label: "Fondations", desc: "L'architecture de votre univers",
+    n: "I", label: "Comprendre", desc: "L'architecture de votre univers",
     color: "violet" as const,
     glow: "rgba(139,92,246,0.12)",
     border: "border-violet-500/25",
@@ -66,7 +66,7 @@ const PHASES = [
     ],
   },
   {
-    n: "II", label: "Structure", desc: "Les habitants et l'espace narratif",
+    n: "II", label: "Construire", desc: "Les habitants et l'espace narratif",
     color: "blue" as const,
     glow: "rgba(59,130,246,0.10)",
     border: "border-blue-500/25",
@@ -145,6 +145,17 @@ const ALL_MODULE_KEYS: (keyof StatusMap)[] = [
   "matrix", "emotionalCore", "characters", "relationships", "world",
   "research", "hpsa", "book", "screenplay", "series", "pitch",
 ];
+
+function phaseDisplayLabel(phaseNumber: string, fallback: string): string {
+  const labels: Record<string, string> = {
+    I: "Comprendre",
+    II: "Construire",
+    III: "Ecrire",
+    IV: "Corriger",
+    V: "Presenter",
+  };
+  return labels[phaseNumber] ?? fallback;
+}
 
 function getNextStep(status: StatusMap): string | null {
   if (!status.matrix) return "matrix";
@@ -550,7 +561,7 @@ export default function ProjectOverview() {
                   {phase.n}
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white/80 uppercase tracking-wider">{phase.label}</h2>
+                  <h2 className="text-base font-bold text-white/80 uppercase tracking-wider">{phaseDisplayLabel(phase.n, phase.label)}</h2>
                   <p className="text-xs text-white/25 mt-0.5">{phase.desc}</p>
                 </div>
                 <div className="flex-1 h-px bg-white/[0.04] ml-2" />
