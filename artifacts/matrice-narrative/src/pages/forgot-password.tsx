@@ -11,6 +11,17 @@ export default function ForgotPasswordPage() {
   const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
   const [message, setMessage] = useState("");
 
+  function deliveryMessage(delivery: unknown): string {
+    if (!delivery || typeof delivery !== "object") {
+      return "Demande recue. Si le compte existe, un lien de reinitialisation est envoye.";
+    }
+    const status = "status" in delivery ? String(delivery.status) : "";
+    if (status === "sent") return "Email envoye. Verifie ta boite de reception et tes spams.";
+    if (status === "skipped") return "Email non envoye : configuration email absente sur le serveur.";
+    if (status === "failed") return "Email non envoye : l'expediteur ou la cle email doit etre verifie. Reessaie plus tard ou contacte le support.";
+    return "Demande recue.";
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("submitting");
@@ -20,7 +31,7 @@ export default function ForgotPasswordPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    const payload = (await response.json().catch(() => ({}))) as { error?: string; emailDelivery?: unknown };
 
     if (!response.ok) {
       setMessage(payload.error ?? "RESET_REQUEST_FAILED");
@@ -28,6 +39,7 @@ export default function ForgotPasswordPage() {
       return;
     }
 
+    setMessage(deliveryMessage(payload.emailDelivery));
     setStatus("sent");
   }
 
@@ -50,8 +62,8 @@ export default function ForgotPasswordPage() {
         {status === "sent" ? (
           <div className="mt-8 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-5">
             <Mail className="h-6 w-6 text-emerald-300" />
-            <p className="mt-3 text-sm leading-6 text-emerald-50">
-              Demande recue. Verifie ta boite email, ou l'expediteur Resend de test tant que le domaine n'est pas verifie.
+            <p className="mt-3 text-sm leading-6 text-matrice-encre">
+              {message}
             </p>
           </div>
         ) : (

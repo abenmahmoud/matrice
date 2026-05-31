@@ -7,9 +7,19 @@ type LoginState =
   | { status: "idle" }
   | { status: "submitting" }
   | { status: "error"; message: string }
+  | { status: "unverified"; email: string; message: string; resendStatus?: "idle" | "sending" | "sent" | "error"; resendMessage?: string }
   | { status: "success" };
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function deliveryLabel(delivery: unknown): string {
+  if (!delivery || typeof delivery !== "object") return "Demande traitee.";
+  const status = "status" in delivery ? String(delivery.status) : "";
+  if (status === "sent") return "Email de confirmation envoye.";
+  if (status === "skipped") return "Email non envoye : configuration email absente.";
+  if (status === "failed") return "Email non envoye : expediteur ou cle email a verifier.";
+  return "Demande traitee.";
+}
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -21,32 +31,41 @@ export default function LoginPage() {
     event.preventDefault();
     setState({ status: "submitting" });
 
+    const normalizedEmail = email.trim().toLowerCase();
     const response = await fetch(`${BASE}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+      body: JSON.stringify({ email: normalizedEmail, password }),
     });
 
     const payload = (await response.json().catch(() => ({}))) as {
       error?: string;
       token?: string;
       next?: string;
+      user?: { email?: string };
     };
 
     if (!response.ok) {
-      let message = "Identifiants invalides. Vérifiez votre email et votre mot de passe.";
       if (payload.error === "EMAIL_NOT_VERIFIED") {
-        message = "Confirmez votre email avant de vous connecter.";
-      } else if (payload.error === "ACCOUNT_LOCKED") {
-        message = "Compte temporairement verrouillé. Réessayez dans quelques minutes.";
+        setState({
+          status: "unverified",
+          email: payload.user?.email ?? normalizedEmail,
+          message: "Ton compte n'est pas encore confirme. Verifie tes emails ou renvoie le lien de confirmation.",
+          resendStatus: "idle",
+        });
+        return;
+      }
+      let message = "Identifiants invalides. Verifiez votre email et votre mot de passe.";
+      if (payload.error === "ACCOUNT_LOCKED") {
+        message = "Compte temporairement verrouille. Reessayez dans quelques minutes.";
       }
       setState({ status: "error", message });
       return;
     }
 
     if (!payload.token) {
-      setState({ status: "error", message: "Connexion réussie, mais le jeton de session est manquant." });
+      setState({ status: "error", message: "Connexion reussie, mais le jeton de session est manquant." });
       return;
     }
 
@@ -57,15 +76,50 @@ export default function LoginPage() {
     setLocation(next);
   }
 
+  async function resendVerification(targetEmail: string) {
+    setState({
+      status: "unverified",
+      email: targetEmail,
+      message: "Ton compte n'est pas encore confirme. Verifie tes emails ou renvoie le lien de confirmation.",
+      resendStatus: "sending",
+    });
+    const response = await fetch(`${BASE}/api/auth/resend-verification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: targetEmail }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as { error?: string; emailDelivery?: unknown };
+    if (!response.ok) {
+      const resendMessage = payload.error === "VERIFICATION_EMAIL_RECENTLY_SENT"
+        ? "Un email vient deja d'etre envoye. Attends une minute avant de recommencer."
+        : payload.error ?? "Impossible de renvoyer le lien pour le moment.";
+      setState({
+        status: "unverified",
+        email: targetEmail,
+        message: "Ton compte n'est pas encore confirme. Verifie tes emails ou renvoie le lien de confirmation.",
+        resendStatus: "error",
+        resendMessage,
+      });
+      return;
+    }
+    setState({
+      status: "unverified",
+      email: targetEmail,
+      message: "Ton compte n'est pas encore confirme. Verifie tes emails ou renvoie le lien de confirmation.",
+      resendStatus: "sent",
+      resendMessage: deliveryLabel(payload.emailDelivery),
+    });
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F5F1E8] px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="font-serif text-3xl tracking-[0.2em] text-[#C9A961] mb-2">
-            ESSUF · MATRICE
+            ESSUF - MATRICE
           </h1>
           <p className="text-[#2A2520]/70 text-sm">
-            Bienvenue. Connectez-vous à votre compte.
+            Bienvenue. Connectez-vous a votre compte.
           </p>
         </div>
 
@@ -96,7 +150,7 @@ export default function LoginPage() {
                   Mot de passe
                 </label>
                 <a href="/forgot-password" className="inline-flex min-h-[44px] items-center text-xs text-[#8B6F2E] hover:text-[#C9A961] transition">
-                  Mot de passe oublié ?
+                  Mot de passe oublie ?
                 </a>
               </div>
               <div className="relative">
@@ -120,6 +174,23 @@ export default function LoginPage() {
               </div>
             )}
 
+            {state.status === "unverified" && (
+              <div className="rounded-lg bg-[#D4A04C]/10 border border-[#D4A04C]/30 px-4 py-3 text-sm text-[#2A2520]">
+                <p>{state.message}</p>
+                {state.resendMessage && (
+                  <p className="mt-2 text-xs text-[#2A2520]/70">{state.resendMessage}</p>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void resendVerification(state.email)}
+                  disabled={state.resendStatus === "sending"}
+                  className="mt-3 inline-flex min-h-[40px] items-center rounded-lg bg-matrice-encre px-3 py-2 text-xs font-semibold text-matrice-ivoire hover:bg-matrice-bleu-nuit disabled:bg-matrice-sable disabled:text-matrice-encre/40"
+                >
+                  {state.resendStatus === "sending" ? "Renvoi..." : "Renvoyer l'email de confirmation"}
+                </button>
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={state.status === "submitting"}
@@ -138,7 +209,7 @@ export default function LoginPage() {
           <div className="mt-6 pt-6 border-t border-[#E8DFC9] text-center text-sm text-[#2A2520]/70">
             Pas encore de compte ?{" "}
             <a href="/signup" className="inline-flex min-h-[44px] items-center text-[#8B6F2E] hover:text-[#C9A961] font-medium transition">
-              Créer un compte
+              Creer un compte
             </a>
           </div>
         </div>

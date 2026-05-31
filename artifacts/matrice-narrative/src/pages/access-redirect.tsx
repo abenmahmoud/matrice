@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { ArrowRight, LockKeyhole, ShieldAlert, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -30,8 +32,29 @@ const CONTENT = {
 
 export default function AccessRedirectPage() {
   const [location] = useLocation();
+  const [email, setEmail] = useState("");
+  const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [resendMessage, setResendMessage] = useState("");
   const content = CONTENT[location as keyof typeof CONTENT] ?? CONTENT["/forbidden"];
   const Icon = content.icon;
+
+  async function resendVerification() {
+    if (!email.trim()) return;
+    setResendStatus("sending");
+    const response = await fetch(`${BASE}/api/auth/resend-verification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as { error?: string; emailDelivery?: { status?: string } };
+    if (!response.ok) {
+      setResendStatus("error");
+      setResendMessage(payload.error ?? "Renvoi impossible pour le moment.");
+      return;
+    }
+    setResendStatus("sent");
+    setResendMessage(payload.emailDelivery?.status === "sent" ? "Email de confirmation envoye." : "Demande traitee. Si l'email ne part pas, contacte le support.");
+  }
 
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-matrice-ivoire px-5 text-matrice-encre">
@@ -53,14 +76,35 @@ export default function AccessRedirectPage() {
           </Button>
         </div>
         {location === "/auth-required" && (
-          <Link
-            href={`${BASE}/login`}
-            className="mt-4 inline-flex items-center gap-2 text-sm text-matrice-encre/62 transition hover:text-matrice-or-fonce"
-          >
-            J&apos;ai déjà un compte
-            <ArrowRight className="h-4 w-4" />
-            Se connecter
-          </Link>
+          <div className="mt-5 space-y-3">
+            <Link
+              href={`${BASE}/login`}
+              className="inline-flex items-center gap-2 text-sm text-matrice-encre/62 transition hover:text-matrice-or-fonce"
+            >
+              J&apos;ai deja un compte
+              <ArrowRight className="h-4 w-4" />
+              Se connecter
+            </Link>
+            <div className="rounded-xl border border-matrice-sable bg-matrice-ivoire/60 p-3 text-left">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-matrice-or-fonce">Email non confirme ?</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="toi@email.com"
+                />
+                <Button type="button" disabled={resendStatus === "sending" || !email.trim()} onClick={() => void resendVerification()}>
+                  {resendStatus === "sending" ? "Renvoi..." : "Renvoyer"}
+                </Button>
+              </div>
+              {resendMessage && (
+                <p className={resendStatus === "error" ? "mt-2 text-xs text-matrice-error" : "mt-2 text-xs text-matrice-encre/65"}>
+                  {resendMessage}
+                </p>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>

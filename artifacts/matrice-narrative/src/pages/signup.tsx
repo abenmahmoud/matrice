@@ -16,8 +16,8 @@ function deliveryLabel(delivery: unknown): string {
   if (!delivery || typeof delivery !== "object") return "Email prepare";
   const status = "status" in delivery ? String(delivery.status) : "";
   if (status === "sent") return "Email envoye";
-  if (status === "skipped") return "Email non envoye en local";
-  if (status === "failed") return "Email non envoye";
+  if (status === "skipped") return "Email non envoye : configuration email absente";
+  if (status === "failed") return "Email non envoye : expediteur ou cle email a verifier";
   return "Email prepare";
 }
 
@@ -127,9 +127,12 @@ export default function SignupPage() {
                 Un lien de verification a ete prepare pour <span className="text-matrice-encre">{state.email}</span>.
                 Statut : <span className="text-matrice-or-fonce">{state.delivery}</span>.
               </p>
-              <p className="mt-4 text-sm leading-7 text-matrice-encre/50">
-                Tant que le domaine Resend n'est pas verifie, l'envoi reel dependra de l'expediteur configure sur le VPS.
-              </p>
+              {state.delivery !== "Email envoye" && (
+                <p className="mt-4 rounded-xl border border-matrice-warning/30 bg-matrice-warning/10 p-3 text-sm leading-7 text-matrice-encre/70">
+                  L'inscription est creee, mais l'email n'est pas parti correctement. Tu peux relancer l'envoi ci-dessous,
+                  ou demander a un owner de confirmer ton compte depuis le cockpit admin.
+                </p>
+              )}
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button onClick={resend}>
                   Renvoyer le lien

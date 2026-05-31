@@ -43,6 +43,14 @@ async function sendUserVerificationEmail(user: typeof appUsersTable.$inferSelect
   });
 }
 
+async function markVerificationEmailSentIfDelivered(userId: string, delivery: Awaited<ReturnType<typeof sendUserVerificationEmail>>) {
+  if (delivery.status !== "sent") return;
+  await db
+    .update(appUsersTable)
+    .set({ emailVerificationSentAt: new Date(), updatedAt: new Date() })
+    .where(eq(appUsersTable.id, userId));
+}
+
 router.post("/auth/signup", async (req, res) => {
   try {
     const { email, password, displayName, inviteCode, invite_code } = req.body as {
@@ -92,7 +100,7 @@ router.post("/auth/signup", async (req, res) => {
         betaExpiresAt,
         isEmailVerified: false,
         emailVerificationToken: createAuthActionToken(),
-        emailVerificationSentAt: new Date(),
+        emailVerificationSentAt: null,
       })
       .returning();
 
@@ -121,7 +129,8 @@ router.post("/auth/signup", async (req, res) => {
     }).catch((err) => req.log.warn({ err }, "Welcome notification failed"));
 
     const emailDelivery = await sendUserVerificationEmail(user);
-    if (emailDelivery.status === "failed") {
+    await markVerificationEmailSentIfDelivered(user.id, emailDelivery);
+    if (emailDelivery.status !== "sent") {
       req.log.warn({ emailDelivery }, "Verification email delivery failed");
     }
 
@@ -341,14 +350,15 @@ router.post("/auth/resend-verification", async (req, res) => {
       .update(appUsersTable)
       .set({
         emailVerificationToken: createAuthActionToken(),
-        emailVerificationSentAt: new Date(),
+        emailVerificationSentAt: null,
         updatedAt: new Date(),
       })
       .where(eq(appUsersTable.id, user.id))
       .returning();
 
     const emailDelivery = await sendUserVerificationEmail(updatedUser);
-    if (emailDelivery.status === "failed") {
+    await markVerificationEmailSentIfDelivered(updatedUser.id, emailDelivery);
+    if (emailDelivery.status !== "sent") {
       req.log.warn({ emailDelivery }, "Verification email resend failed");
     }
 
@@ -395,7 +405,7 @@ router.post("/auth/forgot-password", async (req, res) => {
       token: updatedUser.passwordResetToken,
     });
 
-    if (emailDelivery.status === "failed") {
+    if (emailDelivery.status !== "sent") {
       req.log.warn({ emailDelivery }, "Password reset email delivery failed");
     }
 

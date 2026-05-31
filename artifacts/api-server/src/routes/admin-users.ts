@@ -12,7 +12,7 @@ import {
   projectsTable,
 } from "@workspace/db";
 import { getAuthUser, requireAdmin } from "../lib/auth.js";
-import { sendPasswordResetEmail } from "../services/emailService.js";
+import { sendPasswordResetEmail, sendVerificationEmail } from "../services/emailService.js";
 import { logAdminAction } from "../services/adminAuditService.js";
 import { getBalance, getHistory, grantCredits, spendCredits } from "../services/creditsService.js";
 
@@ -142,6 +142,7 @@ router.get("/admin/users/:id", async (req, res) => {
       generationsUsed: appUsersTable.generationsUsed,
       projectsCreated: appUsersTable.projectsCreated,
       creatorModeEnabled: appUsersTable.creatorModeEnabled,
+      isEmailVerified: appUsersTable.isEmailVerified,
       isBetaTester: appUsersTable.isBetaTester,
       betaStartedAt: appUsersTable.betaStartedAt,
       betaExpiresAt: appUsersTable.betaExpiresAt,
@@ -309,6 +310,79 @@ router.post("/admin/users/:id/reset-password", async (req, res) => {
   res.json({ ok: true });
 });
 
+router.post("/admin/users/:id/mark-email-verified", async (req, res) => {
+  const admin = requireOwnerAdmin(req, res);
+  if (!admin) return;
+  const target = await loadTargetUser(req, res);
+  if (!target) return;
+
+  const [updated] = await db
+    .update(appUsersTable)
+    .set({
+      isEmailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationSentAt: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(appUsersTable.id, target.id))
+    .returning();
+
+  await logAdminAction({
+    adminUserId: admin.id,
+    actionType: "mark_email_verified",
+    targetUserId: target.id,
+    metadata: { previous_verified: target.isEmailVerified },
+    ipAddress: req.ip,
+  });
+
+  res.json({ ok: true, user: { id: updated.id, isEmailVerified: updated.isEmailVerified } });
+});
+
+router.post("/admin/users/:id/resend-verification", async (req, res) => {
+  const admin = requireOwnerAdmin(req, res);
+  if (!admin) return;
+  const target = await loadTargetUser(req, res);
+  if (!target) return;
+
+  if (target.isEmailVerified) {
+    res.status(409).json({ error: "EMAIL_ALREADY_VERIFIED" });
+    return;
+  }
+
+  const [updated] = await db
+    .update(appUsersTable)
+    .set({
+      emailVerificationToken: createAuthActionToken(),
+      emailVerificationSentAt: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(appUsersTable.id, target.id))
+    .returning();
+
+  const emailDelivery = updated.emailVerificationToken
+    ? await sendVerificationEmail({ to: updated.email, displayName: updated.displayName, token: updated.emailVerificationToken })
+    : { status: "failed" as const, message: "MISSING_VERIFICATION_TOKEN" };
+
+  if (emailDelivery.status === "sent") {
+    await db
+      .update(appUsersTable)
+      .set({ emailVerificationSentAt: new Date(), updatedAt: new Date() })
+      .where(eq(appUsersTable.id, target.id));
+  } else {
+    req.log.warn({ emailDelivery, targetUserId: target.id }, "Admin verification email resend failed");
+  }
+
+  await logAdminAction({
+    adminUserId: admin.id,
+    actionType: "resend_verification_email",
+    targetUserId: target.id,
+    metadata: { email_delivery: emailDelivery },
+    ipAddress: req.ip,
+  });
+
+  res.json({ ok: true, emailDelivery });
+});
+
 router.post("/admin/users/:id/grant-beta", async (req, res) => {
   const admin = getAuthUser(req);
   if (!admin) return;
@@ -348,6 +422,16 @@ async function loadTargetUser(req: Request, res: Response) {
     return null;
   }
   return target;
+}
+
+function requireOwnerAdmin(req: Request, res: Response) {
+  const admin = getAuthUser(req);
+  if (!admin) return null;
+  if (admin.role !== "owner") {
+    res.status(403).json({ error: "OWNER_REQUIRED" });
+    return null;
+  }
+  return admin;
 }
 
 function parseUsersParams(req: Request) {
