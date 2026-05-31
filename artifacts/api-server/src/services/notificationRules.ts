@@ -7,6 +7,7 @@ export type NotificationType =
   | "mandate_signed"
   | "mandate_pending"
   | "support_reply"
+  | "community_reply"
   | "beta_expiring_7d"
   | "beta_expiring_1d"
   | "beta_expired"
@@ -28,7 +29,7 @@ export function shouldSendEmail(type: NotificationType, prefs: NotificationEmail
   if (type === "export_ready") return prefs.emailExportReady;
   if (type === "lentille_done") return prefs.emailLentilleDone;
   if (type.startsWith("beta_expiring") || type === "beta_expired") return prefs.emailBetaWarnings;
-  if (type === "support_reply") return prefs.emailSupportReply;
+  if (type === "support_reply" || type === "community_reply") return prefs.emailSupportReply;
   if (type === "product_update") return prefs.emailProductUpdates;
   return false;
 }

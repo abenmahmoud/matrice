@@ -13,6 +13,8 @@ import {
   isValidCategory,
   listCategories,
 } from "../services/communityService.js";
+import { communityReplyEmail } from "../services/emailTemplates.js";
+import { notify } from "../services/notificationService.js";
 
 const router: IRouter = Router();
 
@@ -117,6 +119,23 @@ router.post("/community/threads/:id/posts", async (req, res) => {
       return;
     }
     const post = await createPost({ threadId: thread.id, authorUserId: user.id, body });
+    if (thread.authorUserId !== user.id && thread.status !== "hidden") {
+      const threadUrl = `${(process.env["MATRICE_BASE_URL"] ?? process.env["MATRICE_PUBLIC_BASE_URL"] ?? "https://matrice.essuf.fr").replace(/\/$/, "")}/community/${thread.id}`;
+      await notify({
+        userId: thread.authorUserId,
+        type: "community_reply",
+        title: "Nouvelle reponse communaute",
+        body: `${user.displayName || "Un membre"} a repondu a ton sujet "${thread.title}"`,
+        actionUrl: `/community/${thread.id}`,
+        actionLabel: "Voir la reponse",
+        email: communityReplyEmail({
+          threadTitle: thread.title,
+          replyAuthorName: user.displayName || "Un membre",
+          threadUrl,
+        }),
+        metadata: { thread_id: thread.id, post_id: post.id },
+      });
+    }
     res.status(201).json({ post });
   } catch (err) {
     req.log.error({ err }, "Erreur reponse forum");

@@ -63,3 +63,11 @@ export function supportReplyEmail(input: { displayName: string; ticketSubject: s
     html: baseLayout(`<h1>Nouvelle reponse</h1><p>${escapeHtml(input.displayName)}, une reponse a ete ajoutee a ta demande.</p><blockquote style="border-left:3px solid #C9A961;padding-left:16px;color:#5a5246">${escapeHtml(input.replyBody)}</blockquote><p style="margin:28px 0"><a href="${input.ticketUrl}" style="background:#2A2520;color:#F5F1E8;padding:14px 22px;border-radius:6px;text-decoration:none">Voir la conversation</a></p>`),
   };
 }
+
+export function communityReplyEmail(input: { threadTitle: string; replyAuthorName: string; threadUrl: string }): EmailTemplate {
+  return {
+    subject: `Nouvelle reponse sur la communaute : ${input.threadTitle}`,
+    text: `${input.replyAuthorName} a repondu a ton sujet "${input.threadTitle}" : ${input.threadUrl}`,
+    html: baseLayout(`<h1>Nouvelle reponse communaute</h1><p><strong>${escapeHtml(input.replyAuthorName)}</strong> a repondu a ton sujet <em>${escapeHtml(input.threadTitle)}</em>.</p><p style="margin:28px 0"><a href="${input.threadUrl}" style="background:#2A2520;color:#F5F1E8;padding:14px 22px;border-radius:6px;text-decoration:none">Voir la reponse</a></p>`),
+  };
+}

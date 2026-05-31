@@ -14,11 +14,13 @@ const allEnabled = {
 test("shouldSendEmail enables transactional messages by default", () => {
   assert.equal(shouldSendEmail("welcome", undefined), true);
   assert.equal(shouldSendEmail("support_reply", undefined), true);
+  assert.equal(shouldSendEmail("community_reply", undefined), true);
   assert.equal(shouldSendEmail("export_ready", undefined), true);
 });
 
 test("shouldSendEmail respects disabled user preferences", () => {
   assert.equal(shouldSendEmail("support_reply", { ...allEnabled, emailSupportReply: false }), false);
+  assert.equal(shouldSendEmail("community_reply", { ...allEnabled, emailSupportReply: false }), false);
   assert.equal(shouldSendEmail("export_ready", { ...allEnabled, emailExportReady: false }), false);
   assert.equal(shouldSendEmail("lentille_done", { ...allEnabled, emailLentilleDone: false }), false);
 });
