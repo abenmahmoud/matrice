@@ -209,7 +209,7 @@ export default function SignupPage() {
 
               <div className="flex gap-3 rounded-xl border border-matrice-sable bg-matrice-ivoire/60 p-4 text-sm leading-6 text-matrice-encre/58">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-matrice-success" />
-                Aucun paiement maintenant. Stripe arrive en Phase 2C.
+                Le compte Free suffit pour demarrer. Les offres Studio, Premium et les recharges credits sont disponibles quand tu veux avancer plus loin.
               </div>
             </form>
           )}

@@ -100,10 +100,10 @@ export function getProductAccess(req?: Request): ProductAccess {
       freeUnlockedModules,
     },
     paywall: {
-      title: "Continuez avec Matrice Pro",
+      title: "Continuez avec Matrice",
       message:
-        "Vous avez atteint la partie avancée du parcours. Les fondations restent accessibles, les modules de structure, d'analyse et d'écriture sont réservés à l'abonnement.",
-      cta: "Débloquer la suite",
+        "Vous avez atteint la partie avancee du parcours. Les fondations restent accessibles, les modules de structure, d'analyse et d'ecriture sont inclus dans les offres Studio et Premium.",
+      cta: "Voir les offres",
     },
   };
 }

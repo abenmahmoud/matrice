@@ -385,11 +385,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="ml-auto flex items-center gap-2">
               <Link
                 href="/billing"
-                className="hidden min-h-[40px] items-center gap-1.5 rounded-lg border border-matrice-sable bg-white px-3 text-sm font-medium text-matrice-encre/75 transition hover:bg-matrice-sable/35 hover:text-matrice-encre sm:inline-flex"
+                className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg border border-matrice-sable bg-white px-2.5 text-sm font-medium text-matrice-encre/75 transition hover:bg-matrice-sable/35 hover:text-matrice-encre sm:px-3"
                 title="Solde credits"
               >
                 <Coins className="h-4 w-4 text-matrice-or-fonce" />
                 {creditBalance?.total ?? "--"}
+                <span className="hidden sm:inline">credits</span>
               </Link>
               <NotificationBell />
               <details className="relative">

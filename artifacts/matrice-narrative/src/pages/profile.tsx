@@ -63,10 +63,11 @@ const TABS: Array<{ key: ProfileTab; label: string; icon: typeof UserRound }> = 
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
-  pro: "Pro",
   studio: "Studio",
-  publish: "Publish",
   premium: "Premium",
+  pro: "Plan historique",
+  publish: "Plan historique",
+  enterprise: "Plan historique",
 };
 
 export default function ProfilePage() {

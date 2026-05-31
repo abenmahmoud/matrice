@@ -54,6 +54,15 @@ const PACKS: Array<{ key: CreditPack; label: string; credits: number; price: str
   { key: "pack_1000", label: "1000 credits", credits: 1000, price: "24,99 EUR" },
 ];
 
+const PLAN_LABELS: Record<string, string> = {
+  free: "Free",
+  studio: "Studio",
+  premium: "Premium",
+  pro: "Plan historique",
+  publish: "Plan historique",
+  enterprise: "Plan historique",
+};
+
 async function jsonOrThrow<T>(response: Response): Promise<T> {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
@@ -204,7 +213,7 @@ export default function BillingPage() {
               ) : subscription ? (
                 <>
                   <div className="flex items-center gap-2">
-                    <p className="text-2xl font-semibold capitalize">{subscription.plan}</p>
+                    <p className="text-2xl font-semibold">{PLAN_LABELS[subscription.plan] ?? "Plan historique"}</p>
                     <Badge>{subscription.status}</Badge>
                   </div>
                   {subscription.currentPeriodEnd ? (
@@ -395,4 +404,3 @@ export default function BillingPage() {
     </AppLayout>
   );
 }
-

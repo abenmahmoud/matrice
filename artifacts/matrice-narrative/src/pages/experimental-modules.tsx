@@ -6,6 +6,15 @@ import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
+const PLAN_LABELS: Record<string, string> = {
+  free: "Free",
+  studio: "Studio",
+  premium: "Premium",
+  pro: "Plan historique",
+  publish: "Plan historique",
+  enterprise: "Plan historique",
+};
+
 type ExperimentalModule = {
   id: string;
   slug: string;
@@ -36,7 +45,7 @@ export default function ExperimentalModulesPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-matrice-or-fonce">Lab experimental</p>
             <h1 className="mt-4 text-4xl font-semibold sm:text-5xl">Modules actives par plan.</h1>
             <p className="mt-5 text-sm leading-7 text-matrice-encre/62">
-              Cette page expose ce qui peut etre active pour Studio ou Enterprise. Les modules reserves
+              Cette page expose ce qui peut etre active pour Studio ou Premium. Les modules reserves
               restent invisibles a l'usage public meme quand la table existe.
             </p>
             <Button asChild className="mt-7 bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
@@ -65,7 +74,7 @@ export default function ExperimentalModulesPage() {
                   </div>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2 text-xs text-matrice-encre/55">
-                  <span className="rounded-full bg-matrice-sable/70 px-3 py-1">Plan minimum: {module.minimumPlan}</span>
+                  <span className="rounded-full bg-matrice-sable/70 px-3 py-1">Plan minimum: {PLAN_LABELS[module.minimumPlan] ?? "Plan historique"}</span>
                   {module.isOwnerOnly && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-matrice-terracotta/10 px-3 py-1 text-matrice-terracotta">
                       <LockKeyhole className="h-3 w-3" />
