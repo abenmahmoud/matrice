@@ -304,6 +304,10 @@ gpg --decrypt /opt/matrice/backups/FICHIER.dump.gpg \
 docker compose up -d api frontend
 ```
 
+### Acces de secours
+
+La procedure de creation d'un deuxieme owner, de reset manuel de mot de passe et de validation email manuelle est documentee dans [`EMERGENCY-ACCESS.md`](./EMERGENCY-ACCESS.md). Aucun compte de secours n'est cree en dur dans le code.
+
 ---
 
 ## Administration
