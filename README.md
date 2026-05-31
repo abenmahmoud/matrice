@@ -225,6 +225,31 @@ Seed optionnel si tu veux lancer le meme audit contre une base locale/VPS avec d
 | `ADMIN_PASSWORD` | ✅ | Mot de passe du tableau de bord admin |
 | `POSTGRES_PASSWORD` | ✅ (Docker) | Mot de passe PostgreSQL pour Docker Compose |
 
+### Emails transactionnels
+
+Les emails de verification, reset password, onboarding et notifications refusent de partir si la configuration produit un domaine vide (`no-reply@`) ou une URL malformee (`https:///...`). En production Docker, ces variables doivent etre presentes dans le conteneur `matrice-api-1` :
+
+```bash
+MATRICE_PUBLIC_BASE_URL=https://matrice.essuf.fr
+MATRICE_BASE_URL=https://matrice.essuf.fr
+MATRICE_EMAIL_FROM=Matrice <no-reply@matrice.essuf.fr>
+MATRICE_FROM_EMAIL=no-reply@matrice.essuf.fr
+MATRICE_FROM_NAME=Matrice
+RESEND_API_KEY=re_...
+```
+
+Verification rapide sur le VPS :
+
+```bash
+docker exec matrice-api-1 printenv MATRICE_PUBLIC_BASE_URL MATRICE_BASE_URL MATRICE_EMAIL_FROM MATRICE_FROM_EMAIL MATRICE_FROM_NAME
+```
+
+Si `MATRICE_PUBLIC_BASE_URL` vaut `https://`, si `MATRICE_EMAIL_FROM` vaut `Matrice <no-reply@>`, ou si une valeur est vide alors qu'elle est definie dans `.env`, corriger `.env`, puis recreer l'API :
+
+```bash
+docker compose up -d --force-recreate api
+```
+
 ---
 
 ## Administration

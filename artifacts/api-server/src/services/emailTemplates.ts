@@ -1,9 +1,11 @@
+import { emailPublicBaseUrl } from "./emailConfig.js";
+
 function escapeHtml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 
 function baseUrl(): string {
-  return (process.env["MATRICE_BASE_URL"] ?? process.env["MATRICE_PUBLIC_BASE_URL"] ?? "https://matrice.essuf.fr").replace(/\/$/, "");
+  return emailPublicBaseUrl();
 }
 
 export type EmailTemplate = { subject: string; html: string; text: string };

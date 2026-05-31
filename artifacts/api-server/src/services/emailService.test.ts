@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { logger } from "../lib/logger.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "./emailService.js";
+import { welcomeEmail } from "./emailTemplates.js";
 
 const originalFetch = globalThis.fetch;
 const originalEnv = {
@@ -11,6 +12,8 @@ const originalEnv = {
   MATRICE_EMAIL_FROM: process.env["MATRICE_EMAIL_FROM"],
   MATRICE_FROM_EMAIL: process.env["MATRICE_FROM_EMAIL"],
   MATRICE_FROM_NAME: process.env["MATRICE_FROM_NAME"],
+  MATRICE_PUBLIC_BASE_URL: process.env["MATRICE_PUBLIC_BASE_URL"],
+  MATRICE_BASE_URL: process.env["MATRICE_BASE_URL"],
 };
 
 function restoreEnv() {
@@ -28,6 +31,7 @@ test("sendVerificationEmail uses MATRICE_EMAIL_FROM and attempts Resend delivery
   process.env["EMAIL_PROVIDER"] = "resend";
   process.env["BREVO_API_KEY"] = "";
   process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@matrice.essuf.fr>";
+  process.env["MATRICE_PUBLIC_BASE_URL"] = "https://matrice.essuf.fr";
   delete process.env["MATRICE_FROM_EMAIL"];
 
   let requestBody: Record<string, unknown> | null = null;
@@ -53,6 +57,7 @@ test("sendPasswordResetEmail returns a failed delivery and logs EMAIL_FAILED", a
   process.env["EMAIL_PROVIDER"] = "resend";
   process.env["BREVO_API_KEY"] = "";
   process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@matrice.essuf.fr>";
+  process.env["MATRICE_PUBLIC_BASE_URL"] = "https://matrice.essuf.fr";
 
   const warnCalls: Array<{ object: unknown; message?: string }> = [];
   const originalWarn = logger.warn.bind(logger);
@@ -81,6 +86,8 @@ test("sendVerificationEmail reports skipped when RESEND_API_KEY is missing", asy
   delete process.env["RESEND_API_KEY"];
   process.env["EMAIL_PROVIDER"] = "resend";
   process.env["BREVO_API_KEY"] = "";
+  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@matrice.essuf.fr>";
+  process.env["MATRICE_PUBLIC_BASE_URL"] = "https://matrice.essuf.fr";
 
   const delivery = await sendVerificationEmail({
     to: "invite@example.com",
@@ -90,4 +97,34 @@ test("sendVerificationEmail reports skipped when RESEND_API_KEY is missing", asy
 
   assert.equal(delivery.status, "skipped");
   assert.equal(delivery.reason, "missing-api-key");
+});
+
+test("sendVerificationEmail rejects malformed email configuration before calling Resend", async () => {
+  process.env["RESEND_API_KEY"] = "re_test_key";
+  process.env["EMAIL_PROVIDER"] = "resend";
+  process.env["BREVO_API_KEY"] = "";
+  process.env["MATRICE_PUBLIC_BASE_URL"] = "";
+  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@>";
+
+  let fetchCalled = false;
+  globalThis.fetch = (async () => {
+    fetchCalled = true;
+    return Response.json({ id: "should_not_happen" });
+  }) as typeof fetch;
+
+  await assert.rejects(
+    () => sendVerificationEmail({ to: "invite@example.com", displayName: "Invite", token: "verify-token" }),
+    /EMAIL_CONFIG_INVALID base_url=<empty> from=Matrice <no-reply@>/,
+  );
+  assert.equal(fetchCalled, false);
+});
+
+test("welcomeEmail rejects malformed public base URL instead of producing https:/// links", () => {
+  process.env["MATRICE_PUBLIC_BASE_URL"] = "https://";
+  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@matrice.essuf.fr>";
+
+  assert.throws(
+    () => welcomeEmail({ displayName: "Invite" }),
+    /EMAIL_CONFIG_INVALID base_url=https:\/\/ from=Matrice <no-reply@matrice\.essuf\.fr>/,
+  );
 });

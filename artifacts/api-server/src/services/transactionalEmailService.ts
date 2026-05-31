@@ -3,10 +3,7 @@ import { appUsersTable, db, emailLogTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import type { EmailTemplate } from "./emailTemplates.js";
 import { logger } from "../lib/logger.js";
-
-function fromAddress(): string {
-  return process.env["MATRICE_EMAIL_FROM"] ?? `${process.env["MATRICE_FROM_NAME"] ?? "Matrice"} <${process.env["MATRICE_FROM_EMAIL"] ?? "onboarding@resend.dev"}>`;
-}
+import { getEmailRuntimeConfig } from "./emailConfig.js";
 
 export async function sendTransactionalEmail(input: {
   userId?: string | null;
@@ -25,6 +22,7 @@ export async function sendTransactionalEmail(input: {
     return { emailLogId: "", status: "skipped" };
   }
 
+  const emailConfig = getEmailRuntimeConfig();
   const emailLogId = randomUUID();
   await db.insert(emailLogTable).values({
     id: emailLogId,
@@ -39,7 +37,14 @@ export async function sendTransactionalEmail(input: {
   const apiKey = process.env["RESEND_API_KEY"];
   if (!apiKey) {
     await db.update(emailLogTable).set({ status: "failed", error: "RESEND_API_KEY missing" }).where(eq(emailLogTable.id, emailLogId));
-    logger.warn({ emailLogId, templateId: input.templateId, to: recipientEmail, reason: "RESEND_API_KEY missing" }, "EMAIL_FAILED");
+    logger.warn({
+      emailLogId,
+      templateId: input.templateId,
+      to: recipientEmail,
+      from: emailConfig.from,
+      baseUrl: emailConfig.baseUrl,
+      reason: "RESEND_API_KEY missing",
+    }, "EMAIL_FAILED");
     return { emailLogId, status: "skipped" };
   }
 
@@ -48,7 +53,7 @@ export async function sendTransactionalEmail(input: {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: fromAddress(),
+        from: emailConfig.from,
         to: recipientEmail,
         subject: input.template.subject,
         html: input.template.html,
@@ -59,16 +64,37 @@ export async function sendTransactionalEmail(input: {
     if (!response.ok) {
       const reason = payload?.message ?? `Resend HTTP ${response.status}`;
       await db.update(emailLogTable).set({ status: "failed", error: reason }).where(eq(emailLogTable.id, emailLogId));
-      logger.warn({ emailLogId, templateId: input.templateId, to: recipientEmail, reason }, "EMAIL_FAILED");
+      logger.warn({
+        emailLogId,
+        templateId: input.templateId,
+        to: recipientEmail,
+        from: emailConfig.from,
+        baseUrl: emailConfig.baseUrl,
+        reason,
+      }, "EMAIL_FAILED");
       return { emailLogId, status: "failed" };
     }
     await db.update(emailLogTable).set({ status: "sent", resendMessageId: payload?.id ?? null, sentAt: new Date() }).where(eq(emailLogTable.id, emailLogId));
-    logger.info({ emailLogId, templateId: input.templateId, to: recipientEmail, id: payload?.id ?? null }, "EMAIL_SENT ok");
+    logger.info({
+      emailLogId,
+      templateId: input.templateId,
+      to: recipientEmail,
+      from: emailConfig.from,
+      baseUrl: emailConfig.baseUrl,
+      id: payload?.id ?? null,
+    }, "EMAIL_SENT ok");
     return { emailLogId, status: "sent", providerId: payload?.id ?? null };
   } catch (err) {
     const reason = err instanceof Error ? err.message : "Unknown email error";
     await db.update(emailLogTable).set({ status: "failed", error: reason }).where(eq(emailLogTable.id, emailLogId));
-    logger.warn({ emailLogId, templateId: input.templateId, to: recipientEmail, reason }, "EMAIL_FAILED");
+    logger.warn({
+      emailLogId,
+      templateId: input.templateId,
+      to: recipientEmail,
+      from: emailConfig.from,
+      baseUrl: emailConfig.baseUrl,
+      reason,
+    }, "EMAIL_FAILED");
     return { emailLogId, status: "failed" };
   }
 }

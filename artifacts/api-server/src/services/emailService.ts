@@ -1,4 +1,5 @@
 import { logger } from "../lib/logger.js";
+import { getEmailRuntimeConfig } from "./emailConfig.js";
 
 type EmailDelivery =
   | { status: "skipped"; provider: "resend" | "brevo"; reason: "missing-api-key" }
@@ -12,60 +13,55 @@ type SendEmailInput = {
   text: string;
 };
 
-function publicBaseUrl(): string {
-  return (process.env["MATRICE_PUBLIC_BASE_URL"] ?? "https://matrice.essuf.fr").replace(/\/$/, "");
-}
-
-function fromAddress(): string {
-  const configured = process.env["MATRICE_EMAIL_FROM"]?.trim();
-  if (configured) return configured;
-  const email = process.env["MATRICE_FROM_EMAIL"] ?? "onboarding@resend.dev";
-  const name = process.env["MATRICE_FROM_NAME"] ?? "Matrice Narrative";
-  return `${name} <${email}>`;
-}
-
-function fromIdentity(): { email: string; name: string } {
-  const configured = process.env["MATRICE_EMAIL_FROM"]?.trim();
-  if (configured) {
-    const match = configured.match(/^(.*?)\s*<([^<>]+)>$/);
-    if (match) {
-      return { name: (match[1] ?? "Matrice").trim() || "Matrice", email: (match[2] ?? "").trim() };
-    }
-    return { email: configured, name: process.env["MATRICE_FROM_NAME"] ?? "Matrice" };
-  }
-  return {
-    email: process.env["MATRICE_FROM_EMAIL"] ?? "onboarding@resend.dev",
-    name: process.env["MATRICE_FROM_NAME"] ?? "Matrice Narrative",
-  };
-}
-
 async function sendEmail(input: SendEmailInput): Promise<EmailDelivery> {
+  const emailConfig = getEmailRuntimeConfig();
   const provider = process.env["EMAIL_PROVIDER"]?.trim().toLowerCase()
     || (process.env["BREVO_API_KEY"] ? "brevo" : "resend");
   if (provider === "brevo") {
-    return logDelivery(input, await sendBrevoEmail(input));
+    return logDelivery(input, await sendBrevoEmail(input, emailConfig), emailConfig);
   }
 
-  const resendDelivery = await sendResendEmail(input);
+  const resendDelivery = await sendResendEmail(input, emailConfig);
   if (resendDelivery.status === "failed" && process.env["BREVO_API_KEY"]) {
-    logger.warn({ provider: "resend", to: input.to, subject: input.subject, reason: resendDelivery.message }, "EMAIL_FAILED fallback_to_brevo");
-    return logDelivery(input, await sendBrevoEmail(input));
+    logger.warn({
+      provider: "resend",
+      to: input.to,
+      subject: input.subject,
+      from: emailConfig.from,
+      baseUrl: emailConfig.baseUrl,
+      reason: resendDelivery.message,
+    }, "EMAIL_FAILED fallback_to_brevo");
+    return logDelivery(input, await sendBrevoEmail(input, emailConfig), emailConfig);
   }
 
-  return logDelivery(input, resendDelivery);
+  return logDelivery(input, resendDelivery, emailConfig);
 }
 
-function logDelivery(input: SendEmailInput, delivery: EmailDelivery): EmailDelivery {
+function logDelivery(input: SendEmailInput, delivery: EmailDelivery, emailConfig: ReturnType<typeof getEmailRuntimeConfig>): EmailDelivery {
   if (delivery.status === "sent") {
-    logger.info({ provider: delivery.provider, to: input.to, subject: input.subject, id: delivery.id }, "EMAIL_SENT ok");
+    logger.info({
+      provider: delivery.provider,
+      to: input.to,
+      subject: input.subject,
+      from: emailConfig.from,
+      baseUrl: emailConfig.baseUrl,
+      id: delivery.id,
+    }, "EMAIL_SENT ok");
     return delivery;
   }
   const reason = delivery.status === "skipped" ? delivery.reason : delivery.message;
-  logger.warn({ provider: delivery.provider, to: input.to, subject: input.subject, reason }, "EMAIL_FAILED");
+  logger.warn({
+    provider: delivery.provider,
+    to: input.to,
+    subject: input.subject,
+    from: emailConfig.from,
+    baseUrl: emailConfig.baseUrl,
+    reason,
+  }, "EMAIL_FAILED");
   return delivery;
 }
 
-async function sendResendEmail(input: SendEmailInput): Promise<EmailDelivery> {
+async function sendResendEmail(input: SendEmailInput, emailConfig: ReturnType<typeof getEmailRuntimeConfig>): Promise<EmailDelivery> {
   const apiKey = process.env["RESEND_API_KEY"];
   if (!apiKey) {
     return { status: "skipped", provider: "resend", reason: "missing-api-key" };
@@ -79,7 +75,7 @@ async function sendResendEmail(input: SendEmailInput): Promise<EmailDelivery> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: fromAddress(),
+        from: emailConfig.from,
         to: input.to,
         subject: input.subject,
         html: input.html,
@@ -98,14 +94,13 @@ async function sendResendEmail(input: SendEmailInput): Promise<EmailDelivery> {
   }
 }
 
-async function sendBrevoEmail(input: SendEmailInput): Promise<EmailDelivery> {
+async function sendBrevoEmail(input: SendEmailInput, emailConfig: ReturnType<typeof getEmailRuntimeConfig>): Promise<EmailDelivery> {
   const apiKey = process.env["BREVO_API_KEY"];
   if (!apiKey) {
     return { status: "skipped", provider: "brevo", reason: "missing-api-key" };
   }
 
   try {
-    const sender = fromIdentity();
     const response = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
@@ -114,7 +109,7 @@ async function sendBrevoEmail(input: SendEmailInput): Promise<EmailDelivery> {
         Accept: "application/json",
       },
       body: JSON.stringify({
-        sender,
+        sender: emailConfig.fromIdentity,
         to: [{ email: input.to }],
         subject: input.subject,
         htmlContent: input.html,
@@ -138,11 +133,11 @@ async function sendBrevoEmail(input: SendEmailInput): Promise<EmailDelivery> {
 }
 
 function verifyUrl(token: string): string {
-  return `${publicBaseUrl()}/verify-email?token=${encodeURIComponent(token)}`;
+  return `${getEmailRuntimeConfig().baseUrl}/verify-email?token=${encodeURIComponent(token)}`;
 }
 
 function resetUrl(token: string): string {
-  return `${publicBaseUrl()}/reset-password?token=${encodeURIComponent(token)}`;
+  return `${getEmailRuntimeConfig().baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
 }
 
 function escapeHtml(value: string): string {
