@@ -15,3 +15,4 @@ export * from "./delegationMandate";
 export * from "./adminCreatorBeta";
 export * from "./engagement";
 export * from "./credits";
+export * from "./sales";

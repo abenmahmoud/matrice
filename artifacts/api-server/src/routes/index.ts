@@ -25,6 +25,7 @@ import paymentRouter from "./payments.js";
 import openTimestampsRouter from "./openTimestamps.js";
 import publicVerifyRouter from "./publicVerify.js";
 import exportsRouter from "./exports.js";
+import publishRouter from "./publish.js";
 import { adminAuthMiddleware } from "../middleware/adminAuth.js";
 import accessRouter from "./access.js";
 import { productAccessMiddleware } from "../lib/productAccess.js";
@@ -61,6 +62,7 @@ router.use(exportsRouter);
 router.use(creativeMemoryContextMiddleware);
 router.use(productAccessMiddleware);
 router.use(workPassportRouter);
+router.use(publishRouter);
 router.use(projectsRouter);
 router.use(manuscriptsRouter);
 
