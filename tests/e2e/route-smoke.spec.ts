@@ -3,14 +3,16 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const PROJECT_ID = "e2e-project";
-const SCREENSHOT_DIR = path.join(process.cwd(), "test-results", "route-smoke");
+const SCREENSHOT_DIR = path.join(process.cwd(), "test-screenshots", "route-smoke");
 const REPORT_PATH = path.join(process.cwd(), "test-results", "routes-smoke-report.json");
+const REPORT_MD_PATH = path.join(process.cwd(), "test-results", "routes-smoke-report.md");
 const now = new Date("2026-05-31T12:00:00.000Z").toISOString();
 
 type SmokeRoute = {
   name: string;
   path: string;
   expectedPath?: string;
+  appLayout?: boolean;
 };
 
 type RouteResult = {
@@ -20,35 +22,60 @@ type RouteResult = {
   status: number | null;
   ok: boolean;
   consoleErrors: string[];
+  hasAppLayout: boolean | null;
   screenshot: string;
 };
 
 const ROUTES: SmokeRoute[] = [
   { name: "home", path: "/" },
   { name: "pricing", path: "/pricing" },
-  { name: "dashboard", path: "/dashboard" },
-  { name: "community", path: "/community" },
-  { name: "support", path: "/support" },
-  { name: "billing", path: "/billing" },
-  { name: "admin", path: "/admin" },
-  { name: "creator-lab", path: "/creator-lab" },
-  { name: "voice-lab", path: "/creator-lab/voice" },
-  { name: "admin-system", path: "/admin/system" },
-  { name: "notifications", path: "/notifications" },
-  { name: "profile", path: "/profile" },
-  { name: "lentille-marche", path: "/lentille-marche" },
-  { name: "project-overview", path: `/projects/${PROJECT_ID}` },
-  { name: "project-publish", path: `/projects/${PROJECT_ID}/publish` },
-  { name: "project-passport", path: `/projects/${PROJECT_ID}/passport` },
-  { name: "project-exports", path: `/projects/${PROJECT_ID}/exports` },
-  { name: "project-mandate", path: `/projects/${PROJECT_ID}/mandate` },
-  { name: "redirect-compte", path: "/compte", expectedPath: "/profile" },
-  { name: "redirect-admin-dashboard", path: "/admin/dashboard", expectedPath: "/admin" },
-  { name: "redirect-project-overview", path: `/projects/${PROJECT_ID}/overview`, expectedPath: `/projects/${PROJECT_ID}` },
-  { name: "redirect-studio", path: "/studio", expectedPath: "/admin" },
+  { name: "login", path: "/login" },
+  { name: "signup", path: "/signup" },
+  { name: "forgot-password", path: "/forgot-password" },
+  { name: "dashboard", path: "/dashboard", appLayout: true },
+  { name: "community", path: "/community", appLayout: true },
+  { name: "community-new", path: "/community/new", appLayout: true },
+  { name: "support", path: "/support", appLayout: true },
+  { name: "support-new", path: "/support/new", appLayout: true },
+  { name: "billing", path: "/billing", appLayout: true },
+  { name: "notifications", path: "/notifications", appLayout: true },
+  { name: "profile", path: "/profile", appLayout: true },
+  { name: "locked-works", path: "/locked-works", appLayout: true },
+  { name: "memory", path: "/memory", appLayout: true },
+  { name: "analyse", path: "/analyse", appLayout: true },
+  { name: "lentille-marche", path: "/lentille-marche", appLayout: true },
+  { name: "experimental-modules", path: "/experimental-modules", appLayout: true },
+  { name: "admin", path: "/admin", appLayout: true },
+  { name: "admin-credits", path: "/admin/credits", appLayout: true },
+  { name: "admin-users", path: "/admin/users", appLayout: true },
+  { name: "admin-finance", path: "/admin/finance", appLayout: true },
+  { name: "admin-authors", path: "/admin/authors", appLayout: true },
+  { name: "admin-invites", path: "/admin/invites", appLayout: true },
+  { name: "admin-audit", path: "/admin/audit", appLayout: true },
+  { name: "admin-support", path: "/admin/support", appLayout: true },
+  { name: "admin-system", path: "/admin/system", appLayout: true },
+  { name: "creator-lab", path: "/creator-lab", appLayout: true },
+  { name: "voice-lab", path: "/creator-lab/voice", appLayout: true },
+  { name: "creator-system", path: "/creator-lab/system", appLayout: true },
+  { name: "project-overview", path: `/projects/${PROJECT_ID}`, appLayout: true },
+  { name: "project-matrix", path: `/projects/${PROJECT_ID}/matrix`, appLayout: true },
+  { name: "project-characters", path: `/projects/${PROJECT_ID}/characters`, appLayout: true },
+  { name: "project-book", path: `/projects/${PROJECT_ID}/book`, appLayout: true },
+  { name: "project-exports", path: `/projects/${PROJECT_ID}/exports`, appLayout: true },
+  { name: "project-publish", path: `/projects/${PROJECT_ID}/publish`, appLayout: true },
+  { name: "project-passport", path: `/projects/${PROJECT_ID}/passport`, appLayout: true },
+  { name: "project-pitch", path: `/projects/${PROJECT_ID}/pitch`, appLayout: true },
+  { name: "project-prisme", path: `/projects/${PROJECT_ID}/prisme`, appLayout: true },
+  { name: "project-mandate", path: `/projects/${PROJECT_ID}/mandate`, appLayout: true },
+  { name: "redirect-compte", path: "/compte", expectedPath: "/profile", appLayout: true },
+  { name: "redirect-admin-dashboard", path: "/admin/dashboard", expectedPath: "/admin", appLayout: true },
+  { name: "redirect-project-overview", path: `/projects/${PROJECT_ID}/overview`, expectedPath: `/projects/${PROJECT_ID}`, appLayout: true },
+  { name: "redirect-studio", path: "/studio", expectedPath: "/admin", appLayout: true },
 ];
 
 test.describe("route smoke visual audit", () => {
+  test.setTimeout(180_000);
+
   test.beforeEach(async ({ page }) => {
     await mockMatriceApi(page);
     await page.addInitScript(() => {
@@ -76,6 +103,7 @@ test.describe("route smoke visual audit", () => {
       if (route.expectedPath) {
         await expect(page).toHaveURL(new RegExp(`${escapeRegExp(route.expectedPath)}(?:[?#].*)?$`));
       }
+      const hasAppLayout = route.appLayout ? await page.locator(".matrice-work").first().isVisible().catch(() => false) : null;
 
       const screenshot = path.join(SCREENSHOT_DIR, `${route.name}.png`);
       await page.screenshot({ path: screenshot, fullPage: true });
@@ -84,7 +112,7 @@ test.describe("route smoke visual audit", () => {
       const status = response?.status() ?? null;
       const hasBadStatus = status === null || status >= 400;
       const hasOverlay = await page.locator("text=/Plugin: vite:react|Error:|Uncaught/i").first().isVisible().catch(() => false);
-      const failed = hasBadStatus || consoleErrors.length > 0 || hasOverlay;
+      const failed = hasBadStatus || consoleErrors.length > 0 || hasOverlay || hasAppLayout === false;
 
       results.push({
         name: route.name,
@@ -92,13 +120,20 @@ test.describe("route smoke visual audit", () => {
         finalUrl: page.url(),
         status,
         ok: !failed,
-        consoleErrors: hasOverlay ? [...consoleErrors, "Framework/runtime overlay visible"] : consoleErrors,
+        consoleErrors: [
+          ...consoleErrors,
+          ...(hasOverlay ? ["Framework/runtime overlay visible"] : []),
+          ...(hasAppLayout === false ? ["AppLayout principal absent (.matrice-work introuvable)"] : []),
+        ],
+        hasAppLayout,
         screenshot,
       });
     }
 
     await writeFile(REPORT_PATH, JSON.stringify({ generatedAt: new Date().toISOString(), routes: results }, null, 2), "utf8");
+    await writeFile(REPORT_MD_PATH, renderMarkdownReport(results), "utf8");
     await testInfo.attach("routes-smoke-report", { path: REPORT_PATH, contentType: "application/json" });
+    await testInfo.attach("routes-smoke-report-md", { path: REPORT_MD_PATH, contentType: "text/markdown" });
 
     const broken = results.filter((result) => !result.ok);
     expect(
@@ -124,6 +159,7 @@ async function mockMatriceApi(page: Page) {
     }
 
     if (pathname === "/api/auth/me") return json(route, { user: testUser() });
+    if (pathname === "/api/experimental-modules") return json(route, { modules: experimentalModules() });
     if (pathname === "/api/credits/balance") return json(route, { balance: creditBalance() });
     if (pathname === "/api/credits/history") return json(route, { history: [] });
     if (pathname === "/api/notifications") return json(route, { notifications: [], unread_count: 0 });
@@ -134,6 +170,8 @@ async function mockMatriceApi(page: Page) {
 
     if (pathname === "/api/community/threads") return json(route, { threads: [communityThread()] });
     if (pathname === "/api/support/tickets") return json(route, { tickets: [supportTicket()] });
+    if (pathname === "/api/manuscripts") return json(route, []);
+    if (pathname === "/api/memory") return json(route, [memoryEntry()]);
 
     if (pathname === "/api/admin/dashboard") return json(route, adminDashboard());
     if (pathname.startsWith("/api/admin/users")) return json(route, adminUsers());
@@ -141,6 +179,7 @@ async function mockMatriceApi(page: Page) {
     if (pathname === "/api/admin/audit") return json(route, { actions: [] });
     if (pathname === "/api/admin/support/tickets") return json(route, { tickets: [adminTicket()] });
     if (pathname.startsWith("/api/admin/finance")) return json(route, adminFinance(pathname));
+    if (pathname.startsWith("/api/admin/authors")) return json(route, adminAuthors());
 
     if (pathname === "/api/creator/lab/features") return json(route, creatorFeatures());
     if (pathname === "/api/creator/system-info") return json(route, systemInfo());
@@ -151,6 +190,10 @@ async function mockMatriceApi(page: Page) {
     if (pathname === `/api/projects/${PROJECT_ID}`) return json(route, project());
     if (pathname === `/api/projects/${PROJECT_ID}/status`) return json(route, projectStatus());
     if (pathname === `/api/projects/${PROJECT_ID}/matrix`) return json(route, matrix());
+    if (pathname === `/api/projects/${PROJECT_ID}/characters`) return json(route, []);
+    if (pathname === `/api/projects/${PROJECT_ID}/book`) return json(route, bookPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/pitch`) return json(route, pitchPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/prisme`) return json(route, prismePayload());
     if (pathname === `/api/projects/${PROJECT_ID}/publish-plan`) return json(route, publishPlan());
     if (pathname === `/api/projects/${PROJECT_ID}/sales`) return json(route, sales());
     if (pathname === `/api/projects/${PROJECT_ID}/publishing/finance`) return json(route, publishingFinance());
@@ -214,6 +257,16 @@ function notificationPreferences() {
   };
 }
 
+function experimentalModules() {
+  return [
+    { id: "module-e2e", slug: "voice-lab", name: "Voice Lab", description: "Module experimental E2E", minimumPlan: "premium", isOwnerOnly: true, isEnabled: true, available: true },
+  ];
+}
+
+function memoryEntry() {
+  return { id: "memory-e2e", category: "creative_rules", title: "Paternite auteur", content: "Matrice ne s'approprie jamais l'oeuvre.", tags: ["auteur"], priority: 80, isActive: true };
+}
+
 function project() {
   return {
     id: PROJECT_ID,
@@ -273,6 +326,43 @@ function matrix() {
     logline: "Une autrice publie sous son nom.",
     shortPitch: "Matrice l'aide sans voler sa paternite.",
     themes: ["paternite", "publication"],
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function bookPayload() {
+  return {
+    id: "book-e2e",
+    projectId: PROJECT_ID,
+    structure: "Plan en trois actes",
+    chapters: [{ title: "Chapitre 1", summary: "Ouverture", purpose: "Installer l'autrice" }],
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function pitchPayload() {
+  return {
+    id: "pitch-e2e",
+    projectId: PROJECT_ID,
+    title: "Les Cendres du Mirage",
+    logline: "Une autrice publie sous son nom.",
+    synopsis: "Pitch E2E",
+    targetAudience: "Adultes",
+    sellingPoints: ["Paternite", "Vente"],
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function prismePayload() {
+  return {
+    id: "prisme-e2e",
+    projectId: PROJECT_ID,
+    globalScore: 82,
+    axes: [],
+    insights: ["Aucun souci E2E"],
     createdAt: now,
     updatedAt: now,
   };
@@ -386,6 +476,50 @@ function adminUsers() {
     }],
     pagination: { total: 1, page: 1, page_size: 50, total_pages: 1 },
   };
+}
+
+function adminAuthors() {
+  return {
+    authors: [{
+      id: "user-e2e",
+      email: "auteur.e2e@matrice.test",
+      displayName: "Auteur E2E",
+      plan: "premium",
+      status: "active",
+      projectsCount: 1,
+      mandatesCount: 0,
+      exportsCount: 0,
+      createdAt: now,
+    }],
+    total: 1,
+  };
+}
+
+function renderMarkdownReport(results: RouteResult[]): string {
+  const broken = results.filter((result) => !result.ok);
+  const rows = results
+    .map((result) => {
+      const status = result.ok ? "OK" : "CASSEE";
+      const details = result.consoleErrors.length ? result.consoleErrors.join(" / ") : "-";
+      return `| ${result.name} | \`${result.path}\` | ${result.status ?? "-"} | ${status} | ${result.hasAppLayout ?? "-"} | ${details} |`;
+    })
+    .join("\n");
+
+  return [
+    "# Rapport e2e routes Matrice",
+    "",
+    `Genere le ${new Date().toISOString()}`,
+    "",
+    `Total: ${results.length} routes`,
+    `OK: ${results.length - broken.length}`,
+    `Cassees: ${broken.length}`,
+    "",
+    "| Page | Route | HTTP | Statut | AppLayout | Details |",
+    "|---|---:|---:|---|---:|---|",
+    rows,
+    "",
+    "Captures archivees dans `test-screenshots/route-smoke/`.",
+  ].join("\n");
 }
 
 function adminFinance(pathname: string) {

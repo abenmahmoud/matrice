@@ -192,7 +192,9 @@ cd lib/db && pnpm exec tsc --build --force
 pnpm --filter @workspace/api-spec run codegen
 ```
 
-Le test `pnpm test:e2e` lance le frontend Vite en local, injecte une session utilisateur de test, mocke les reponses API stables, charge les routes principales et verifie : statut HTTP, page non vide, absence d'overlay runtime, absence d'erreur console et capture d'ecran archivee. Le rapport JSON est genere dans `test-results/routes-smoke-report.json` et les captures dans `test-results/route-smoke/`.
+Le test `pnpm test:e2e` lance le frontend Vite en local, injecte une session utilisateur owner de test, mocke les reponses API stables, charge les routes principales et verifie : statut HTTP, page non vide, presence du layout principal pour les pages connectees, absence d'overlay runtime, absence d'erreur console et capture d'ecran archivee. Le rapport JSON est genere dans `test-results/routes-smoke-report.json`, le rapport Markdown dans `test-results/routes-smoke-report.md` et les captures dans `test-screenshots/route-smoke/`.
+
+Seed optionnel si tu veux lancer le meme audit contre une base locale/VPS avec donnees de test : `lib/db/seeds/e2e_route_smoke_seed.sql`.
 
 ---
 
