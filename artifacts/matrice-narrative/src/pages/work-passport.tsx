@@ -91,7 +91,14 @@ const STATUS_COLORS: Record<string, string> = {
 
 const TYPE_LABELS: Record<string, string> = {
   roman: "Roman", scenario: "Scénario", film: "Film", serie: "Série",
-  "court-metrage": "Court-métrage", autre: "Autre",
+  "court-metrage": "Court-métrage",
+  bd: "BD",
+  "roman-graphique": "Roman graphique",
+  nouvelle: "Nouvelle",
+  theatre: "Theatre",
+  poesie: "Poesie",
+  concept: "Concept / idee",
+  autre: "Autre",
 };
 
 const DEPOSIT_LINKS: Record<string, { label: string; url: string }> = {
@@ -104,6 +111,7 @@ const DEPOSIT_LINKS: Record<string, { label: string; url: string }> = {
   producteur: { label: "Producteurs", url: "#" },
   diffuseur: { label: "Diffuseurs", url: "#" },
   isan_eidr: { label: "ISAN / EIDR", url: "https://www.isan.org" },
+  adagp: { label: "ADAGP", url: "https://www.adagp.fr" },
   autre: { label: "Autre", url: "#" },
 };
 
@@ -121,8 +129,9 @@ async function apiGet(projectId: string) {
   return res.json() as Promise<{ passport: WorkPassport | null }>;
 }
 
-async function apiGenerate(projectId: string) {
-  const res = await fetch(`${BASE}/api/projects/${projectId}/passport/generate`, {
+async function apiGenerate(projectId: string, stage?: "concept") {
+  const suffix = stage === "concept" ? "?stage=concept" : "";
+  const res = await fetch(`${BASE}/api/projects/${projectId}/passport/generate${suffix}`, {
     method: "POST", headers: authHeaders(),
   });
   if (!res.ok) throw new Error("Erreur generation");
@@ -181,12 +190,13 @@ export default function WorkPassportPage() {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Partial<WorkPassport>>({});
+  const conceptMode = new URLSearchParams(window.location.search).get("stage") === "concept";
 
   const { data, isLoading } = useQuery({ queryKey: ["work-passport", projectId], queryFn: () => apiGet(projectId) });
   const passport = data?.passport;
 
   const genMut = useMutation({
-    mutationFn: () => apiGenerate(projectId),
+    mutationFn: () => apiGenerate(projectId, conceptMode ? "concept" : undefined),
     onSuccess: (d) => { queryClient.setQueryData(["work-passport", projectId], d); toast({ title: "Passeport genere" }); },
     onError: () => toast({ title: "Erreur", description: "Generation echouee", variant: "destructive" }),
   });
@@ -216,13 +226,15 @@ export default function WorkPassportPage() {
           <Card>
             <CardContent className="p-12 text-center">
               <BookMarked className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Passeport d'Œuvre</h2>
+              <h2 className="text-2xl font-bold mb-2">{conceptMode ? "Protection du concept" : "Passeport d'Œuvre"}</h2>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Documente l&apos;identite, l&apos;ADN narratif et la tracabilite de votre creation.
+                {conceptMode
+                  ? "Scellez la logline, le pitch, les themes et l'ADN narratif avant le developpement complet."
+                  : "Documente l'identite, l'ADN narratif et la tracabilite de votre creation."}
               </p>
               <Button size="lg" onClick={() => genMut.mutate()} disabled={genMut.isPending}>
                 {genMut.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BookMarked className="h-4 w-4 mr-2" />}
-                Generer le Passeport
+                {conceptMode ? "Proteger mon idee maintenant" : "Generer le Passeport"}
               </Button>
               <p className="text-xs text-muted-foreground mt-4">
                 <ShieldAlert className="h-3 w-3 inline mr-1" />

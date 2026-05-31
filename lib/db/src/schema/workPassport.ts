@@ -7,6 +7,12 @@ export const workPassportTypeEnum = [
   "film",
   "serie",
   "court-metrage",
+  "bd",
+  "roman-graphique",
+  "nouvelle",
+  "theatre",
+  "poesie",
+  "concept",
   "autre",
 ] as const;
 
@@ -29,6 +35,7 @@ export const depositTargetEnum = [
   "producteur",
   "diffuseur",
   "isan_eidr",
+  "adagp",
   "autre",
 ] as const;
 

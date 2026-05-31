@@ -10,7 +10,7 @@ import type { LentilleAnalysisRow } from "@/components/lentille/types";
 import {
   BookOpen, Brain, Users, Network, Globe2, Search, Activity,
   Book, Film, Tv, Presentation, Download, FileSearch, BookMarked,
-  ArrowRight, Sparkles, CheckCircle2, Circle, Loader2, Wand2, BookText, LockKeyhole, FileSignature
+  ArrowRight, Sparkles, CheckCircle2, Circle, Loader2, Wand2, BookText, LockKeyhole, FileSignature, ShieldCheck
 } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -38,6 +38,12 @@ type ProductAccess = {
   isPaid: boolean;
   limits: { freeUnlockedModules: string[] };
   paywall: { title: string; message: string; cta: string };
+};
+
+type NarrativeMatrixConcept = {
+  logline: string;
+  shortPitch: string;
+  themes: string[];
 };
 
 // ---------------------------------------------------------------------------
@@ -296,6 +302,18 @@ export default function ProjectOverview() {
     staleTime: 30_000,
   });
 
+  const { data: matrixConcept } = useQuery<NarrativeMatrixConcept | null>({
+    queryKey: [`/api/projects/${id}/matrix`, "concept-protection"],
+    queryFn: async () => {
+      const response = await apiFetch(`${BASE}/api/projects/${id}/matrix`);
+      if (response.status === 404) return null;
+      if (!response.ok) throw new Error("Matrice narrative indisponible");
+      return response.json() as Promise<NarrativeMatrixConcept>;
+    },
+    enabled: !!id,
+    staleTime: 30_000,
+  });
+
   if (projectLoading || statusLoading) {
     return (
       <AppLayout>
@@ -327,6 +345,12 @@ export default function ProjectOverview() {
   const isCommercialFree = access?.mode === "commercial" && !access.isPaid;
   const isOwnerViewer = access?.viewer.role === "owner";
   const unlockedModules = access?.limits.freeUnlockedModules ?? [];
+  const canProtectConcept = Boolean(
+    (isOwnerViewer || access?.viewer.role === "user") &&
+    matrixConcept?.logline?.trim() &&
+    matrixConcept?.shortPitch?.trim() &&
+    (matrixConcept?.themes?.length ?? 0) > 0
+  );
 
   const visualMoods = (project as unknown as { visualMoods?: string[] }).visualMoods ?? [];
   const spark = project.rawIdea ?? "";
@@ -450,6 +474,28 @@ export default function ProjectOverview() {
               <button className="px-4 py-2 rounded-xl bg-amber-300 text-black text-sm font-bold hover:bg-amber-200 transition-colors">
                 {access.paywall.cta}
               </button>
+            </div>
+          )}
+
+          {canProtectConcept && (
+            <div className="rounded-2xl border border-emerald-400/25 bg-gradient-to-br from-emerald-300/[0.10] via-white/[0.035] to-cyan-400/[0.07] p-5 sm:p-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200/80">
+                    <ShieldCheck className="h-4 w-4" />
+                    Protection concept
+                  </div>
+                  <h2 className="mt-2 font-serif text-2xl font-bold text-white">Sceller l'idee des maintenant</h2>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/45">
+                    Logline, pitch et themes sont prets. Cree un Passeport d'Oeuvre au stade concept pour horodater l'ADN narratif avant le developpement complet.
+                  </p>
+                </div>
+                <Link href={`/projects/${id}/passport?stage=concept`}>
+                  <button className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-emerald-200 px-4 text-sm font-bold text-black transition hover:bg-emerald-100">
+                    Proteger mon idee maintenant <ArrowRight className="h-4 w-4" />
+                  </button>
+                </Link>
+              </div>
             </div>
           )}
 

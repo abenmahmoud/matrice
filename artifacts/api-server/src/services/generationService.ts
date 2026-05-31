@@ -227,7 +227,8 @@ Regles imperatives :
 - Ne pretends jamais fournir une protection juridique officielle.
 - Distingue clairement "preuve interne Matrice" et "depot officiel externe".
 - Ne promets jamais qu'un hash interne suffit devant un tribunal.
-- Recommande des demarches adaptees : INPI e-Soleau, SACD, SGDL, AFNIL/ISBN, CNC, festivals, producteurs, diffuseurs selon le type.
+- Recommande des demarches adaptees : INPI e-Soleau, SACD, SGDL, ADAGP, AFNIL/ISBN, CNC, festivals, producteurs, diffuseurs selon le type.
+- Pour un concept, une idee, une bible ou un pitch encore precoce, privilegie INPI e-Soleau + horodatage OTS puis indique les depots officiels ulterieurs possibles.
 - Ne copie aucune oeuvre existante et n'invente pas de depot deja realise.
 - Reponds uniquement en JSON valide, sans markdown.`;
 

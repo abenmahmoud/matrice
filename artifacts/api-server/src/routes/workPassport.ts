@@ -109,7 +109,18 @@ router.post("/projects/:id/passport/generate", async (req, res) => {
     const [core] = await db.select().from(emotionalCoresTable).where(eq(emotionalCoresTable.projectId, projectId)).limit(1);
     const [research] = await db.select().from(researchDataTable).where(eq(researchDataTable.projectId, projectId)).limit(1);
 
-    const fallback = buildDeterministicPassport(context.project, context.authorName, matrix, core, research);
+    const forceConcept = req.query.stage === "concept";
+    const baseFallback = buildDeterministicPassport(context.project, context.authorName, matrix, core, research);
+    const fallback = forceConcept
+      ? {
+          ...baseFallback,
+          workType: "concept",
+          depositTargets: suggestDepositTargets("concept"),
+          depositChecklist: generateDefaultChecklist(suggestDepositTargets("concept")),
+          proofNotes:
+            "Preuve interne par empreinte SHA-256 et horodatage OTS pour figer le concept, la logline, le pitch et les themes. Pour renforcer la preuve externe, effectuer un depot officiel via INPI e-Soleau.",
+        }
+      : baseFallback;
     const draft = await generateEnrichedWorkPassportDraft(context.project, {
       displayedAuthor: context.authorName,
       workType: fallback.workType,
@@ -280,6 +291,13 @@ function filterPassportUpdate(body: unknown): Partial<WorkPassportDraft> {
 
 function mapFormatToWorkType(format: string | null): string {
   const normalized = format?.toLowerCase() ?? "";
+  const searchable = normalizeForSearch(normalized);
+  if (searchable.includes("concept") || searchable.includes("idee") || searchable.includes("pitch") || searchable.includes("bible")) return "concept";
+  if (searchable.includes("roman graphique")) return "roman-graphique";
+  if (searchable.includes("bd") || searchable.includes("bande dessinee") || searchable.includes("bande-dessinee") || searchable.includes("comic")) return "bd";
+  if (searchable.includes("nouvelle") || searchable.includes("short story")) return "nouvelle";
+  if (searchable.includes("theatre") || searchable.includes("piece")) return "theatre";
+  if (searchable.includes("poesie") || searchable.includes("poeme")) return "poesie";
   if (normalized.includes("roman") || normalized.includes("livre") || normalized.includes("book")) return "roman";
   if (normalized.includes("court")) return "court-metrage";
   if (normalized.includes("scenario") || normalized.includes("scenar") || normalized.includes("screenplay")) return "scenario";
@@ -291,6 +309,12 @@ function mapFormatToWorkType(format: string | null): string {
 function suggestDepositTargets(workType: string): string[] {
   const targets: Record<string, string[]> = {
     roman: ["sgdl", "inpi_esoleau", "isbn_afnil"],
+    bd: ["sgdl", "isbn_afnil", "adagp", "inpi_esoleau"],
+    "roman-graphique": ["sgdl", "isbn_afnil", "adagp", "inpi_esoleau"],
+    nouvelle: ["sgdl", "isbn_afnil", "inpi_esoleau"],
+    theatre: ["sacd", "sgdl", "inpi_esoleau"],
+    poesie: ["sgdl", "isbn_afnil", "inpi_esoleau"],
+    concept: ["inpi_esoleau"],
     scenario: ["sacd", "inpi_esoleau", "cnc"],
     film: ["sacd", "inpi_esoleau", "cnc", "festival", "isan_eidr"],
     serie: ["sacd", "inpi_esoleau", "producteur", "diffuseur"],
@@ -315,7 +339,13 @@ function stringOr(value: unknown, fallback: string): string {
 }
 
 function canonicalWorkType(value: unknown, fallback: string): string {
-  const normalized = typeof value === "string" ? value.toLowerCase() : "";
+  const normalized = typeof value === "string" ? normalizeForSearch(value) : "";
+  if (normalized.includes("concept") || normalized.includes("idee") || normalized.includes("pitch") || normalized.includes("bible")) return "concept";
+  if (normalized.includes("roman graphique")) return "roman-graphique";
+  if (normalized.includes("bd") || normalized.includes("bande dessinee") || normalized.includes("comic")) return "bd";
+  if (normalized.includes("nouvelle")) return "nouvelle";
+  if (normalized.includes("theatre") || normalized.includes("piece")) return "theatre";
+  if (normalized.includes("poesie") || normalized.includes("poeme")) return "poesie";
   if (normalized.includes("roman")) return "roman";
   if (normalized.includes("court")) return "court-metrage";
   if (normalized.includes("scenario") || normalized.includes("scenar")) return "scenario";
@@ -385,6 +415,7 @@ function canonicalDepositTargets(value: unknown, fallback: string[]): string[] {
       if (normalized.includes("producteur")) return "producteur";
       if (normalized.includes("diffuseur")) return "diffuseur";
       if (normalized.includes("isan") || normalized.includes("eidr")) return "isan_eidr";
+      if (normalized.includes("adagp")) return "adagp";
       return item.trim() ? "autre" : "";
     })
     .filter(Boolean);
