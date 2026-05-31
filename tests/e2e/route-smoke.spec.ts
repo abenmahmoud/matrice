@@ -38,6 +38,7 @@ const ROUTES: SmokeRoute[] = [
   { name: "support", path: "/support", appLayout: true },
   { name: "support-new", path: "/support/new", appLayout: true },
   { name: "billing", path: "/billing", appLayout: true },
+  { name: "sales", path: "/sales", appLayout: true },
   { name: "notifications", path: "/notifications", appLayout: true },
   { name: "profile", path: "/profile", appLayout: true },
   { name: "locked-works", path: "/locked-works", appLayout: true },
@@ -205,6 +206,7 @@ async function mockMatriceApi(page: Page) {
     if (pathname === "/api/lentille-marche/history") return json(route, { analyses: [] });
     if (pathname === "/api/payments/subscription") return json(route, { subscription: null });
     if (pathname === "/api/payments/invoices") return json(route, { invoices: [] });
+    if (pathname === "/api/sales/mine") return json(route, mineSales());
     if (pathname === "/api/passport/locked-works") return json(route, { works: [] });
     if (pathname === "/api/exports/list") return json(route, { jobs: [] });
 
@@ -396,6 +398,39 @@ function sales() {
 
 function publishingFinance() {
   return { payout_account: null, channel_connections: [], settlements: [] };
+}
+
+function mineSales() {
+  return {
+    entries: [
+      {
+        id: "sale-e2e",
+        project_id: PROJECT_ID,
+        project_title: "Les Cendres du Mirage",
+        channel: "Amazon KDP",
+        date: "2026-05-31T12:00:00.000Z",
+        gross_amount: 19.99,
+        currency: "EUR",
+        author_share: 17.99,
+        matrice_share: 2,
+        settlement_status: "pending",
+        settlement_label: "En attente",
+        raw_settlement_status: "paid",
+        kyc_status: "complete",
+      },
+    ],
+    totals: {
+      gross_amount: 19.99,
+      author_share: 17.99,
+      matrice_share: 2,
+      paid_amount: 0,
+      pending_amount: 17.99,
+      blocked_kyc_amount: 0,
+      currency: "EUR",
+      author_percent: 90,
+      matrice_percent: 10,
+    },
+  };
 }
 
 function passport() {

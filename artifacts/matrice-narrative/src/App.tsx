@@ -83,6 +83,7 @@ import WorkPassportPage from "./pages/work-passport";
 import ProjectMandatePage from "./pages/project-mandate";
 import ProjectPublishPage from "./pages/project-publish";
 import BillingPage from "./pages/billing";
+import SalesPage from "./pages/sales";
 
 import AdminDashboardPage from "./pages/admin/dashboard";
 import AdminFinancePage from "./pages/admin/finance";
@@ -264,6 +265,7 @@ function Router() {
       <Route path="/projects/:id/mandate" component={ProjectMandatePage} />
       <Route path="/projects/:id/passport" component={WorkPassportPage} />
       <Route path="/billing" component={BillingPage} />
+      <Route path="/sales" component={SalesPage} />
       <Route path="/creator-lab/system" component={CreatorSystemPage} />
       <Route path="/creator-lab/voice" component={VoiceLabPage} />
       <Route path="/creator-lab/preview" component={CreatorPreviewPage} />

@@ -180,6 +180,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Accueil", href: "/", icon: Home },
     { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
     { name: "Credits & facturation", href: "/billing", icon: Coins },
+    { name: "Mes ventes", href: "/sales", icon: TrendingUp },
     { name: "Œuvres verrouillées", href: "/locked-works", icon: ShieldCheck },
     { name: "Memoire Studio", href: "/memory", icon: BrainCircuit },
     { name: "Modules experimentaux", href: "/experimental-modules", icon: Sparkles },
@@ -406,6 +407,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <MenuLink href="/profile" icon={UserRound} label="Mon profil" />
                 <MenuLink href="/profile/notifications" icon={Bell} label="Notifications" />
                 <MenuLink href="/billing" icon={Coins} label="Credits & facturation" />
+                <MenuLink href="/sales" icon={TrendingUp} label="Mes ventes" />
                 <MenuLink href="/locked-works" icon={ShieldCheck} label="Mes oeuvres" />
                 <MenuLink href="/dashboard" icon={LayoutDashboard} label="Tableau de bord" />
                 <MenuLink href="/support" icon={MessageCircle} label="Support" />
