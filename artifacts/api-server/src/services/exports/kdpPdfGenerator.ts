@@ -1,6 +1,7 @@
 import puppeteer from "puppeteer";
 import { eq } from "drizzle-orm";
-import { db, workPassportsTable } from "@workspace/db";
+import { appUsersTable, db, projectsTable, workPassportsTable } from "@workspace/db";
+import { resolveExportAuthorName } from "../authorDisplayNameService.js";
 
 export async function generateKdpPdf(workPassportId: string): Promise<Buffer> {
   const passport = await findWorkPassport(workPassportId);
@@ -9,7 +10,7 @@ export async function generateKdpPdf(workPassportId: string): Promise<Buffer> {
     throw new Error("L'oeuvre n'a pas de contenu markdown");
   }
 
-  const author = passport.pseudonym || passport.displayedAuthor || "Anonyme";
+  const author = await resolveAuthorName(passport);
   const title = passport.officialTitle || "Oeuvre sans titre";
   const html = renderKdpTemplate({
     title,
@@ -54,6 +55,28 @@ async function findWorkPassport(workPassportId: string) {
     throw new Error(`Passeport d'oeuvre introuvable: ${workPassportId}`);
   }
   return passport;
+}
+
+async function resolveAuthorName(passport: typeof workPassportsTable.$inferSelect): Promise<string> {
+  const [project] = await db
+    .select({ authorDisplayName: projectsTable.authorDisplayName })
+    .from(projectsTable)
+    .where(eq(projectsTable.id, passport.projectId))
+    .limit(1);
+
+  const [owner] = await db
+    .select({ email: appUsersTable.email, displayName: appUsersTable.displayName })
+    .from(appUsersTable)
+    .where(eq(appUsersTable.id, passport.ownerUserId))
+    .limit(1);
+
+  return resolveExportAuthorName({
+    pseudonym: passport.pseudonym,
+    passportDisplayedAuthor: passport.displayedAuthor,
+    projectAuthorDisplayName: project?.authorDisplayName,
+    userDisplayName: owner?.displayName,
+    userEmail: owner?.email,
+  });
 }
 
 function renderKdpTemplate(data: { title: string; author: string; copyright: string; chaptersHtml: string }): string {

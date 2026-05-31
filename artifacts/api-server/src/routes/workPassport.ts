@@ -18,6 +18,7 @@ import {
 import type { WorkPassportDraft } from "../services/generationService.js";
 import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
 import { getProductAccess } from "../lib/productAccess.js";
+import { resolveAuthorDisplayName } from "../services/authorDisplayNameService.js";
 
 const router: IRouter = Router();
 const OWNER_PASSPORT_ID = "owner";
@@ -55,7 +56,7 @@ async function resolvePassportAccess(req: Request, res: Response): Promise<Passp
 
   if (access.viewer.role === "owner") {
     const ownerId = project.ownerUserId ?? OWNER_PASSPORT_ID;
-    const authorName = await resolveAuthorName(ownerId, user);
+    const authorName = await resolveAuthorName(ownerId, user, project);
     return { project, passportOwnerId: ownerId, authorName, user };
   }
 
@@ -63,7 +64,11 @@ async function resolvePassportAccess(req: Request, res: Response): Promise<Passp
     return {
       project,
       passportOwnerId: user.id,
-      authorName: user.displayName || user.email,
+      authorName: resolveAuthorDisplayName({
+        projectAuthorDisplayName: project.authorDisplayName,
+        userDisplayName: user.displayName,
+        userEmail: user.email,
+      }),
       user,
     };
   }
@@ -72,8 +77,15 @@ async function resolvePassportAccess(req: Request, res: Response): Promise<Passp
   return null;
 }
 
-async function resolveAuthorName(ownerId: string, user: AuthenticatedUser | null): Promise<string> {
-  if (ownerId === OWNER_PASSPORT_ID) return user?.displayName || "Createur Matrice";
+async function resolveAuthorName(ownerId: string, user: AuthenticatedUser | null, project: ProjectRow): Promise<string> {
+  if (ownerId === OWNER_PASSPORT_ID) {
+    return resolveAuthorDisplayName({
+      projectAuthorDisplayName: project.authorDisplayName,
+      userDisplayName: user?.displayName,
+      userEmail: user?.email,
+      fallback: "Createur Matrice",
+    });
+  }
 
   const [owner] = await db
     .select({ email: appUsersTable.email, displayName: appUsersTable.displayName })
@@ -81,7 +93,12 @@ async function resolveAuthorName(ownerId: string, user: AuthenticatedUser | null
     .where(eq(appUsersTable.id, ownerId))
     .limit(1);
 
-  return owner?.displayName || owner?.email || user?.displayName || "Createur Matrice";
+  return resolveAuthorDisplayName({
+    projectAuthorDisplayName: project.authorDisplayName,
+    userDisplayName: owner?.displayName ?? user?.displayName,
+    userEmail: owner?.email ?? user?.email,
+    fallback: "Createur Matrice",
+  });
 }
 
 // GET /api/projects/:id/passport

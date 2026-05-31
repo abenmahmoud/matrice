@@ -98,6 +98,9 @@ export default function Home() {
                 Matrice accompagne un projet narratif de l'idee brute jusqu'a la production : structure, IA,
                 Lentille Marche, exports, signature du mandat et bientot paiements auteurs.
               </p>
+              <p className="mt-4 max-w-2xl rounded-2xl border border-[#d6a85c]/25 bg-[#d6a85c]/10 px-4 py-3 text-sm font-semibold leading-6 text-[#f6efe2]">
+                Tu publies sous ton nom, tu gardes 90% et ta paternite (preuve d'anteriorite incluse).
+              </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Button asChild size="lg" className="rounded-full bg-[#d6a85c] px-7 text-[#15110d] hover:bg-[#e8c98a]">
                   <Link href="/signup">

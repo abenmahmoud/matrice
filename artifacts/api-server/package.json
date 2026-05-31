@@ -8,7 +8,7 @@
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --import tsx --test src/services/openTimestampsService.test.ts src/services/lentilleService.test.ts src/services/mandatePdfService.test.ts src/services/betaInviteService.test.ts src/services/onboardingProgress.test.ts src/services/notificationRules.test.ts src/services/connectPublishingService.test.ts src/services/audiobookService.test.ts"
+    "test": "node --import tsx --test src/services/openTimestampsService.test.ts src/services/lentilleService.test.ts src/services/mandatePdfService.test.ts src/services/betaInviteService.test.ts src/services/onboardingProgress.test.ts src/services/notificationRules.test.ts src/services/connectPublishingService.test.ts src/services/audiobookService.test.ts src/services/authorDisplayNameService.test.ts"
   },
   "dependencies": {
     "@workspace/api-zod": "workspace:*",

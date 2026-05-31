@@ -1,9 +1,10 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import { and, desc, eq, sum } from "drizzle-orm";
 import { z } from "zod";
-import { db, projectsTable, salesEntriesTable, workPassportsTable } from "@workspace/db";
+import { appUsersTable, db, projectsTable, salesEntriesTable, workPassportsTable } from "@workspace/db";
 import { getAuthUser, type AuthenticatedUser } from "../lib/auth.js";
 import { getProductAccess } from "../lib/productAccess.js";
+import { resolveAuthorDisplayName } from "../services/authorDisplayNameService.js";
 import {
   buildPublishChecklist,
   mapFormatToPublishWorkType,
@@ -18,6 +19,7 @@ type PublishAccessContext = {
   project: ProjectRow;
   user: AuthenticatedUser | null;
   canWriteSales: boolean;
+  authorDisplayName: string;
 };
 
 router.get("/projects/:id/publish-plan", async (req, res) => {
@@ -47,6 +49,7 @@ router.get("/projects/:id/publish-plan", async (req, res) => {
         id: context.project.id,
         title: context.project.title,
         target_format: context.project.targetFormat,
+        author_display_name: context.authorDisplayName,
       },
       work_type: workType,
       channels,
@@ -56,6 +59,43 @@ router.get("/projects/:id/publish-plan", async (req, res) => {
     });
   } catch (err) {
     req.log.error({ err }, "Failed to build publish plan");
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+router.patch("/projects/:id/publishing/author", async (req, res) => {
+  try {
+    const context = await resolvePublishAccess(req, res);
+    if (!context) return;
+    if (!context.user || !context.canWriteSales) {
+      res.status(403).json({ error: "WRITE_ACCESS_REQUIRED" });
+      return;
+    }
+
+    const input = authorDisplayNameSchema.parse(req.body);
+    const normalized = input.author_display_name?.trim() || null;
+    const [project] = await db
+      .update(projectsTable)
+      .set({ authorDisplayName: normalized, updatedAt: new Date() })
+      .where(eq(projectsTable.id, context.project.id))
+      .returning();
+
+    const authorDisplayName = await resolveProjectAuthorDisplayName(project ?? context.project, context.user);
+    await db
+      .update(workPassportsTable)
+      .set({ displayedAuthor: authorDisplayName, updatedAt: new Date() })
+      .where(eq(workPassportsTable.projectId, context.project.id));
+
+    res.json({
+      author_display_name: authorDisplayName,
+      project_author_display_name: project?.authorDisplayName ?? null,
+    });
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: "INVALID_INPUT", details: err.flatten() });
+      return;
+    }
+    req.log.error({ err }, "Failed to update publishing author");
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
@@ -214,7 +254,30 @@ async function resolvePublishAccess(req: Request, res: Response): Promise<Publis
     project,
     user,
     canWriteSales: access.viewer.role === "owner" || Boolean(user && project.ownerUserId === user.id),
+    authorDisplayName: await resolveProjectAuthorDisplayName(project, user),
   };
+}
+
+async function resolveProjectAuthorDisplayName(project: ProjectRow, user: AuthenticatedUser | null): Promise<string> {
+  if (project.ownerUserId && project.ownerUserId !== user?.id) {
+    const [owner] = await db
+      .select({ email: appUsersTable.email, displayName: appUsersTable.displayName })
+      .from(appUsersTable)
+      .where(eq(appUsersTable.id, project.ownerUserId))
+      .limit(1);
+
+    return resolveAuthorDisplayName({
+      projectAuthorDisplayName: project.authorDisplayName,
+      userDisplayName: owner?.displayName ?? user?.displayName,
+      userEmail: owner?.email ?? user?.email,
+    });
+  }
+
+  return resolveAuthorDisplayName({
+    projectAuthorDisplayName: project.authorDisplayName,
+    userDisplayName: user?.displayName,
+    userEmail: user?.email,
+  });
 }
 
 function inferChecklistDone(itemId: string, context: { passportSealed: boolean; hasRawIdea: boolean }): boolean {
@@ -229,6 +292,10 @@ const salesEntrySchema = z.object({
   gross_amount: z.coerce.number().positive().max(1_000_000),
   currency: z.string().length(3).default("EUR"),
   note: z.string().max(1000).optional(),
+});
+
+const authorDisplayNameSchema = z.object({
+  author_display_name: z.string().max(120).optional().nullable(),
 });
 
 function amountToCents(amount: number): number {

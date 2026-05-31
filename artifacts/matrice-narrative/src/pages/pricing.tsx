@@ -152,6 +152,9 @@ export default function PricingPage() {
               Generation IA, export, Lentille Marche : chaque action consomme un cout visible. Les abonnements
               rechargent tes credits chaque mois, les packs restent disponibles en plus.
             </p>
+            <p className="mt-4 max-w-2xl rounded-xl border border-matrice-or-fonce/25 bg-white px-4 py-3 text-sm font-semibold leading-6 text-matrice-encre">
+              Tu publies sous ton nom, tu gardes 90% et ta paternite (preuve d'anteriorite incluse).
+            </p>
           </div>
 
           <div className="rounded-lg border border-matrice-sable bg-white p-4 shadow-sm">

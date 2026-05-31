@@ -88,7 +88,10 @@ export default function VerifyWorkPage() {
                   <h1 className="mt-6 text-4xl font-semibold leading-tight text-[#EDEBE6] sm:text-5xl" style={{ fontFamily: "Cormorant Garamond, Georgia, serif" }}>
                     {title}
                   </h1>
-                  <p className="mt-2 text-lg text-[#C9A961]">par {data.author || "Anonyme"}</p>
+                  <div className="mt-4 inline-flex flex-col gap-1 border border-[#C9A961]/35 bg-[#C9A961]/10 px-4 py-3 sm:flex-row sm:items-baseline sm:gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[#C9A961]">Auteur</span>
+                    <span className="text-xl font-semibold text-[#F6EFE2]">{data.author || "Anonyme"}</span>
+                  </div>
                 </div>
                 <VerifyBadge size="lg" confirmed={confirmed} className="shrink-0" />
               </div>

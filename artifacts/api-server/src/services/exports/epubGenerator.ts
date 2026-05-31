@@ -1,6 +1,7 @@
 import EPub from "epub-gen-memory";
 import { eq } from "drizzle-orm";
-import { db, workPassportsTable } from "@workspace/db";
+import { appUsersTable, db, projectsTable, workPassportsTable } from "@workspace/db";
+import { resolveExportAuthorName } from "../authorDisplayNameService.js";
 
 const MATRICE_EPUB_CSS = `
 body {
@@ -57,7 +58,7 @@ export async function generateEpub(workPassportId: string): Promise<Buffer> {
   }
 
   const chapters = parseMarkdownToChapters(passport.markdownContent);
-  const author = passport.pseudonym || passport.displayedAuthor || "Anonyme";
+  const author = await resolveAuthorName(passport);
   const title = passport.officialTitle || "Oeuvre sans titre";
   const language = passport.language === "francais" ? "fr" : passport.language || "fr";
 
@@ -83,6 +84,28 @@ async function findWorkPassport(workPassportId: string) {
     throw new Error(`Passeport d'oeuvre introuvable: ${workPassportId}`);
   }
   return passport;
+}
+
+async function resolveAuthorName(passport: typeof workPassportsTable.$inferSelect): Promise<string> {
+  const [project] = await db
+    .select({ authorDisplayName: projectsTable.authorDisplayName })
+    .from(projectsTable)
+    .where(eq(projectsTable.id, passport.projectId))
+    .limit(1);
+
+  const [owner] = await db
+    .select({ email: appUsersTable.email, displayName: appUsersTable.displayName })
+    .from(appUsersTable)
+    .where(eq(appUsersTable.id, passport.ownerUserId))
+    .limit(1);
+
+  return resolveExportAuthorName({
+    pseudonym: passport.pseudonym,
+    passportDisplayedAuthor: passport.displayedAuthor,
+    projectAuthorDisplayName: project?.authorDisplayName,
+    userDisplayName: owner?.displayName,
+    userEmail: owner?.email,
+  });
 }
 
 function parseMarkdownToChapters(markdown: string): Chapter[] {

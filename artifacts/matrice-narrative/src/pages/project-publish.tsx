@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "wouter";
 import { ArrowLeft, ExternalLink, Link2, Plus, ReceiptText, ShieldCheck, Trash2, WalletCards } from "lucide-react";
@@ -29,7 +29,7 @@ type ChecklistItem = {
 };
 
 type PublishPlan = {
-  project: { id: string; title: string; target_format: string };
+  project: { id: string; title: string; target_format: string; author_display_name: string };
   work_type: string;
   channels: SalesChannel[];
   checklist: ChecklistItem[];
@@ -95,6 +95,7 @@ export default function ProjectPublishPage() {
   });
   const [channelForm, setChannelForm] = useState({ channel: "", external_account: "" });
   const [checkoutForm, setCheckoutForm] = useState({ channel: "Matrice", amount_cents: "990", currency: "EUR" });
+  const [authorName, setAuthorName] = useState("");
 
   const planQuery = useQuery({
     queryKey: ["publish-plan", id],
@@ -220,10 +221,33 @@ export default function ProjectPublishPage() {
     onError: (err) => toast({ title: "Paiement test indisponible", description: err instanceof Error ? err.message : undefined, variant: "destructive" }),
   });
 
+  const updateAuthor = useMutation({
+    mutationFn: async () => {
+      const response = await apiFetch(`${BASE}/api/projects/${id}/publishing/author`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ author_display_name: authorName.trim() }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error((payload as { error?: string }).error ?? "Nom d'auteur impossible a enregistrer");
+      return payload as { author_display_name: string };
+    },
+    onSuccess: (payload) => {
+      setAuthorName(payload.author_display_name);
+      toast({ title: "Nom d'auteur enregistre", description: "Il sera utilise dans la fiche de vente, le passeport et les exports." });
+      queryClient.invalidateQueries({ queryKey: ["publish-plan", id] });
+    },
+    onError: (err) => toast({ title: "Nom non enregistre", description: err instanceof Error ? err.message : undefined, variant: "destructive" }),
+  });
+
   const plan = planQuery.data;
   const sales = salesQuery.data;
   const defaultChannel = useMemo(() => plan?.channels[0]?.name ?? "", [plan?.channels]);
   const canSubmit = (form.channel.trim() || defaultChannel) && Number(form.gross_amount) > 0 && form.currency.trim().length === 3;
+
+  useEffect(() => {
+    if (plan?.project.author_display_name) setAuthorName(plan.project.author_display_name);
+  }, [plan?.project.author_display_name]);
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -256,6 +280,43 @@ export default function ProjectPublishPage() {
 
         {plan ? (
           <>
+            <section className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
+              <div className="rounded-2xl border border-matrice-or-fonce/25 bg-matrice-ivoire p-5 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-matrice-or-fonce">Paternite protegee</p>
+                <h2 className="mt-2 font-serif text-2xl text-matrice-encre">Publie sous TON nom</h2>
+                <p className="mt-2 text-sm leading-6 text-matrice-encre/72">
+                  Publié sous TON nom - tu gardes ta paternité et 90% des revenus. Matrice ne s'approprie jamais ton œuvre.
+                </p>
+                <p className="mt-3 text-xs leading-5 text-matrice-encre/58">
+                  Ce nom apparaitra dans la fiche de vente, le passeport d'oeuvre et les metadonnees d'export EPUB, DOCX et PDF.
+                </p>
+              </div>
+
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  updateAuthor.mutate();
+                }}
+                className="rounded-2xl border border-matrice-sable bg-white p-5 shadow-sm"
+              >
+                <label className="grid gap-2 text-sm font-medium text-matrice-encre">
+                  Nom d'auteur affiche
+                  <Input
+                    value={authorName}
+                    onChange={(event) => setAuthorName(event.target.value)}
+                    maxLength={120}
+                    placeholder={plan.project.author_display_name || "Nom de plume"}
+                  />
+                </label>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-xs leading-5 text-matrice-encre/55">Actuel : Auteur : {plan.project.author_display_name || "Anonyme"}</p>
+                  <Button disabled={updateAuthor.isPending} className="rounded-xl bg-matrice-encre text-matrice-ivoire hover:bg-matrice-bleu-nuit">
+                    {updateAuthor.isPending ? "Enregistrement..." : "Enregistrer"}
+                  </Button>
+                </div>
+              </form>
+            </section>
+
             <section className="grid gap-6 lg:grid-cols-[1.4fr_0.9fr]">
               <div className="rounded-2xl border border-matrice-sable bg-white p-5 shadow-sm">
                 <h2 className="font-serif text-2xl text-matrice-encre">Canaux suggeres</h2>
@@ -410,6 +471,9 @@ export default function ProjectPublishPage() {
                     <TotalBox label="Auteur 90%" value={sales?.totals.author_share ?? 0} currency={sales?.totals.currency ?? "EUR"} />
                     <TotalBox label="Matrice 10%" value={sales?.totals.matrice_share ?? 0} currency={sales?.totals.currency ?? "EUR"} />
                   </div>
+                  <p className="mt-3 rounded-xl bg-matrice-ivoire px-3 py-2 text-sm font-medium text-matrice-encre">
+                    Fiche de vente : Auteur : {plan.project.author_display_name || "Anonyme"}
+                  </p>
                 </div>
 
                 {salesQuery.isLoading ? (

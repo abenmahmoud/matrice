@@ -18,6 +18,7 @@ export const projectsTable = pgTable("projects", {
   cinematicReferences: text("cinematic_references").notNull().default(""),
   inspirationSources: text("inspiration_sources").notNull().default(""),
   manuscriptExcerpt: text("manuscript_excerpt").notNull().default(""),
+  authorDisplayName: text("author_display_name"),
   ownerUserId: text("owner_user_id"),
   progression: real("progression").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),

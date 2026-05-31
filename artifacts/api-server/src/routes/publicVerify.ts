@@ -1,8 +1,9 @@
 import { Router, type IRouter, type NextFunction, type Request, type Response } from "express";
 import QRCode from "qrcode";
 import { and, desc, eq, isNotNull } from "drizzle-orm";
-import { db, workPassportsTable } from "@workspace/db";
+import { appUsersTable, db, projectsTable, workPassportsTable } from "@workspace/db";
 import { getAuthUser } from "../lib/auth.js";
+import { resolveExportAuthorName } from "../services/authorDisplayNameService.js";
 
 const router: IRouter = Router();
 const HASH_RE = /^[a-f0-9]{64}$/i;
@@ -30,7 +31,7 @@ router.get("/public/verify/:hash", rateLimitPublic, async (req, res) => {
   }
 
   res.set("Cache-Control", "public, max-age=300");
-  res.json(toPublicVerifyPayload(passport, hash));
+  res.json(await toPublicVerifyPayload(passport, hash));
 });
 
 router.get("/public/verify/:hash/qr.png", rateLimitPublic, async (req, res) => {
@@ -99,13 +100,13 @@ router.get("/passport/locked-works", async (req, res) => {
     .limit(100);
 
   res.json({
-    works: passports
+    works: await Promise.all(passports
       .filter((passport) => passport.contentHash)
-      .map((passport) => ({
+      .map(async (passport) => ({
         id: passport.id,
         projectId: passport.projectId,
         title: passport.officialTitle || "Œuvre sans titre",
-        author: displayAuthor(passport),
+        author: await displayAuthor(passport),
         workType: passport.workType,
         sealedAt: passport.sealedAt,
         contentHash: passport.contentHash,
@@ -115,7 +116,7 @@ router.get("/passport/locked-works", async (req, res) => {
         qrUrl: `/api/public/verify/${passport.contentHash}/qr.png?size=512`,
         badgeUrl: `/api/public/verify/${passport.contentHash}/badge.svg?size=md`,
         passportUrl: `/projects/${passport.projectId}/passport`,
-      })),
+      }))),
   });
 });
 
@@ -172,11 +173,11 @@ async function findPassportByHash(hash: string): Promise<PublicVerifyPassport | 
   return passport ?? null;
 }
 
-function toPublicVerifyPayload(passport: PublicVerifyPassport, hash: string) {
+async function toPublicVerifyPayload(passport: PublicVerifyPassport, hash: string) {
   return {
     found: true,
     title: passport.officialTitle,
-    author: displayAuthor(passport),
+    author: await displayAuthor(passport),
     workType: passport.workType,
     language: passport.language,
     sealedAt: passport.sealedAt,
@@ -190,8 +191,26 @@ function toPublicVerifyPayload(passport: PublicVerifyPassport, hash: string) {
   };
 }
 
-function displayAuthor(passport: PublicVerifyPassport): string {
-  return passport.pseudonym || passport.displayedAuthor || "Anonyme";
+async function displayAuthor(passport: PublicVerifyPassport): Promise<string> {
+  const [project] = await db
+    .select({ authorDisplayName: projectsTable.authorDisplayName })
+    .from(projectsTable)
+    .where(eq(projectsTable.id, passport.projectId))
+    .limit(1);
+
+  const [owner] = await db
+    .select({ email: appUsersTable.email, displayName: appUsersTable.displayName })
+    .from(appUsersTable)
+    .where(eq(appUsersTable.id, passport.ownerUserId))
+    .limit(1);
+
+  return resolveExportAuthorName({
+    pseudonym: passport.pseudonym,
+    passportDisplayedAuthor: passport.displayedAuthor,
+    projectAuthorDisplayName: project?.authorDisplayName,
+    userDisplayName: owner?.displayName,
+    userEmail: owner?.email,
+  });
 }
 
 function verifyUrl(hash: string): string {

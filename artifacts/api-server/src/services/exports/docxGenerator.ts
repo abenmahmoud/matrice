@@ -10,7 +10,8 @@ import {
   TextRun,
 } from "docx";
 import { eq } from "drizzle-orm";
-import { appUsersTable, db, workPassportsTable } from "@workspace/db";
+import { appUsersTable, db, projectsTable, workPassportsTable } from "@workspace/db";
+import { resolveExportAuthorName } from "../authorDisplayNameService.js";
 
 export async function generateDocxManuscript(workPassportId: string): Promise<Buffer> {
   const passport = await findWorkPassport(workPassportId);
@@ -24,8 +25,19 @@ export async function generateDocxManuscript(workPassportId: string): Promise<Bu
     .from(appUsersTable)
     .where(eq(appUsersTable.id, passport.ownerUserId))
     .limit(1);
+  const [project] = await db
+    .select({ authorDisplayName: projectsTable.authorDisplayName })
+    .from(projectsTable)
+    .where(eq(projectsTable.id, passport.projectId))
+    .limit(1);
 
-  const authorDisplayName = passport.pseudonym || passport.displayedAuthor || owner?.displayName || "Anonyme";
+  const authorDisplayName = resolveExportAuthorName({
+    pseudonym: passport.pseudonym,
+    passportDisplayedAuthor: passport.displayedAuthor,
+    projectAuthorDisplayName: project?.authorDisplayName,
+    userDisplayName: owner?.displayName,
+    userEmail: owner?.email,
+  });
   const authorContact = owner?.email || "";
   const title = passport.officialTitle || "Oeuvre sans titre";
   const wordCount = countWords(passport.markdownContent);
