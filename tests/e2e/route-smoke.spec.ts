@@ -62,6 +62,7 @@ const ROUTES: SmokeRoute[] = [
   { name: "admin-invites", path: "/admin/invites", appLayout: true },
   { name: "admin-audit", path: "/admin/audit", appLayout: true },
   { name: "admin-support", path: "/admin/support", appLayout: true },
+  { name: "admin-community", path: "/admin/community", appLayout: true },
   { name: "admin-system", path: "/admin/system", appLayout: true },
   { name: "creator-lab", path: "/creator-lab", appLayout: true },
   { name: "voice-lab", path: "/creator-lab/voice", appLayout: true },
@@ -212,6 +213,7 @@ async function mockMatriceApi(page: Page) {
     if (pathname === "/api/dashboard/summary") return json(route, dashboardSummary());
 
     if (pathname === "/api/community/threads") return json(route, { threads: [communityThread()] });
+    if (pathname === "/api/community/threads/thread-e2e") return json(route, { thread: communityThread(), posts: [communityPost()] });
     if (pathname === "/api/support/tickets") return json(route, { tickets: [supportTicket()] });
     if (pathname === "/api/manuscripts") return json(route, []);
     if (pathname === "/api/memory") return json(route, [memoryEntry()]);
@@ -516,6 +518,10 @@ function passport() {
 
 function communityThread() {
   return { id: "thread-e2e", title: "Bienvenue dans la communaute", category: "general", status: "open", pinned: true, postsCount: 1, authorName: "Auteur E2E", createdAt: now, updatedAt: now };
+}
+
+function communityPost() {
+  return { id: "post-e2e", threadId: "thread-e2e", body: "Reponse de test pour la moderation.", status: "visible", authorName: "Auteur E2E", createdAt: now, updatedAt: now };
 }
 
 function supportTicket() {

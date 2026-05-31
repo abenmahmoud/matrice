@@ -97,6 +97,7 @@ import AdminInvitesPage from "./pages/admin/invites";
 import AdminAuditLogPage from "./pages/admin/audit-log";
 import AdminSupportPage from "./pages/admin/support";
 import AdminSupportTicketPage from "./pages/admin/support/ticket-detail";
+import AdminCommunityPage from "./pages/admin/community";
 import AdminSystemPage from "./pages/admin/system";
 import CreatorLabPage, { CreatorPreviewPage } from "./pages/creator/lab";
 import CreatorSystemPage from "./pages/creator/system";
@@ -284,6 +285,7 @@ function Router() {
       <Route path="/admin/invites" component={AdminInvitesPage} />
       <Route path="/admin/support/:id" component={AdminSupportTicketPage} />
       <Route path="/admin/support" component={AdminSupportPage} />
+      <Route path="/admin/community" component={AdminCommunityPage} />
       <Route path="/admin/audit" component={AdminAuditLogPage} />
       <Route path="/admin/finance" component={AdminFinancePage} />
       <Route path="/admin/authors" component={AdminAuthorsPage} />

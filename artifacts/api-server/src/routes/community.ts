@@ -15,6 +15,7 @@ import {
 } from "../services/communityService.js";
 import { communityReplyEmail } from "../services/emailTemplates.js";
 import { notify } from "../services/notificationService.js";
+import { logAdminAction } from "../services/adminAuditService.js";
 
 const router: IRouter = Router();
 
@@ -155,6 +156,8 @@ router.patch("/community/threads/:id", async (req, res) => {
     }
     const isAuthor = thread.authorUserId === user.id;
     const modo = isModerator(user);
+    const auditMetadata: Record<string, unknown> = { thread_id: thread.id };
+    let didModerate = false;
 
     if (typeof req.body?.pinned === "boolean") {
       if (!modo) {
@@ -162,6 +165,8 @@ router.patch("/community/threads/:id", async (req, res) => {
         return;
       }
       await setThreadPinned(thread.id, req.body.pinned);
+      auditMetadata["pinned"] = req.body.pinned;
+      didModerate = true;
     }
 
     if (typeof req.body?.status === "string") {
@@ -181,9 +186,20 @@ router.patch("/community/threads/:id", async (req, res) => {
         return;
       }
       await setThreadStatus(thread.id, status as "open" | "closed" | "hidden");
+      auditMetadata["status"] = status;
+      didModerate = didModerate || modo;
     }
 
     const updated = await getThreadRow(thread.id);
+    if (didModerate && modo) {
+      await logAdminAction({
+        adminUserId: user.id,
+        actionType: "community_thread_moderate",
+        targetUserId: thread.authorUserId,
+        metadata: auditMetadata,
+        ipAddress: req.ip,
+      });
+    }
     res.json({ thread: updated });
   } catch (err) {
     req.log.error({ err }, "Erreur moderation sujet forum");
@@ -211,6 +227,15 @@ router.patch("/community/posts/:id", async (req, res) => {
       return;
     }
     const updated = await setPostStatus(post.id, status);
+    if (isModerator(user)) {
+      await logAdminAction({
+        adminUserId: user.id,
+        actionType: "community_post_moderate",
+        targetUserId: post.authorUserId,
+        metadata: { post_id: post.id, thread_id: post.threadId, status },
+        ipAddress: req.ip,
+      });
+    }
     res.json({ post: updated });
   } catch (err) {
     req.log.error({ err }, "Erreur moderation reponse forum");

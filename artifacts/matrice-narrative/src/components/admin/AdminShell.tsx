@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Activity, Bot, LayoutDashboard, Mic2, ScrollText, ServerCog, Ticket, Users, WalletCards } from "lucide-react";
+import { Activity, Bot, LayoutDashboard, MessageSquare, Mic2, ScrollText, ServerCog, Ticket, Users, WalletCards } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ const NAV = [
   { href: "/admin/credits", label: "Credits", icon: WalletCards },
   { href: "/admin/audit", label: "Audit", icon: ScrollText },
   { href: "/admin/support", label: "Support", icon: Ticket },
+  { href: "/admin/community", label: "Communaute", icon: MessageSquare },
   { href: "/admin/invites", label: "Invitations", icon: Ticket },
   { href: "/creator-lab", label: "Creator Lab", icon: Bot },
   { href: "/creator-lab/voice", label: "Voice Lab", icon: Mic2 },
