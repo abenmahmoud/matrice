@@ -67,10 +67,10 @@ export default function Home() {
             <Link href="/support" className="hover:text-[#15110d]">Support</Link>
           </nav>
           <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" className="hidden text-[#2a2119]/70 hover:text-[#15110d] sm:inline-flex">
+            <Button asChild variant="ghost" size="sm" className="text-[#2a2119]/70 hover:text-[#15110d]">
               <Link href="/login">Connexion</Link>
             </Button>
-            <Button asChild className="rounded-full bg-[#15110d] px-5 text-[#f4ece0] hover:bg-[#241c14]">
+            <Button asChild size="sm" className="rounded-full bg-[#15110d] px-3 text-[#f4ece0] hover:bg-[#241c14] sm:px-5">
               <Link href="/signup">
                 Commencer <ArrowRight className="h-4 w-4" />
               </Link>

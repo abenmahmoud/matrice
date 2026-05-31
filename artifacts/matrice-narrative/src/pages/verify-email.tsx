@@ -70,6 +70,9 @@ export default function VerifyEmailPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
+            <Button asChild variant="secondary" className="mt-3">
+              <Link href={`${BASE}/login`}>Se connecter</Link>
+            </Button>
           </>
         )}
 

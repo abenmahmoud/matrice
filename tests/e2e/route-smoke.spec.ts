@@ -3,6 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const PROJECT_ID = "e2e-project";
+const USER_ID = "user-e2e";
 const SCREENSHOT_DIR = path.join(process.cwd(), "test-screenshots", "route-smoke");
 const REPORT_PATH = path.join(process.cwd(), "test-results", "routes-smoke-report.json");
 const REPORT_MD_PATH = path.join(process.cwd(), "test-results", "routes-smoke-report.md");
@@ -30,8 +31,10 @@ const ROUTES: SmokeRoute[] = [
   { name: "home", path: "/" },
   { name: "pricing", path: "/pricing" },
   { name: "login", path: "/login" },
+  { name: "connexion-alias", path: "/connexion" },
   { name: "signup", path: "/signup" },
   { name: "forgot-password", path: "/forgot-password" },
+  { name: "auth-required", path: "/auth-required" },
   { name: "dashboard", path: "/dashboard", appLayout: true },
   { name: "community", path: "/community", appLayout: true },
   { name: "community-new", path: "/community/new", appLayout: true },
@@ -49,6 +52,7 @@ const ROUTES: SmokeRoute[] = [
   { name: "admin", path: "/admin", appLayout: true },
   { name: "admin-credits", path: "/admin/credits", appLayout: true },
   { name: "admin-users", path: "/admin/users", appLayout: true },
+  { name: "admin-user-detail", path: `/admin/users/${USER_ID}`, appLayout: true },
   { name: "admin-finance", path: "/admin/finance", appLayout: true },
   { name: "admin-authors", path: "/admin/authors", appLayout: true },
   { name: "admin-invites", path: "/admin/invites", appLayout: true },
@@ -146,6 +150,40 @@ test.describe("route smoke visual audit", () => {
       })),
     ).toEqual([]);
   });
+
+  test("landing exposes a one-click path to login", async ({ page }) => {
+    await page.goto("/", { waitUntil: "networkidle" });
+    await page.getByRole("link", { name: "Connexion" }).click();
+    await expect(page).toHaveURL(/\/login$/);
+    await expect(page.getByLabel("Email")).toBeVisible();
+    await expect(page.getByLabel("Mot de passe")).toBeVisible();
+  });
+
+  test("unverified login shows an explicit resend action", async ({ page }) => {
+    await page.route("**/api/auth/login", async (route) => {
+      await json(route, { error: "EMAIL_NOT_VERIFIED", user: { email: "invite@example.com" }, canResend: true }, 403);
+    });
+
+    await page.goto("/login", { waitUntil: "networkidle" });
+    await page.getByLabel("Email").fill("invite@example.com");
+    await page.getByLabel("Mot de passe").fill("motdepasse-test");
+    await page.getByRole("button", { name: /Se connecter/i }).click();
+
+    await expect(page.getByText("Ton compte n'est pas encore confirme")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Renvoyer l'email de confirmation" })).toBeVisible();
+  });
+
+  test("admin owner can trigger the email verification rescue action", async ({ page }) => {
+    let rescueCalled = false;
+    await page.route(`**/api/admin/users/${USER_ID}/mark-email-verified`, async (route) => {
+      rescueCalled = true;
+      await json(route, { ok: true, user: { id: USER_ID, isEmailVerified: true } });
+    });
+
+    await page.goto(`/admin/users/${USER_ID}`, { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: /Marquer email verifie/i }).click();
+    await expect.poll(() => rescueCalled).toBe(true);
+  });
 });
 
 async function mockMatriceApi(page: Page) {
@@ -175,7 +213,8 @@ async function mockMatriceApi(page: Page) {
     if (pathname === "/api/memory") return json(route, [memoryEntry()]);
 
     if (pathname === "/api/admin/dashboard") return json(route, adminDashboard());
-    if (pathname.startsWith("/api/admin/users")) return json(route, adminUsers());
+    if (pathname === `/api/admin/users/${USER_ID}`) return json(route, adminUserDetail());
+    if (pathname === "/api/admin/users") return json(route, adminUsers());
     if (pathname === "/api/admin/invites") return json(route, { codes: [], stats: { total: 0, total_uses: 0, active: 0 } });
     if (pathname === "/api/admin/audit") return json(route, { actions: [] });
     if (pathname === "/api/admin/support/tickets") return json(route, { tickets: [adminTicket()] });
@@ -224,7 +263,7 @@ async function json(route: Route, body: unknown, status = 200) {
 
 function testUser() {
   return {
-    id: "user-e2e",
+    id: USER_ID,
     email: "auteur.e2e@matrice.test",
     displayName: "Auteur E2E",
     role: "owner",
@@ -285,7 +324,7 @@ function project() {
     inspirationSources: "",
     manuscriptExcerpt: "Chapitre 1\n\nLe premier paragraphe existe deja.",
     authorDisplayName: "Nora Safir",
-    ownerUserId: "user-e2e",
+    ownerUserId: USER_ID,
     progression: 72,
     createdAt: now,
     updatedAt: now,
@@ -437,7 +476,7 @@ function passport() {
   return {
     id: "passport-e2e",
     projectId: PROJECT_ID,
-    ownerUserId: "user-e2e",
+    ownerUserId: USER_ID,
     officialTitle: "Les Cendres du Mirage",
     workType: "roman",
     displayedAuthor: "Nora Safir",
@@ -480,7 +519,7 @@ function supportTicket() {
 }
 
 function adminTicket() {
-  return { id: "ticket-e2e", userId: "user-e2e", subject: "Question beta", category: "general", priority: "normal", status: "open", updatedAt: now };
+  return { id: "ticket-e2e", userId: USER_ID, subject: "Question beta", category: "general", priority: "normal", status: "open", updatedAt: now };
 }
 
 function adminDashboard() {
@@ -497,7 +536,7 @@ function adminDashboard() {
 function adminUsers() {
   return {
     users: [{
-      id: "user-e2e",
+      id: USER_ID,
       email: "auteur.e2e@matrice.test",
       displayName: "Auteur E2E",
       role: "owner",
@@ -510,6 +549,40 @@ function adminUsers() {
       createdAt: now,
     }],
     pagination: { total: 1, page: 1, page_size: 50, total_pages: 1 },
+  };
+}
+
+function adminUserDetail() {
+  return {
+    user: {
+      id: USER_ID,
+      email: "auteur.e2e@matrice.test",
+      displayName: "Auteur E2E",
+      role: "owner",
+      plan: "premium",
+      status: "active",
+      isEmailVerified: false,
+      generationsUsed: 0,
+      projectsCreated: 1,
+      creatorModeEnabled: true,
+      isBetaTester: true,
+      betaStartedAt: now,
+      betaExpiresAt: "2026-08-31T12:00:00.000Z",
+      onboardingStep: "done",
+      onboardingCompletedAt: now,
+      monthlyCredits: 800,
+      extraCredits: 200,
+      creditsRenewAt: "2026-06-30T12:00:00.000Z",
+      createdAt: now,
+      updatedAt: now,
+    },
+    stats: { projects_count: 1, lentille_analyses: 1, exports: 0, mandates: 0, active_mandates: 0 },
+    projects: [{ id: PROJECT_ID, title: "Les Cendres du Mirage", genre: "Roman contemporain", updatedAt: now, createdAt: now }],
+    mandates: [],
+    credits: { balance: { monthly: 800, extra: 200, total: 1000 }, renew_at: "2026-06-30T12:00:00.000Z", history: [] },
+    beta_usages: [],
+    recent_admin_actions: [],
+    health_flags: [],
   };
 }
 

@@ -89,6 +89,9 @@ export default function SignupPage() {
           Voir les tarifs
           <ArrowRight className="h-4 w-4" />
         </Link>
+        <Link href={`${BASE}/login`} className="inline-flex min-h-[44px] items-center text-sm font-medium text-matrice-or-fonce transition hover:text-matrice-encre">
+          J&apos;ai deja un compte
+        </Link>
       </header>
 
       <main className="mx-auto grid max-w-6xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:py-20">
@@ -139,6 +142,9 @@ export default function SignupPage() {
                 </Button>
                 <Button asChild variant="secondary">
                   <Link href={`${BASE}/verify-email`}>J'ai un lien</Link>
+                </Button>
+                <Button asChild variant="secondary">
+                  <Link href={`${BASE}/login`}>Se connecter</Link>
                 </Button>
               </div>
             </div>
@@ -197,6 +203,9 @@ export default function SignupPage() {
               </label>
               <Link href={`${BASE}/forgot-password`} className="block text-right text-sm text-matrice-encre/50 transition hover:text-matrice-terracotta">
                 Mot de passe oublie ?
+              </Link>
+              <Link href={`${BASE}/login`} className="block text-right text-sm font-medium text-matrice-or-fonce transition hover:text-matrice-encre">
+                J&apos;ai deja un compte - Se connecter
               </Link>
 
               {state.status === "error" && (
