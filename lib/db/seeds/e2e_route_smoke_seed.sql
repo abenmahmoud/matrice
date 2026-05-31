@@ -1,6 +1,34 @@
 -- Seed optionnel pour lancer l'audit visuel contre une DB locale/VPS.
 -- Le test Playwright mocke les API par defaut pour rester stable en CI,
 -- mais cette graine donne un owner + projet coherents si on veut brancher un backend reel.
+--
+-- Garde-fou: ne jamais executer cette graine sur la production par accident.
+-- Usage local:
+--   psql -v NODE_ENV=test -f lib/db/seeds/e2e_route_smoke_seed.sql
+-- Override exceptionnel sur une base ISOLEE uniquement:
+--   psql -v NODE_ENV=production -v ALLOW_E2E_SEED=true -f ...
+
+\if :{?NODE_ENV}
+\else
+\set NODE_ENV development
+\endif
+
+\if :{?ALLOW_E2E_SEED}
+\else
+\set ALLOW_E2E_SEED false
+\endif
+
+SELECT set_config('matrice.e2e_seed.node_env', :'NODE_ENV', false);
+SELECT set_config('matrice.e2e_seed.allow', :'ALLOW_E2E_SEED', false);
+
+DO $$
+BEGIN
+  IF current_setting('matrice.e2e_seed.node_env', true) = 'production'
+     AND current_setting('matrice.e2e_seed.allow', true) <> 'true'
+  THEN
+    RAISE EXCEPTION 'Refusing to run e2e seed in production. Use an isolated test database or pass ALLOW_E2E_SEED=true intentionally.';
+  END IF;
+END $$;
 
 INSERT INTO app_users (
   id,

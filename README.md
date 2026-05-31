@@ -308,6 +308,25 @@ docker compose up -d api frontend
 
 La procedure de creation d'un deuxieme owner, de reset manuel de mot de passe et de validation email manuelle est documentee dans [`EMERGENCY-ACCESS.md`](./EMERGENCY-ACCESS.md). Aucun compte de secours n'est cree en dur dans le code.
 
+### Validation continue
+
+GitHub Actions lance sur chaque pull request: install pnpm, typecheck, tests unitaires, audit e2e Playwright, build frontend et build API. Le workflow est defini dans `.github/workflows/ci.yml`.
+
+Commandes locales equivalentes:
+
+```bash
+corepack pnpm install --frozen-lockfile
+corepack pnpm run typecheck
+corepack pnpm test
+corepack pnpm test:e2e
+PORT=3000 BASE_PATH=/ NODE_ENV=production corepack pnpm --filter @workspace/matrice-narrative run build
+corepack pnpm --filter @workspace/api-server run build
+```
+
+### Audit dependances
+
+Les overrides de securite production sont dans `pnpm-workspace.yaml`. Le resultat et les TODO restants sont documentes dans [`SECURITY-AUDIT.md`](./SECURITY-AUDIT.md).
+
 ---
 
 ## Administration

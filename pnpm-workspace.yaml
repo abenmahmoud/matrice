@@ -75,6 +75,18 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
+  # Security overrides for production dependencies flagged by `pnpm audit --prod`.
+  # `javascript-opentimestamps` has no newer release, so we pin its vulnerable
+  # transitives to patched versions while keeping the public OTS API stable.
+  path-to-regexp: "8.4.2"
+  qs: "6.15.2"
+  crypto-js: "4.2.0"
+  elliptic: "6.6.1"
+  form-data: "2.5.5"
+  lodash: "4.18.1"
+  tough-cookie: "4.1.4"
+  bn.js: "4.12.3"
+  brace-expansion: "2.0.3"
   # replit uses linux-x64 only, we can exclude all other platforms
   "esbuild>@esbuild/darwin-arm64": "-"
   "esbuild>@esbuild/darwin-x64": "-"
