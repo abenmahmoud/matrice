@@ -86,6 +86,12 @@ router.post("/admin/support/tickets/:id/assign", async (req, res) => {
 
 router.post("/admin/support/tickets/:id/status", async (req, res) => {
   const input = z.object({ status: z.enum(["open", "in_progress", "waiting_user", "resolved", "closed"]) }).parse(req.body);
+  const [ticket] = await db.select().from(supportTicketsTable).where(eq(supportTicketsTable.id, req.params["id"])).limit(1);
+  if (!ticket) {
+    res.status(404).json({ error: "NOT_FOUND" });
+    return;
+  }
+
   const now = new Date();
   await db.update(supportTicketsTable).set({
     status: input.status,
@@ -93,6 +99,26 @@ router.post("/admin/support/tickets/:id/status", async (req, res) => {
     closedAt: input.status === "closed" ? now : undefined,
     updatedAt: now,
   }).where(eq(supportTicketsTable.id, req.params["id"]));
+
+  const labels: Record<typeof input.status, string> = {
+    open: "ouvert",
+    in_progress: "en cours",
+    waiting_user: "en attente de ta reponse",
+    resolved: "resolu",
+    closed: "ferme",
+  };
+  const [user] = await db.select().from(appUsersTable).where(eq(appUsersTable.id, ticket.userId)).limit(1);
+  if (user && ticket.status !== input.status) {
+    await notify({
+      userId: user.id,
+      type: "support_reply",
+      title: "Statut de reclamation mis a jour",
+      body: `Ton ticket "${ticket.subject}" est maintenant ${labels[input.status]}.`,
+      actionUrl: `/support/tickets/${ticket.id}`,
+      actionLabel: "Voir le suivi",
+    });
+  }
+
   res.json({ ok: true });
 });
 
