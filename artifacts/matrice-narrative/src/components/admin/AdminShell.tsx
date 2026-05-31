@@ -1,17 +1,18 @@
 import { Link, useLocation } from "wouter";
-import { Activity, Bot, LayoutDashboard, ScrollText, ServerCog, Ticket, Users, WalletCards } from "lucide-react";
+import { Activity, Bot, LayoutDashboard, Mic2, ScrollText, ServerCog, Ticket, Users, WalletCards } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/admin/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
+  { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
   { href: "/admin/finance", label: "Finance", icon: Activity },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/credits", label: "Credits", icon: WalletCards },
   { href: "/admin/audit", label: "Audit", icon: ScrollText },
   { href: "/admin/support", label: "Support", icon: Ticket },
   { href: "/admin/invites", label: "Invitations", icon: Ticket },
-  { href: "/studio", label: "Labo IA", icon: Bot },
+  { href: "/creator-lab", label: "Creator Lab", icon: Bot },
+  { href: "/creator-lab/voice", label: "Voice Lab", icon: Mic2 },
   { href: "/admin/system", label: "Systeme", icon: ServerCog },
 ];
 
@@ -27,7 +28,7 @@ export function AdminShell({ children, title, subtitle }: { children: React.Reac
         </header>
         <nav className="flex gap-2 overflow-x-auto rounded-2xl border border-matrice-sable bg-white p-2">
           {NAV.map((item) => {
-            const active = location === item.href || location.startsWith(`${item.href}/`);
+            const active = isNavActive(location, item.href);
             return (
               <Link
                 key={item.href}
@@ -47,4 +48,10 @@ export function AdminShell({ children, title, subtitle }: { children: React.Reac
       </div>
     </AppLayout>
   );
+}
+
+function isNavActive(location: string, href: string): boolean {
+  if (href === "/admin") return location === "/admin";
+  if (href === "/creator-lab") return location === "/creator-lab" || location === "/creator-lab/preview";
+  return location === href || location.startsWith(`${href}/`);
 }

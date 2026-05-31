@@ -179,6 +179,9 @@ Voir `DEPLOY.md` pour le guide complet (SSL Let's Encrypt, health checks, mises 
 # Typecheck complet
 pnpm run typecheck
 
+# Audit visuel automatique des routes principales
+pnpm test:e2e
+
 # Migration DB après modification du schéma
 pnpm --filter @workspace/db run push
 
@@ -188,6 +191,8 @@ cd lib/db && pnpm exec tsc --build --force
 # Régénérer hooks React Query depuis OpenAPI
 pnpm --filter @workspace/api-spec run codegen
 ```
+
+Le test `pnpm test:e2e` lance le frontend Vite en local, injecte une session utilisateur de test, mocke les reponses API stables, charge les routes principales et verifie : statut HTTP, page non vide, absence d'overlay runtime, absence d'erreur console et capture d'ecran archivee. Le rapport JSON est genere dans `test-results/routes-smoke-report.json` et les captures dans `test-results/route-smoke/`.
 
 ---
 

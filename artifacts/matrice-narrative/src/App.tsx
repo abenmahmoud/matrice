@@ -1,7 +1,8 @@
  
  
 
-import { Switch, Route } from "wouter";
+import { useEffect } from "react";
+import { Switch, Route, useLocation, useParams } from "wouter";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -83,7 +84,6 @@ import ProjectMandatePage from "./pages/project-mandate";
 import ProjectPublishPage from "./pages/project-publish";
 import BillingPage from "./pages/billing";
 
-import AdminPage from "./pages/admin";
 import AdminDashboardPage from "./pages/admin/dashboard";
 import AdminFinancePage from "./pages/admin/finance";
 import AdminAuthorsPage from "./pages/admin/authors";
@@ -166,7 +166,7 @@ function Router() {
       <Route path="/connexion" component={LoginPage} />
       <Route path="/profile" component={ProfilePage} />
       <Route path="/profile/notifications" component={NotificationPreferencesPage} />
-      <Route path="/compte" component={ProfilePage} />
+      <Route path="/compte" component={ProfileRedirect} />
 
       <Route path="/verify-email" component={VerifyEmailPage} />
 
@@ -207,9 +207,9 @@ function Router() {
 
       <Route path="/projects/:id/matrix" component={MatrixPage} />
 
-      <Route path="/projects/:id" component={ProjectOverview} />
+      <Route path="/projects/:id/overview" component={ProjectOverviewRedirect} />
 
-      <Route path="/projects/:id/overview" component={ProjectOverview} />
+      <Route path="/projects/:id" component={ProjectOverview} />
 
       <Route path="/projects/:id/tension-arc" component={TensionArcPage} />
 
@@ -268,8 +268,8 @@ function Router() {
       <Route path="/creator-lab/voice" component={VoiceLabPage} />
       <Route path="/creator-lab/preview" component={CreatorPreviewPage} />
       <Route path="/creator-lab" component={CreatorLabPage} />
-      <Route path="/studio" component={AdminPage} />
-      <Route path="/admin/dashboard" component={AdminDashboardPage} />
+      <Route path="/studio" component={AdminRedirect} />
+      <Route path="/admin/dashboard" component={AdminRedirect} />
       <Route path="/admin/users/:id" component={AdminUserDetailPage} />
       <Route path="/admin/credits" component={AdminCreditsPage} />
       <Route path="/admin/users" component={AdminUsersPage} />
@@ -287,6 +287,29 @@ function Router() {
 
   );
 
+}
+
+function RedirectTo({ to }: { to: string }) {
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    navigate(to, { replace: true });
+  }, [navigate, to]);
+
+  return null;
+}
+
+function ProfileRedirect() {
+  return <RedirectTo to="/profile" />;
+}
+
+function AdminRedirect() {
+  return <RedirectTo to="/admin" />;
+}
+
+function ProjectOverviewRedirect() {
+  const { id = "" } = useParams<{ id: string }>();
+  return <RedirectTo to={`/projects/${id}`} />;
 }
 
 
