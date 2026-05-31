@@ -252,6 +252,58 @@ Si `MATRICE_PUBLIC_BASE_URL` vaut `https://`, si `MATRICE_EMAIL_FROM` vaut `Matr
 docker compose up -d --force-recreate api
 ```
 
+### Sauvegarde PostgreSQL chiffree
+
+Le VPS doit disposer d'une sauvegarde quotidienne de la base `matrice_narrative`. Le script fourni dans `scripts/backup-db.sh` est prevu pour etre installe sur le serveur sous `/opt/matrice/scripts/backup-db.sh`.
+
+Variables serveur a definir avant execution :
+
+```bash
+MATRICE_DB_CONTAINER=matrice-postgres-1
+MATRICE_DB_USER=matrice
+MATRICE_DB_NAME=matrice_narrative
+MATRICE_BACKUP_DIR=/opt/matrice/backups
+MATRICE_BACKUP_RETENTION_DAYS=14
+
+# Choisir une seule methode de chiffrement :
+MATRICE_BACKUP_GPG_RECIPIENT=backup-key@essuf.fr
+# ou
+MATRICE_BACKUP_PASSPHRASE="phrase longue stockee hors du repo"
+```
+
+Installation et test sur le VPS :
+
+```bash
+mkdir -p /opt/matrice/scripts /opt/matrice/backups
+cp scripts/backup-db.sh /opt/matrice/scripts/backup-db.sh
+chmod 700 /opt/matrice/scripts/backup-db.sh
+/opt/matrice/scripts/backup-db.sh
+ls -lh /opt/matrice/backups/*.dump.gpg
+```
+
+Cron quotidien a 03:20 :
+
+```bash
+20 3 * * * cd /opt/matrice && /opt/matrice/scripts/backup-db.sh >> /opt/matrice/backups/backup.log 2>&1
+```
+
+Restauration vers une base de test avant toute restauration prod :
+
+```bash
+createdb -h localhost -U matrice matrice_restore_test
+gpg --decrypt /opt/matrice/backups/FICHIER.dump.gpg \
+  | docker exec -i matrice-postgres-1 pg_restore -U matrice -d matrice_restore_test --clean --if-exists --no-owner --no-acl
+```
+
+Restauration prod uniquement apres arret applicatif et validation explicite :
+
+```bash
+docker compose stop api frontend
+gpg --decrypt /opt/matrice/backups/FICHIER.dump.gpg \
+  | docker exec -i matrice-postgres-1 pg_restore -U matrice -d matrice_narrative --clean --if-exists --no-owner --no-acl
+docker compose up -d api frontend
+```
+
 ---
 
 ## Administration
