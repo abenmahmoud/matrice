@@ -30,7 +30,7 @@ test("sendVerificationEmail uses MATRICE_EMAIL_FROM and attempts Resend delivery
   process.env["RESEND_API_KEY"] = "re_test_key";
   process.env["EMAIL_PROVIDER"] = "resend";
   process.env["BREVO_API_KEY"] = "";
-  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@matrice.essuf.fr>";
+  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@essuf.fr>";
   process.env["MATRICE_PUBLIC_BASE_URL"] = "https://matrice.essuf.fr";
   delete process.env["MATRICE_FROM_EMAIL"];
 
@@ -47,7 +47,7 @@ test("sendVerificationEmail uses MATRICE_EMAIL_FROM and attempts Resend delivery
   });
 
   assert.equal(delivery.status, "sent");
-  assert.equal(requestBody?.["from"], "Matrice <no-reply@matrice.essuf.fr>");
+  assert.equal(requestBody?.["from"], "Matrice <no-reply@essuf.fr>");
   assert.equal(requestBody?.["to"], "invite@example.com");
   assert.equal(String(requestBody?.["html"]).includes("verify-token"), true);
 });
@@ -56,7 +56,7 @@ test("sendPasswordResetEmail returns a failed delivery and logs EMAIL_FAILED", a
   process.env["RESEND_API_KEY"] = "re_test_key";
   process.env["EMAIL_PROVIDER"] = "resend";
   process.env["BREVO_API_KEY"] = "";
-  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@matrice.essuf.fr>";
+  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@essuf.fr>";
   process.env["MATRICE_PUBLIC_BASE_URL"] = "https://matrice.essuf.fr";
 
   const warnCalls: Array<{ object: unknown; message?: string }> = [];
@@ -86,7 +86,7 @@ test("sendVerificationEmail reports skipped when RESEND_API_KEY is missing", asy
   delete process.env["RESEND_API_KEY"];
   process.env["EMAIL_PROVIDER"] = "resend";
   process.env["BREVO_API_KEY"] = "";
-  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@matrice.essuf.fr>";
+  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@essuf.fr>";
   process.env["MATRICE_PUBLIC_BASE_URL"] = "https://matrice.essuf.fr";
 
   const delivery = await sendVerificationEmail({
@@ -121,10 +121,10 @@ test("sendVerificationEmail rejects malformed email configuration before calling
 
 test("welcomeEmail rejects malformed public base URL instead of producing https:/// links", () => {
   process.env["MATRICE_PUBLIC_BASE_URL"] = "https://";
-  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@matrice.essuf.fr>";
+  process.env["MATRICE_EMAIL_FROM"] = "Matrice <no-reply@essuf.fr>";
 
   assert.throws(
     () => welcomeEmail({ displayName: "Invite" }),
-    /EMAIL_CONFIG_INVALID base_url=https:\/\/ from=Matrice <no-reply@matrice\.essuf\.fr>/,
+    /EMAIL_CONFIG_INVALID base_url=https:\/\/ from=Matrice <no-reply@essuf\.fr>/,
   );
 });

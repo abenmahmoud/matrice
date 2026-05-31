@@ -1,7 +1,7 @@
 import { logger } from "../lib/logger.js";
 
 const DEFAULT_PUBLIC_BASE_URL = "https://matrice.essuf.fr";
-const DEFAULT_EMAIL_FROM = "Matrice <no-reply@matrice.essuf.fr>";
+const DEFAULT_EMAIL_FROM = "Matrice <no-reply@essuf.fr>";
 
 export class EmailConfigInvalidError extends Error {
   readonly code = "EMAIL_CONFIG_INVALID";

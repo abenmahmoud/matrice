@@ -1,6 +1,7 @@
 import app from "./app.js";
 import { logger } from "./lib/logger.js";
 import { startDailyResearchScheduler } from "./scheduler.js";
+import { getEmailRuntimeConfig } from "./services/emailConfig.js";
 
 const rawPort = process.env["PORT"];
 
@@ -13,6 +14,9 @@ const port = Number(rawPort);
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
+
+const emailConfig = getEmailRuntimeConfig();
+logger.info({ from: emailConfig.from, baseUrl: emailConfig.baseUrl }, "EMAIL_CONFIG_READY");
 
 app.listen(port, (err) => {
   if (err) {

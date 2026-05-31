@@ -232,11 +232,13 @@ Les emails de verification, reset password, onboarding et notifications refusent
 ```bash
 MATRICE_PUBLIC_BASE_URL=https://matrice.essuf.fr
 MATRICE_BASE_URL=https://matrice.essuf.fr
-MATRICE_EMAIL_FROM=Matrice <no-reply@matrice.essuf.fr>
-MATRICE_FROM_EMAIL=no-reply@matrice.essuf.fr
+MATRICE_EMAIL_FROM=Matrice <no-reply@essuf.fr>
+MATRICE_FROM_EMAIL=no-reply@essuf.fr
 MATRICE_FROM_NAME=Matrice
 RESEND_API_KEY=re_...
 ```
+
+Le domaine du `from` doit etre verifie dans Resend avant tout envoi. Dans Resend, ouvrir **Domains**, ajouter `essuf.fr`, publier les enregistrements DNS demandes (DKIM/SPF/DMARC), puis attendre le statut verifie. Tant que `matrice.essuf.fr` n'est pas verifie, ne pas l'utiliser comme domaine expediteur.
 
 Verification rapide sur le VPS :
 
