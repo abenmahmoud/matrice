@@ -1,5 +1,20 @@
 import { Router, type IRouter } from "express";
-import { betaCodeUsagesTable, betaInviteCodesTable, db, appUsersTable } from "@workspace/db";
+import {
+  adminAuditLogTable,
+  appUsersTable,
+  betaCodeUsagesTable,
+  betaInviteCodesTable,
+  communityPostsTable,
+  communityThreadsTable,
+  db,
+  emailLogTable,
+  notificationPreferencesTable,
+  notificationsTable,
+  projectsTable,
+  supportTicketsTable,
+  userOnboardingProgressTable,
+  workPassportsTable,
+} from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { createAuthActionToken, createUserToken, getAuthUser, hashPassword, verifyPassword } from "../lib/auth.js";
 import { sendPasswordResetEmail, sendVerificationEmail } from "../services/emailService.js";
@@ -246,6 +261,11 @@ router.post("/auth/logout", (_req, res) => {
 });
 
 router.delete("/auth/me", async (req, res) => {
+  void req;
+  res.status(400).json({ error: "PASSWORD_CONFIRMATION_REQUIRED", endpoint: "/api/account/delete" });
+});
+
+router.post("/account/delete", async (req, res) => {
   try {
     const authUser = getAuthUser(req);
     if (!authUser) {
@@ -253,10 +273,83 @@ router.delete("/auth/me", async (req, res) => {
       return;
     }
 
-    await db
-      .update(appUsersTable)
-      .set({ status: "deleted", updatedAt: new Date() })
-      .where(eq(appUsersTable.id, authUser.id));
+    const { password } = req.body as { password?: string };
+    if (!password) {
+      res.status(400).json({ error: "PASSWORD_REQUIRED" });
+      return;
+    }
+
+    const [user] = await db.select().from(appUsersTable).where(eq(appUsersTable.id, authUser.id)).limit(1);
+    if (!user || !verifyPassword(password, user.passwordHash)) {
+      res.status(401).json({ error: "INVALID_PASSWORD" });
+      return;
+    }
+
+    const now = new Date();
+    const anonymizedEmail = `deleted+${user.id}@deleted.matrice.local`;
+    const anonymizedPassword = hashPassword(createAuthActionToken());
+
+    await db.transaction(async (tx) => {
+      await tx.insert(adminAuditLogTable).values({
+        adminUserId: user.id,
+        actionType: "account_deleted_by_user",
+        targetUserId: user.id,
+        metadata: {
+          retained_legal_records: ["sales_entries", "work_passports"],
+          anonymized_email: anonymizedEmail,
+        },
+        ipAddress: req.ip ?? null,
+      });
+
+      await tx.delete(notificationPreferencesTable).where(eq(notificationPreferencesTable.userId, user.id));
+      await tx.delete(notificationsTable).where(eq(notificationsTable.userId, user.id));
+      await tx.delete(userOnboardingProgressTable).where(eq(userOnboardingProgressTable.userId, user.id));
+      await tx.delete(supportTicketsTable).where(eq(supportTicketsTable.userId, user.id));
+      await tx.delete(communityPostsTable).where(eq(communityPostsTable.authorUserId, user.id));
+      await tx.delete(communityThreadsTable).where(eq(communityThreadsTable.authorUserId, user.id));
+
+      await tx
+        .update(emailLogTable)
+        .set({ userId: null, recipientEmail: anonymizedEmail })
+        .where(eq(emailLogTable.userId, user.id));
+
+      await tx
+        .update(workPassportsTable)
+        .set({
+          ownerUserId: `deleted:${user.id}`,
+          displayedAuthor: "Auteur anonymise",
+          pseudonym: "",
+          updatedAt: now,
+        })
+        .where(eq(workPassportsTable.ownerUserId, user.id));
+
+      await tx
+        .update(projectsTable)
+        .set({
+          ownerUserId: null,
+          authorDisplayName: null,
+          updatedAt: now,
+        })
+        .where(eq(projectsTable.ownerUserId, user.id));
+
+      await tx
+        .update(appUsersTable)
+        .set({
+          email: anonymizedEmail,
+          passwordHash: anonymizedPassword,
+          displayName: "Compte supprime",
+          status: "deleted",
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+          emailVerificationToken: null,
+          emailVerificationSentAt: null,
+          passwordResetToken: null,
+          passwordResetExpiresAt: null,
+          isEmailVerified: false,
+          updatedAt: now,
+        })
+        .where(eq(appUsersTable.id, user.id));
+    });
 
     res.json({ ok: true });
   } catch (err) {

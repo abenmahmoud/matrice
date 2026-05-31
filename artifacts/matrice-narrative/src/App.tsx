@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
 
 import { Toaster } from "@/components/ui/toaster";
+import { CookieConsentBanner } from "@/components/privacy/CookieConsentBanner";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -338,6 +339,7 @@ function App() {
           </WouterRouter>
 
           <Toaster />
+          <CookieConsentBanner />
 
         </TooltipProvider>
 

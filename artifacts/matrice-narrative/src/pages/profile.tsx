@@ -420,12 +420,19 @@ function SettingsTab({ email }: { email: string }) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState(true);
-  const [confirmText, setConfirmText] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
 
   const deleteAccount = useMutation({
     mutationFn: async () => {
-      const response = await apiFetch(`${BASE}/api/auth/me`, { method: "DELETE" });
-      if (!response.ok) throw new Error("Suppression impossible");
+      const response = await apiFetch(`${BASE}/api/account/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) {
+        throw new Error(payload.error === "INVALID_PASSWORD" ? "Mot de passe incorrect." : "Suppression impossible");
+      }
       return response.json() as Promise<{ ok: true }>;
     },
     onSuccess: () => {
@@ -470,16 +477,21 @@ function SettingsTab({ email }: { email: string }) {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm leading-6 text-[#2A2520]/65">
-            Cette action désactive votre compte. Les obligations légales liées aux factures et preuves d'antériorité peuvent imposer une conservation minimale.
+            Cette action anonymise ton compte et ferme la session. Les ventes, passeports et preuves d'anteriorite
+            peuvent etre conserves sans donnees personnelles directes lorsque la loi ou la defense de droits l'exige.
+          </p>
+          <p className="rounded-xl border border-[#E8DFC9] bg-[#F5F1E8]/70 p-3 text-xs leading-5 text-[#2A2520]/60">
+            Compte concerne : <span className="font-medium text-[#2A2520]">{email}</span>
           </p>
           <Input
-            value={confirmText}
-            onChange={(event) => setConfirmText(event.target.value)}
-            placeholder={`Tapez ${email} pour confirmer`}
+            type="password"
+            value={deletePassword}
+            onChange={(event) => setDeletePassword(event.target.value)}
+            placeholder="Confirme avec ton mot de passe"
           />
           <Button
             variant="destructive"
-            disabled={confirmText !== email || deleteAccount.isPending}
+            disabled={!deletePassword || deleteAccount.isPending}
             onClick={() => deleteAccount.mutate()}
           >
             {deleteAccount.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
