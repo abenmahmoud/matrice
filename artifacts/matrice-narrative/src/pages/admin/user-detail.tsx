@@ -19,6 +19,7 @@ type UserDetailPayload = {
     plan: string;
     status: string;
     isEmailVerified: boolean;
+    forcePasswordReset?: boolean;
     generationsUsed: number;
     projectsCreated: number;
     creatorModeEnabled: boolean;
@@ -113,6 +114,7 @@ export default function AdminUserDetailPage() {
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <Info label="Role" value={data.user.role} />
                 <Info label="Email" value={data.user.isEmailVerified ? "Verifie" : "Non verifie"} />
+                <Info label="Reset force" value={data.user.forcePasswordReset ? "Oui" : "Non"} />
                 <Info label="Onboarding" value={data.user.onboardingStep} />
                 <Info label="Inscription" value={new Date(data.user.createdAt).toLocaleDateString("fr-FR")} />
                 <Info label="Beta expire" value={data.user.betaExpiresAt ? new Date(data.user.betaExpiresAt).toLocaleDateString("fr-FR") : "-"} />
@@ -151,6 +153,7 @@ export default function AdminUserDetailPage() {
                   <AdminButton variant="danger" disabled={action.isPending || data.user.role === "owner" || reason.length < 5} onClick={() => action.mutate({ path: "suspend", body: { reason } })}><Ban className="h-4 w-4" /> Suspendre</AdminButton>
                 )}
                 <AdminButton variant="secondary" disabled={action.isPending} onClick={() => action.mutate({ path: "reset-password" })}><KeyRound className="h-4 w-4" /> Envoyer reset password</AdminButton>
+                <AdminButton variant="secondary" disabled={action.isPending} onClick={() => action.mutate({ path: "force-password-reset" })}><KeyRound className="h-4 w-4" /> Forcer reset prochaine connexion</AdminButton>
                 <AdminButton variant="secondary" disabled={action.isPending || data.user.isEmailVerified} onClick={() => action.mutate({ path: "resend-verification" })}><Send className="h-4 w-4" /> Renvoyer verification email</AdminButton>
                 <AdminButton variant="secondary" disabled={action.isPending || data.user.isEmailVerified} onClick={() => action.mutate({ path: "mark-email-verified" })}><MailCheck className="h-4 w-4" /> Marquer email verifie</AdminButton>
               </div>

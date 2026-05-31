@@ -56,6 +56,17 @@ export default function LoginPage() {
         });
         return;
       }
+      if (payload.error === "PASSWORD_RESET_REQUIRED") {
+        setState({
+          status: "error",
+          message: "Un owner a force la reinitialisation de ton mot de passe. Utilise 'Mot de passe oublie' pour choisir un nouveau mot de passe.",
+        });
+        return;
+      }
+      if (payload.error === "RATE_LIMITED") {
+        setState({ status: "error", message: "Trop d'essais. Reessaie dans quelques minutes." });
+        return;
+      }
       let message = "Identifiants invalides. Verifiez votre email et votre mot de passe.";
       if (payload.error === "ACCOUNT_LOCKED") {
         message = "Compte temporairement verrouille. Reessayez dans quelques minutes.";

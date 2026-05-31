@@ -65,14 +65,14 @@ export default function ResetPasswordPage() {
             </div>
             <div>
               <h1 className="text-2xl font-semibold">Nouveau mot de passe</h1>
-              <p className="mt-2 text-sm leading-6 text-matrice-encre/62">Choisis un mot de passe de 8 caracteres minimum.</p>
+              <p className="mt-2 text-sm leading-6 text-matrice-encre/62">Choisis un mot de passe de 10 caracteres minimum, non courant.</p>
             </div>
             <label className="block text-sm text-matrice-encre/72">
               Mot de passe
               <Input
                 type="password"
                 required
-                minLength={8}
+                minLength={10}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 className="mt-2 border-matrice-sable bg-matrice-ivoire/60 text-matrice-encre"

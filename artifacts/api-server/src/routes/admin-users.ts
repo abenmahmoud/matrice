@@ -143,6 +143,7 @@ router.get("/admin/users/:id", async (req, res) => {
       projectsCreated: appUsersTable.projectsCreated,
       creatorModeEnabled: appUsersTable.creatorModeEnabled,
       isEmailVerified: appUsersTable.isEmailVerified,
+      forcePasswordReset: appUsersTable.forcePasswordReset,
       isBetaTester: appUsersTable.isBetaTester,
       betaStartedAt: appUsersTable.betaStartedAt,
       betaExpiresAt: appUsersTable.betaExpiresAt,
@@ -301,13 +302,48 @@ router.post("/admin/users/:id/reset-password", async (req, res) => {
   if (!target) return;
   const token = createAuthActionToken();
   const [updated] = await db.update(appUsersTable).set({
-    passwordResetToken: token,
-    passwordResetExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    updatedAt: new Date(),
+      passwordResetToken: token,
+      passwordResetExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      forcePasswordReset: false,
+      updatedAt: new Date(),
   }).where(eq(appUsersTable.id, target.id)).returning();
   await sendPasswordResetEmail({ to: updated.email, displayName: updated.displayName, token });
   await logAdminAction({ adminUserId: admin.id, actionType: "reset_password", targetUserId: target.id, ipAddress: req.ip });
   res.json({ ok: true });
+});
+
+router.post("/admin/users/:id/force-password-reset", async (req, res) => {
+  const admin = requireOwnerAdmin(req, res);
+  if (!admin) return;
+  const target = await loadTargetUser(req, res);
+  if (!target) return;
+
+  const token = createAuthActionToken();
+  const [updated] = await db
+    .update(appUsersTable)
+    .set({
+      forcePasswordReset: true,
+      passwordResetToken: token,
+      passwordResetExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      updatedAt: new Date(),
+    })
+    .where(eq(appUsersTable.id, target.id))
+    .returning();
+
+  const emailDelivery = await sendPasswordResetEmail({ to: updated.email, displayName: updated.displayName, token });
+  if (emailDelivery.status !== "sent") {
+    req.log.warn({ emailDelivery, targetUserId: target.id }, "Forced password reset email failed");
+  }
+
+  await logAdminAction({
+    adminUserId: admin.id,
+    actionType: "force_password_reset",
+    targetUserId: target.id,
+    metadata: { email_delivery: emailDelivery },
+    ipAddress: req.ip,
+  });
+
+  res.json({ ok: true, force_password_reset: updated.forcePasswordReset, emailDelivery });
 });
 
 router.post("/admin/users/:id/mark-email-verified", async (req, res) => {

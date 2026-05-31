@@ -566,6 +566,7 @@ function adminUserDetail() {
       plan: "premium",
       status: "active",
       isEmailVerified: false,
+      forcePasswordReset: false,
       generationsUsed: 0,
       projectsCreated: 1,
       creatorModeEnabled: true,

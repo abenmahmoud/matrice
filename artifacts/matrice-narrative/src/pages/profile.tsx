@@ -257,7 +257,7 @@ function AccountTab({ user }: { user: User }) {
             />
             <Input
               type="password"
-              minLength={8}
+              minLength={10}
               required
               placeholder="Nouveau mot de passe"
               value={newPassword}

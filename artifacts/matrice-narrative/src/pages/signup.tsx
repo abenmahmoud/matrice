@@ -27,6 +27,9 @@ function signupErrorLabel(error: string | undefined): string {
   if (error === "INVITE_CODE_EXPIRED") return "Ce code d'invitation a expire.";
   if (error === "EMAIL_ALREADY_EXISTS") return "Un compte existe deja avec cet email.";
   if (error === "EMAIL_AND_PASSWORD_REQUIRED") return "Email et mot de passe sont requis.";
+  if (error === "PASSWORD_TOO_SHORT") return "Le mot de passe doit contenir au moins 10 caracteres.";
+  if (error === "PASSWORD_TOO_COMMON") return "Ce mot de passe est trop courant. Choisis une phrase plus longue et unique.";
+  if (error === "PASSWORD_REQUIRED") return "Mot de passe requis.";
   return error ?? "Creation impossible.";
 }
 
@@ -179,11 +182,11 @@ export default function SignupPage() {
                 <Input
                   type="password"
                   required
-                  minLength={8}
+                  minLength={10}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   className="mt-2 border-matrice-sable bg-matrice-ivoire/60 text-matrice-encre"
-                  placeholder="8 caracteres minimum"
+                  placeholder="10 caracteres minimum"
                 />
               </label>
               <label className="block text-sm text-matrice-encre/72">

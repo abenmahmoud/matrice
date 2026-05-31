@@ -25,6 +25,7 @@ export const appUsersTable = pgTable("app_users", {
   emailVerificationSentAt: timestamp("email_verification_sent_at"),
   passwordResetToken: text("password_reset_token"),
   passwordResetExpiresAt: timestamp("password_reset_expires_at"),
+  forcePasswordReset: boolean("force_password_reset").notNull().default(false),
   onboardingCompletedAt: timestamp("onboarding_completed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

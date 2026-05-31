@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type NextFunction, type Request, type Response } from "express";
 import {
   adminAuditLogTable,
   appUsersTable,
@@ -22,10 +22,15 @@ import { normalizeInviteCode, validateInviteCodeState } from "../services/betaIn
 import { welcomeEmail } from "../services/emailTemplates.js";
 import { notify } from "../services/notificationService.js";
 import { ensureWelcomeStep } from "../services/onboardingService.js";
+import { validatePasswordPolicy } from "../services/passwordPolicy.js";
 
 const router: IRouter = Router();
 const VERIFICATION_RESEND_COOLDOWN_MS = 1000 * 60;
 const PASSWORD_RESET_TTL_MS = 1000 * 60 * 60;
+const AUTH_RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
+const AUTH_RATE_LIMIT_MAX = 5;
+
+const rateBuckets = new Map<string, { count: number; resetAt: number }>();
 
 function publicUser(user: typeof appUsersTable.$inferSelect) {
   return {
@@ -44,6 +49,27 @@ function publicUser(user: typeof appUsersTable.$inferSelect) {
     betaExpiresAt: user.betaExpiresAt,
     onboardingStep: user.onboardingStep,
     onboardingCompletedAt: user.onboardingCompletedAt,
+    forcePasswordReset: user.forcePasswordReset,
+  };
+}
+
+function authRateLimit(scope: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const now = Date.now();
+    const ip = req.ip || req.socket.remoteAddress || "unknown";
+    const key = `${scope}:${ip}`;
+    const bucket = rateBuckets.get(key);
+    if (!bucket || bucket.resetAt <= now) {
+      rateBuckets.set(key, { count: 1, resetAt: now + AUTH_RATE_LIMIT_WINDOW_MS });
+      next();
+      return;
+    }
+    if (bucket.count >= AUTH_RATE_LIMIT_MAX) {
+      res.status(429).json({ error: "RATE_LIMITED", retry_after_seconds: Math.ceil((bucket.resetAt - now) / 1000) });
+      return;
+    }
+    bucket.count += 1;
+    next();
   };
 }
 
@@ -76,8 +102,13 @@ router.post("/auth/signup", async (req, res) => {
       invite_code?: string;
     };
     const normalizedEmail = email?.trim().toLowerCase();
-    if (!normalizedEmail || !password || password.length < 8) {
+    if (!normalizedEmail || !password) {
       res.status(400).json({ error: "EMAIL_AND_PASSWORD_REQUIRED" });
+      return;
+    }
+    const passwordPolicy = validatePasswordPolicy(password);
+    if (!passwordPolicy.ok) {
+      res.status(400).json({ error: passwordPolicy.error, min_length: 10 });
       return;
     }
 
@@ -160,7 +191,7 @@ router.post("/auth/signup", async (req, res) => {
   }
 });
 
-router.post("/auth/login", async (req, res) => {
+router.post("/auth/login", authRateLimit("login"), async (req, res) => {
   try {
     const { email, password } = req.body as { email?: string; password?: string };
     const normalizedEmail = email?.trim().toLowerCase();
@@ -177,6 +208,11 @@ router.post("/auth/login", async (req, res) => {
 
     if (!user.isEmailVerified) {
       res.status(403).json({ error: "EMAIL_NOT_VERIFIED", user: publicUser(user), canResend: true });
+      return;
+    }
+
+    if (user.forcePasswordReset) {
+      res.status(403).json({ error: "PASSWORD_RESET_REQUIRED", user: publicUser(user), canReset: true });
       return;
     }
 
@@ -232,8 +268,13 @@ router.post("/auth/change-password", async (req, res) => {
     }
 
     const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
-    if (!currentPassword || !newPassword || newPassword.length < 8) {
+    if (!currentPassword || !newPassword) {
       res.status(400).json({ error: "PASSWORD_REQUIRED" });
+      return;
+    }
+    const passwordPolicy = validatePasswordPolicy(newPassword);
+    if (!passwordPolicy.ok) {
+      res.status(400).json({ error: passwordPolicy.error, min_length: 10 });
       return;
     }
 
@@ -245,7 +286,7 @@ router.post("/auth/change-password", async (req, res) => {
 
     const [updatedUser] = await db
       .update(appUsersTable)
-      .set({ passwordHash: hashPassword(newPassword), updatedAt: new Date() })
+      .set({ passwordHash: hashPassword(newPassword), forcePasswordReset: false, updatedAt: new Date() })
       .where(eq(appUsersTable.id, authUser.id))
       .returning();
 
@@ -345,6 +386,7 @@ router.post("/account/delete", async (req, res) => {
           emailVerificationSentAt: null,
           passwordResetToken: null,
           passwordResetExpiresAt: null,
+          forcePasswordReset: false,
           isEmailVerified: false,
           updatedAt: now,
         })
@@ -462,7 +504,7 @@ router.post("/auth/resend-verification", async (req, res) => {
   }
 });
 
-router.post("/auth/forgot-password", async (req, res) => {
+router.post("/auth/forgot-password", authRateLimit("forgot-password"), async (req, res) => {
   try {
     const { email } = req.body as { email?: string };
     const normalizedEmail = email?.trim().toLowerCase();
@@ -512,8 +554,13 @@ router.post("/auth/forgot-password", async (req, res) => {
 router.post("/auth/reset-password", async (req, res) => {
   try {
     const { token, password } = req.body as { token?: string; password?: string };
-    if (!token || !password || password.length < 8) {
+    if (!token || !password) {
       res.status(400).json({ error: "TOKEN_AND_PASSWORD_REQUIRED" });
+      return;
+    }
+    const passwordPolicy = validatePasswordPolicy(password);
+    if (!passwordPolicy.ok) {
+      res.status(400).json({ error: passwordPolicy.error, min_length: 10 });
       return;
     }
 
@@ -534,6 +581,7 @@ router.post("/auth/reset-password", async (req, res) => {
         passwordHash: hashPassword(password),
         passwordResetToken: null,
         passwordResetExpiresAt: null,
+        forcePasswordReset: false,
         updatedAt: new Date(),
       })
       .where(eq(appUsersTable.id, user.id))
