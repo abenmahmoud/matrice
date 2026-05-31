@@ -1,5 +1,6 @@
 import puppeteer from "puppeteer";
 import { eq } from "drizzle-orm";
+import { PDFDocument } from "pdf-lib";
 import { appUsersTable, db, projectsTable, workPassportsTable } from "@workspace/db";
 import { resolveExportAuthorName } from "../authorDisplayNameService.js";
 
@@ -43,7 +44,11 @@ export async function generateKdpPdf(workPassportId: string): Promise<Buffer> {
       footerTemplate:
         '<div style="font-size:9pt;width:100%;text-align:center;font-family:Garamond,serif;color:#333;"><span class="pageNumber"></span></div>',
     });
-    return Buffer.from(pdf);
+    const pdfDoc = await PDFDocument.load(pdf);
+    pdfDoc.setTitle(title);
+    pdfDoc.setAuthor(author);
+    pdfDoc.setProducer("Matrice Narrative");
+    return Buffer.from(await pdfDoc.save());
   } finally {
     await browser.close();
   }
