@@ -261,6 +261,8 @@ importers:
         specifier: 'catalog:'
         version: 4.21.0
 
+  artifacts/essuf-portal: {}
+
   artifacts/matrice-narrative:
     devDependencies:
       '@hookform/resolvers':

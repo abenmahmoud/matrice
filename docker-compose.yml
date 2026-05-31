@@ -90,5 +90,13 @@ services:
     depends_on:
       - api
 
+  essuf-portal:
+    build:
+      context: .
+      dockerfile: artifacts/essuf-portal/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${ESSUF_PORTAL_HOST_BIND:-127.0.0.1}:${ESSUF_PORTAL_HOST_PORT:-8092}:80"
+
 volumes:
   postgres_data:

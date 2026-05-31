@@ -1,0 +1,10 @@
+{
+  "name": "@workspace/essuf-portal",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node ./scripts/validate.mjs",
+    "test": "node --test ./tests/portal-smoke.test.mjs"
+  }
+}

@@ -90,7 +90,8 @@ Résultat : un diagnostic de cohérence entre ce qui a été **écrit** et ce qu
 workspace/
 ├── artifacts/
 │   ├── matrice-narrative/      # Frontend React + Vite
-│   └── api-server/             # API Express 5
+│   ├── api-server/             # API Express 5
+│   └── essuf-portal/           # Vitrine statique essuf.fr
 ├── lib/
 │   ├── db/                     # Schémas Drizzle (20 tables)
 │   ├── api-spec/               # OpenAPI spec
@@ -101,6 +102,22 @@ workspace/
 ├── Dockerfile.frontend
 └── nginx.conf
 ```
+
+### Portail societe essuf.fr
+
+Le portail vitrine `essuf.fr` est une petite page statique isolee dans `artifacts/essuf-portal`.
+Elle se deploie comme un service Docker separe afin de ne pas perturber `matrice.essuf.fr` ni `sign.essuf.fr`.
+
+```bash
+pnpm --filter @workspace/essuf-portal run test
+pnpm --filter @workspace/essuf-portal run build
+docker compose build essuf-portal
+docker compose up -d essuf-portal
+```
+
+Le template nginx systeme est dans `deploy/nginx/essuf.conf.example`.
+Il proxy `essuf.fr` et `www.essuf.fr` vers `127.0.0.1:8092`.
+DNS attendu pour la mise en ligne : les enregistrements A `essuf.fr` et `www.essuf.fr` doivent pointer vers le VPS.
 
 ---
 
