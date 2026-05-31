@@ -14,6 +14,7 @@ import {
 import { getAuthUser, requireAdmin } from "../lib/auth.js";
 import { sendPasswordResetEmail } from "../services/emailService.js";
 import { logAdminAction } from "../services/adminAuditService.js";
+import { getBalance, getHistory, grantCredits, spendCredits } from "../services/creditsService.js";
 
 const router = Router();
 router.use("/admin", requireAdmin);
@@ -143,6 +144,9 @@ router.get("/admin/users/:id", async (req, res) => {
       betaExpiresAt: appUsersTable.betaExpiresAt,
       onboardingStep: appUsersTable.onboardingStep,
       onboardingCompletedAt: appUsersTable.onboardingCompletedAt,
+      monthlyCredits: appUsersTable.monthlyCredits,
+      extraCredits: appUsersTable.extraCredits,
+      creditsRenewAt: appUsersTable.creditsRenewAt,
       createdAt: appUsersTable.createdAt,
       updatedAt: appUsersTable.updatedAt,
     })
@@ -155,13 +159,15 @@ router.get("/admin/users/:id", async (req, res) => {
     return;
   }
 
-  const [projects, [lentille], [exports], mandates, betaUsages, recentActions] = await Promise.all([
+  const [projects, [lentille], [exports], mandates, betaUsages, recentActions, creditBalance, creditHistory] = await Promise.all([
     db.select({ id: projectsTable.id, title: projectsTable.title, genre: projectsTable.genre, updatedAt: projectsTable.updatedAt, createdAt: projectsTable.createdAt }).from(projectsTable).where(eq(projectsTable.ownerUserId, user.id)).orderBy(desc(projectsTable.updatedAt)).limit(50),
     db.select({ total: count() }).from(lentilleAnalysesTable).where(eq(lentilleAnalysesTable.userId, user.id)),
     db.select({ total: count() }).from(exportJobsTable).where(eq(exportJobsTable.userId, user.id)),
     db.select().from(delegationMandateTable).where(eq(delegationMandateTable.userId, user.id)).orderBy(desc(delegationMandateTable.createdAt)),
     db.select().from(betaCodeUsagesTable).where(eq(betaCodeUsagesTable.userId, user.id)).orderBy(desc(betaCodeUsagesTable.usedAt)),
     db.select().from(adminAuditLogTable).where(eq(adminAuditLogTable.targetUserId, user.id)).orderBy(desc(adminAuditLogTable.createdAt)).limit(20),
+    getBalance(user.id),
+    getHistory(user.id, 25),
   ]);
 
   const healthFlags = [];
@@ -180,10 +186,59 @@ router.get("/admin/users/:id", async (req, res) => {
     },
     projects,
     mandates,
+    credits: {
+      balance: creditBalance,
+      renew_at: user.creditsRenewAt,
+      history: creditHistory,
+    },
     beta_usages: betaUsages,
     recent_admin_actions: recentActions,
     health_flags: healthFlags,
   });
+});
+
+router.post("/admin/users/:id/credits", async (req, res) => {
+  const admin = getAuthUser(req);
+  if (!admin) return;
+
+  const target = await loadTargetUser(req, res);
+  if (!target) return;
+  if (target.role === "owner" && admin.role !== "owner") {
+    res.status(403).json({ error: "CANNOT_ADJUST_OWNER_CREDITS" });
+    return;
+  }
+
+  const rawAmount = Number(req.body?.amount);
+  const amount = Number.isFinite(rawAmount) ? clampInt(rawAmount, -10_000, 10_000) : 0;
+  const reason = bodyString(req.body, "reason");
+  if (amount === 0 || reason.length < 5 || reason.length > 500) {
+    res.status(400).json({ error: "INVALID_CREDIT_ADJUSTMENT" });
+    return;
+  }
+
+  const meta = JSON.stringify({
+    admin_user_id: admin.id,
+    reason,
+    source: "admin_user_detail",
+  });
+  const result = amount > 0
+    ? { ok: true as const, balance: await grantCredits(target.id, amount, "admin_adjustment", meta) }
+    : await spendCredits(target.id, Math.abs(amount), "admin_adjustment", meta);
+
+  if (!result.ok) {
+    res.status(409).json({ error: "INSUFFICIENT_CREDITS", needed: result.needed, balance: result.available });
+    return;
+  }
+
+  await logAdminAction({
+    adminUserId: admin.id,
+    actionType: "adjust_credits",
+    targetUserId: target.id,
+    metadata: { amount, reason, balance_after: result.balance.total },
+    ipAddress: req.ip,
+  });
+
+  res.json({ ok: true, balance: result.balance });
 });
 
 router.post("/admin/users/:id/suspend", async (req, res) => {

@@ -1,15 +1,18 @@
 import { Link, useLocation } from "wouter";
-import { Activity, LayoutDashboard, ScrollText, Ticket, Users } from "lucide-react";
+import { Activity, Bot, LayoutDashboard, ScrollText, ServerCog, Ticket, Users, WalletCards } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/users", label: "Utilisateurs", icon: Users },
-  { href: "/admin/invites", label: "Codes beta", icon: Ticket },
+  { href: "/admin/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
+  { href: "/admin/finance", label: "Finance", icon: Activity },
+  { href: "/admin/users", label: "Users", icon: Users },
+  { href: "/admin/users", label: "Credits", icon: WalletCards },
   { href: "/admin/audit", label: "Audit", icon: ScrollText },
   { href: "/admin/support", label: "Support", icon: Ticket },
-  { href: "/admin/finance", label: "Comptabilite", icon: Activity },
+  { href: "/admin/invites", label: "Invitations", icon: Ticket },
+  { href: "/studio", label: "Labo IA", icon: Bot },
+  { href: "/creator-lab/system", label: "Systeme", icon: ServerCog },
 ];
 
 export function AdminShell({ children, title, subtitle }: { children: React.ReactNode; title: string; subtitle: string }) {

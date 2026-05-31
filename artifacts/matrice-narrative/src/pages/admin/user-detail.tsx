@@ -2,7 +2,7 @@ import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRoute } from "wouter";
-import { ArrowLeft, Ban, KeyRound, RefreshCcw, ShieldCheck, Ticket } from "lucide-react";
+import { ArrowLeft, Ban, Coins, KeyRound, RefreshCcw, ShieldCheck, Ticket } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminButton, KpiCard, PlanBadge, UserHealthBadge } from "@/components/admin/AdminBits";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,11 @@ type UserDetailPayload = {
   stats: { projects_count: number; lentille_analyses: number; exports: number; mandates: number; active_mandates: number };
   projects: Array<{ id: string; title: string; genre: string; updatedAt: string }>;
   mandates: Array<{ id: string; status: string; verifyUrl?: string | null; createdAt: string }>;
+  credits: {
+    balance: { monthly: number; extra: number; total: number };
+    renew_at?: string | null;
+    history: Array<{ id: string; delta: number; reason: string; balanceAfter: number; meta?: string | null; createdAt: string }>;
+  };
   recent_admin_actions: Array<{ id: string; actionType: string; metadata: Record<string, unknown>; createdAt: string }>;
   health_flags: Array<{ level: string; message: string }>;
 };
@@ -41,6 +46,8 @@ export default function AdminUserDetailPage() {
   const [plan, setPlan] = useState("premium");
   const [betaMonths, setBetaMonths] = useState(3);
   const [betaPlan, setBetaPlan] = useState("premium");
+  const [creditAmount, setCreditAmount] = useState(100);
+  const [creditReason, setCreditReason] = useState("Ajustement support credits");
 
   const { data, isLoading } = useQuery({
     queryKey: ["/api/admin/users", userId],
@@ -70,6 +77,11 @@ export default function AdminUserDetailPage() {
   function submitPlan(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     action.mutate({ path: "change-plan", body: { plan, reason: reason || "Ajustement support beta" } });
+  }
+
+  function submitCredits(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    action.mutate({ path: "credits", body: { amount: creditAmount, reason: creditReason } });
   }
 
   return (
@@ -119,6 +131,7 @@ export default function AdminUserDetailPage() {
               <KpiCard label="Lentille" value={data.stats.lentille_analyses} tone="good" />
               <KpiCard label="Exports" value={data.stats.exports} />
               <KpiCard label="Mandats actifs" value={data.stats.active_mandates} detail={`${data.stats.mandates} total`} tone="warn" />
+              <KpiCard label="Credits" value={data.credits.balance.total} detail={`${data.credits.balance.monthly} mensuels + ${data.credits.balance.extra} achetes`} tone="good" />
             </div>
           </section>
 
@@ -163,6 +176,64 @@ export default function AdminUserDetailPage() {
               </div>
               <AdminButton className="mt-4 w-full" disabled={action.isPending} onClick={() => action.mutate({ path: "grant-beta", body: { duration_months: betaMonths, plan_during_beta: betaPlan } })}><Ticket className="h-4 w-4" /> Accorder</AdminButton>
             </div>
+          </section>
+
+          <section className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+            <form onSubmit={submitCredits} className="rounded-2xl border border-matrice-sable bg-white p-5">
+              <div className="flex items-center gap-2">
+                <Coins className="h-5 w-5 text-matrice-or-fonce" />
+                <h3 className="font-serif text-2xl text-matrice-encre">Credits utilisateur</h3>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <Info label="Total" value={`${data.credits.balance.total}`} />
+                <Info label="Mensuels" value={`${data.credits.balance.monthly}`} />
+                <Info label="Achetes" value={`${data.credits.balance.extra}`} />
+              </div>
+              <p className="mt-3 text-xs text-matrice-encre/55">
+                Renouvellement : {data.credits.renew_at ? new Date(data.credits.renew_at).toLocaleDateString("fr-FR") : "-"}
+              </p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-[140px_1fr]">
+                <label className="text-sm font-medium text-matrice-encre">
+                  Montant
+                  <Input
+                    className="mt-2"
+                    type="number"
+                    min={-10000}
+                    max={10000}
+                    value={creditAmount}
+                    onChange={(event) => setCreditAmount(Number(event.target.value))}
+                  />
+                </label>
+                <label className="text-sm font-medium text-matrice-encre">
+                  Raison
+                  <Input className="mt-2" value={creditReason} onChange={(event) => setCreditReason(event.target.value)} />
+                </label>
+              </div>
+              <AdminButton className="mt-4 w-full" disabled={action.isPending || creditAmount === 0 || creditReason.length < 5}>
+                <Coins className="h-4 w-4" />
+                Ajuster les credits
+              </AdminButton>
+              <p className="mt-3 text-xs leading-5 text-matrice-encre/55">
+                Montant positif = ajout de credits achetes. Montant negatif = debit, refuse si le solde est insuffisant.
+              </p>
+            </form>
+
+            <ListPanel title="Historique credits">
+              {data.credits.history.length ? data.credits.history.map((entry) => (
+                <div key={entry.id} className="flex items-center justify-between gap-4 rounded-xl border border-matrice-sable px-4 py-3">
+                  <div>
+                    <span className="font-medium text-matrice-encre">{entry.reason}</span>
+                    <span className="block text-sm text-matrice-encre/60">{new Date(entry.createdAt).toLocaleString("fr-FR")}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className={entry.delta >= 0 ? "font-semibold text-matrice-success" : "font-semibold text-matrice-error"}>
+                      {entry.delta > 0 ? "+" : ""}{entry.delta}
+                    </span>
+                    <span className="block text-xs text-matrice-encre/55">Solde {entry.balanceAfter}</span>
+                  </div>
+                </div>
+              )) : <p className="text-sm text-matrice-encre/65">Aucun mouvement de credits.</p>}
+            </ListPanel>
           </section>
 
           <section className="grid gap-4 lg:grid-cols-2">
