@@ -85,10 +85,12 @@ import AdminFinancePage from "./pages/admin/finance";
 import AdminAuthorsPage from "./pages/admin/authors";
 import AdminUsersPage from "./pages/admin/users";
 import AdminUserDetailPage from "./pages/admin/user-detail";
+import AdminCreditsPage from "./pages/admin/credits";
 import AdminInvitesPage from "./pages/admin/invites";
 import AdminAuditLogPage from "./pages/admin/audit-log";
 import AdminSupportPage from "./pages/admin/support";
 import AdminSupportTicketPage from "./pages/admin/support/ticket-detail";
+import AdminSystemPage from "./pages/admin/system";
 import CreatorLabPage, { CreatorPreviewPage } from "./pages/creator/lab";
 import CreatorSystemPage from "./pages/creator/system";
 import VoiceLabPage from "./pages/creator/voice-lab";
@@ -261,6 +263,7 @@ function Router() {
       <Route path="/studio" component={AdminPage} />
       <Route path="/admin/dashboard" component={AdminDashboardPage} />
       <Route path="/admin/users/:id" component={AdminUserDetailPage} />
+      <Route path="/admin/credits" component={AdminCreditsPage} />
       <Route path="/admin/users" component={AdminUsersPage} />
       <Route path="/admin/invites" component={AdminInvitesPage} />
       <Route path="/admin/support/:id" component={AdminSupportTicketPage} />
@@ -268,6 +271,7 @@ function Router() {
       <Route path="/admin/audit" component={AdminAuditLogPage} />
       <Route path="/admin/finance" component={AdminFinancePage} />
       <Route path="/admin/authors" component={AdminAuthorsPage} />
+      <Route path="/admin/system" component={AdminSystemPage} />
       <Route path="/admin" component={AdminDashboardPage} />
       <Route component={NotFound} />
 

@@ -58,7 +58,7 @@ router.get("/admin/dashboard", async (_req, res) => {
   ]);
 
   const byPlan = Object.fromEntries(usersByPlan.map((row) => [row.plan, Number(row.total)]));
-  const pricing: Record<string, number> = { free: 0, studio: 599.99 / 12, premium: 999.99 / 12, pro: 1990 / 12, publish: 0, enterprise: 0 };
+  const pricing: Record<string, number> = { free: 0, studio: 4.99, premium: 9.99, pro: 0, publish: 0, enterprise: 0 };
   const mrrEur = usersByPlan.reduce((sum, row) => sum + (pricing[row.plan] ?? 0) * Number(row.total), 0);
 
   res.json({
@@ -105,6 +105,9 @@ router.get("/admin/users", async (req, res) => {
         generationsUsed: appUsersTable.generationsUsed,
         projectsCreated: appUsersTable.projectsCreated,
         onboardingStep: appUsersTable.onboardingStep,
+        monthlyCredits: appUsersTable.monthlyCredits,
+        extraCredits: appUsersTable.extraCredits,
+        creditsRenewAt: appUsersTable.creditsRenewAt,
         createdAt: appUsersTable.createdAt,
         updatedAt: appUsersTable.updatedAt,
       })

@@ -8,3 +8,10 @@
 - Frontend : fiche utilisateur admin enrichie avec KPI credits, solde mensuel/achete, formulaire d'ajustement et historique ledger.
 - Frontend : navigation `AdminShell` recadree en cockpit 360 : Vue d'ensemble, Finance, Users, Credits, Audit, Support, Invitations, Labo IA, Systeme.
 
+## 2026-05-31 - Bloc 2 finition cockpit
+
+- Dashboard admin : MRR recale sur la nouvelle grille credits (Studio 4,99 EUR/mois, Premium 9,99 EUR/mois ; anciens plans legacy a 0).
+- Backend : la liste `GET /api/admin/users` expose aussi `monthlyCredits`, `extraCredits`, `creditsRenewAt`.
+- Frontend : nouvelle page `/admin/credits` pour piloter tous les soldes et ouvrir directement la fiche d'ajustement.
+- Frontend : nouvelle page `/admin/system` dans `AdminShell`, au lieu de sortir vers `/creator-lab/system`.
+- Frontend : table `/admin/users` enrichie avec le solde credits total.

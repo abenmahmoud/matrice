@@ -7,12 +7,12 @@ const NAV = [
   { href: "/admin/dashboard", label: "Vue d'ensemble", icon: LayoutDashboard },
   { href: "/admin/finance", label: "Finance", icon: Activity },
   { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/users", label: "Credits", icon: WalletCards },
+  { href: "/admin/credits", label: "Credits", icon: WalletCards },
   { href: "/admin/audit", label: "Audit", icon: ScrollText },
   { href: "/admin/support", label: "Support", icon: Ticket },
   { href: "/admin/invites", label: "Invitations", icon: Ticket },
   { href: "/studio", label: "Labo IA", icon: Bot },
-  { href: "/creator-lab/system", label: "Systeme", icon: ServerCog },
+  { href: "/admin/system", label: "Systeme", icon: ServerCog },
 ];
 
 export function AdminShell({ children, title, subtitle }: { children: React.ReactNode; title: string; subtitle: string }) {
