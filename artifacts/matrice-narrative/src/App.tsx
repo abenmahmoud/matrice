@@ -41,6 +41,9 @@ import NotificationPreferencesPage from "./pages/profile-notifications";
 import SupportPage from "./pages/support";
 import NewSupportTicketPage from "./pages/support/new";
 import SupportTicketDetailPage from "./pages/support/ticket-detail";
+import CommunityPage from "./pages/community";
+import NewCommunityThreadPage from "./pages/community/new";
+import CommunityThreadPage from "./pages/community/thread-detail";
 
 import AccessRedirectPage from "./pages/access-redirect";
 import VerifyWorkPage from "./pages/verify-work";
@@ -178,6 +181,9 @@ function Router() {
       <Route path="/support/tickets/:id" component={SupportTicketDetailPage} />
       <Route path="/support/new" component={NewSupportTicketPage} />
       <Route path="/support" component={SupportPage} />
+      <Route path="/community/new" component={NewCommunityThreadPage} />
+      <Route path="/community/:id" component={CommunityThreadPage} />
+      <Route path="/community" component={CommunityPage} />
 
       <Route path="/auth-required" component={AccessRedirectPage} />
 

@@ -186,6 +186,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     { name: "Lentille Marché 2026", href: "/lentille-marche", icon: Sparkles },
     { name: "Onboarding", href: "/onboarding", icon: CheckCircle2 },
     { name: "Support", href: "/support", icon: MessageCircle },
+    { name: "Communauté", href: "/community", icon: Users },
     ...(authUser?.role === "owner" && authUser.creatorModeEnabled
       ? [{ name: "Creator Lab", href: "/creator-lab", icon: FlaskConical }]
       : []),
