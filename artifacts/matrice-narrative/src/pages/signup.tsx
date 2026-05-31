@@ -219,6 +219,22 @@ export default function SignupPage() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
 
+              <p className="text-xs leading-5 text-matrice-encre/52">
+                En creant un compte, tu acceptes les{" "}
+                <Link href={`${BASE}/legal/cgu`} className="font-medium text-matrice-or-fonce underline-offset-2 hover:underline">
+                  CGU
+                </Link>
+                , les{" "}
+                <Link href={`${BASE}/legal/cgv`} className="font-medium text-matrice-or-fonce underline-offset-2 hover:underline">
+                  CGV
+                </Link>{" "}
+                et la{" "}
+                <Link href={`${BASE}/legal/confidentialite`} className="font-medium text-matrice-or-fonce underline-offset-2 hover:underline">
+                  politique de confidentialite
+                </Link>
+                .
+              </p>
+
               <div className="flex gap-3 rounded-xl border border-matrice-sable bg-matrice-ivoire/60 p-4 text-sm leading-6 text-matrice-encre/58">
                 <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-matrice-success" />
                 Le compte Free suffit pour demarrer. Les offres Studio, Premium et les recharges credits sont disponibles quand tu veux avancer plus loin.

@@ -235,6 +235,17 @@ export default function PricingPage() {
                       Choisir {plan.label}
                     </Button>
                   )}
+                  <p className="mt-3 text-xs leading-5 text-matrice-encre/55">
+                    Paiement soumis aux{" "}
+                    <Link href={`${BASE}/legal/cgv`} className="font-medium text-matrice-or-fonce underline-offset-2 hover:underline">
+                      CGV
+                    </Link>{" "}
+                    et a la{" "}
+                    <Link href={`${BASE}/legal/confidentialite`} className="font-medium text-matrice-or-fonce underline-offset-2 hover:underline">
+                      confidentialite
+                    </Link>
+                    .
+                  </p>
                   <ul className="mt-6 space-y-3 text-sm text-matrice-encre/72">
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex gap-2">
@@ -268,11 +279,29 @@ export default function PricingPage() {
                   {loading === pack.key ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                   Recharger
                 </Button>
+                <p className="mt-3 text-xs leading-5 text-matrice-encre/55">
+                  Achat soumis aux{" "}
+                  <Link href={`${BASE}/legal/cgv`} className="font-medium text-matrice-or-fonce underline-offset-2 hover:underline">
+                    CGV
+                  </Link>
+                  .
+                </p>
               </article>
             ))}
           </div>
         </section>
       </main>
+      <footer className="border-t border-matrice-sable bg-white/70 px-5 py-6 text-sm text-matrice-encre/60 sm:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 md:flex-row md:items-center">
+          <span>Matrice par Essuf-Group SASU</span>
+          <nav className="flex flex-wrap gap-4">
+            <Link href={`${BASE}/legal/mentions-legales`} className="hover:text-matrice-encre">Mentions legales</Link>
+            <Link href={`${BASE}/legal/cgu`} className="hover:text-matrice-encre">CGU</Link>
+            <Link href={`${BASE}/legal/cgv`} className="hover:text-matrice-encre">CGV</Link>
+            <Link href={`${BASE}/legal/confidentialite`} className="hover:text-matrice-encre">Confidentialite</Link>
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 }

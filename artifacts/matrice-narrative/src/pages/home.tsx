@@ -266,6 +266,10 @@ export default function Home() {
             <Link href="/pricing" className="hover:text-[#15110d]">Tarifs</Link>
             <Link href="/billing" className="hover:text-[#15110d]">Credits</Link>
             <Link href="/support" className="hover:text-[#15110d]">Support</Link>
+            <Link href="/legal/mentions-legales" className="hover:text-[#15110d]">Mentions legales</Link>
+            <Link href="/legal/cgu" className="hover:text-[#15110d]">CGU</Link>
+            <Link href="/legal/cgv" className="hover:text-[#15110d]">CGV</Link>
+            <Link href="/legal/confidentialite" className="hover:text-[#15110d]">Confidentialite</Link>
             <a href={`${BASE}/api/healthz`} className="hover:text-[#15110d]">Status</a>
           </div>
         </div>

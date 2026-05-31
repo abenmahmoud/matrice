@@ -23,6 +23,7 @@ import { getUserToken } from "@/lib/userAuth";
 import Home from "./pages/home";
 
 import PricingPage from "./pages/pricing";
+import { LegalCguPage, LegalCgvPage, LegalMentionsPage, LegalPrivacyPage } from "./pages/legal";
 
 import SignupPage from "./pages/signup";
 import LoginPage from "./pages/login";
@@ -161,6 +162,10 @@ function Router() {
       <Route path="/" component={Home} />
 
       <Route path="/pricing" component={PricingPage} />
+      <Route path="/legal/mentions-legales" component={LegalMentionsPage} />
+      <Route path="/legal/cgu" component={LegalCguPage} />
+      <Route path="/legal/cgv" component={LegalCgvPage} />
+      <Route path="/legal/confidentialite" component={LegalPrivacyPage} />
 
       <Route path="/signup" component={SignupPage} />
       <Route path="/login" component={LoginPage} />

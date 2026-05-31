@@ -460,6 +460,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           ) : null}
           {children}
+          <footer className="border-t border-matrice-sable bg-white/55 px-4 py-5 text-xs text-matrice-encre/55 sm:px-6 lg:px-8">
+            <div className="mx-auto flex max-w-6xl flex-col justify-between gap-3 md:flex-row md:items-center">
+              <span>Matrice par Essuf-Group SASU</span>
+              <nav className="flex flex-wrap gap-4">
+                <Link href="/legal/mentions-legales" className="hover:text-matrice-encre">Mentions legales</Link>
+                <Link href="/legal/cgu" className="hover:text-matrice-encre">CGU</Link>
+                <Link href="/legal/cgv" className="hover:text-matrice-encre">CGV</Link>
+                <Link href="/legal/confidentialite" className="hover:text-matrice-encre">Confidentialite</Link>
+              </nav>
+            </div>
+          </footer>
         </div>
       </main>
     </div>

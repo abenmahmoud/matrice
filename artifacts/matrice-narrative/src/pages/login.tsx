@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ArrowRight, Lock, Mail } from "lucide-react";
 import { setUserToken } from "@/lib/userAuth";
 
@@ -215,7 +215,15 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-[#2A2520]/40 mt-6">
-          En vous connectant, vous acceptez nos conditions d&apos;utilisation.
+          En vous connectant, vous acceptez nos{" "}
+          <Link href={`${BASE}/legal/cgu`} className="font-medium text-[#8B6F2E] underline-offset-2 hover:underline">
+            conditions d&apos;utilisation
+          </Link>{" "}
+          et notre{" "}
+          <Link href={`${BASE}/legal/confidentialite`} className="font-medium text-[#8B6F2E] underline-offset-2 hover:underline">
+            politique de confidentialite
+          </Link>
+          .
         </p>
       </div>
     </div>
