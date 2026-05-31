@@ -34,6 +34,8 @@ test("essuf.fr portal serves the company page and product links", async () => {
     assert.match(body, /Essuf-Group/);
     assert.match(body, /https:\/\/matrice\.essuf\.fr/);
     assert.match(body, /https:\/\/sign\.essuf\.fr/);
+    assert.match(body, /https:\/\/www\.safescol\.fr/);
+    assert.match(body, /105 453 864/);
     assert.doesNotMatch(body, /\b(?:IBAN|BIC|RIB)\b/i);
   } finally {
     await new Promise((resolve, reject) => {

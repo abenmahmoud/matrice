@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Essuf-Group - Studio de produits creatifs et juridiques</title>
+    <title>Essuf-Group - Studio de produits creatifs, juridiques et educatifs</title>
     <meta
       name="description"
-      content="Essuf-Group SASU developpe des produits creatifs et juridiques, dont Matrice et Essuf-Sign."
+      content="Essuf-Group SASU developpe des produits creatifs, juridiques et educatifs, dont Matrice, Essuf-Sign et SafeScol."
     />
     <meta name="theme-color" content="#f5f1e8" />
     <style>
@@ -201,7 +201,7 @@
 
       .cards {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 18px;
       }
 
@@ -245,6 +245,16 @@
         text-transform: uppercase;
       }
 
+      .tag.live {
+        background: rgba(107, 142, 90, 0.14);
+        color: #4f6f3d;
+      }
+
+      .tag.lab {
+        background: rgba(43, 58, 74, 0.12);
+        color: var(--bleu);
+      }
+
       .card.future {
         border-style: dashed;
         background: rgba(255, 253, 248, 0.45);
@@ -257,9 +267,30 @@
         gap: 26px;
       }
 
+      .proof-strip {
+        margin-top: 26px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .proof-item {
+        border: 1px solid rgba(42, 37, 32, 0.1);
+        border-radius: 18px;
+        background: rgba(255, 253, 248, 0.7);
+        padding: 18px;
+      }
+
+      .proof-item strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
       .legal-list {
+        align-content: start;
         display: grid;
         gap: 10px;
+        align-self: start;
         color: var(--encre-soft);
         font-size: 14px;
       }
@@ -306,7 +337,8 @@
         }
 
         .cards,
-        .about {
+        .about,
+        .proof-strip {
           grid-template-columns: 1fr;
         }
       }
@@ -339,7 +371,7 @@
         <div class="shell topbar-inner">
           <a class="brand" href="/" aria-label="Accueil Essuf-Group">
             <strong>Essuf-Group</strong>
-            <span>Produits creatifs, juridiques et editoriaux</span>
+            <span>Produits creatifs, juridiques et educatifs</span>
           </a>
           <nav class="nav" aria-label="Navigation principale">
             <a href="#produits">Produits</a>
@@ -352,11 +384,12 @@
       <main>
         <section class="hero shell">
           <p class="kicker">Essuf-Group SASU - France</p>
-          <h1>Essuf-Group - studio de produits creatifs et juridiques.</h1>
+          <h1>Essuf-Group - studio de produits creatifs, juridiques et educatifs.</h1>
           <p class="lead">
             Nous construisons des outils sobres et puissants pour aider les createurs a ecrire,
-            proteger, signer et publier leurs oeuvres avec une logique simple : l'auteur reste au
-            centre.
+            proteger, signer et publier leurs oeuvres, et pour aider les organisations a mieux
+            piloter leurs usages sensibles. La logique reste simple : la preuve, la clarte et la
+            responsabilite avant le bruit.
           </p>
           <div class="hero-actions">
             <a class="button primary" href="https://matrice.essuf.fr">Decouvrir Matrice</a>
@@ -368,19 +401,19 @@
           <div class="section-title">
             <div>
               <p class="kicker">Produits</p>
-              <h2>Un portefeuille construit autour de la creation.</h2>
+              <h2>Un portefeuille construit autour de la creation et de la confiance.</h2>
             </div>
-            <p class="muted">Matrice est le produit principal. D'autres services arrivent.</p>
+            <p class="muted">Matrice est le produit principal. SafeScol et le Voice Lab completent la feuille de route.</p>
           </div>
 
           <div class="cards">
             <article class="card">
               <div>
-                <span class="tag">Produit principal</span>
+                <span class="tag live">En ligne</span>
                 <h3>Matrice</h3>
                 <p>
-                  L'OS creatif du recit : ecrire, proteger et publier ton oeuvre,
-                  sous ton nom.
+                  L'OS creatif du recit : ecrire, proteger, publier et suivre tes revenus sous ton
+                  nom, avec 90% pour l'auteur.
                 </p>
               </div>
               <a class="button primary" href="https://matrice.essuf.fr">Ouvrir Matrice</a>
@@ -388,19 +421,32 @@
 
             <article class="card">
               <div>
-                <span class="tag">Signature</span>
+                <span class="tag live">En ligne</span>
                 <h3>Essuf-Sign</h3>
                 <p>Signature electronique et preuve d'anteriorite pour les documents sensibles.</p>
               </div>
               <a class="button secondary" href="https://sign.essuf.fr">Ouvrir Essuf-Sign</a>
             </article>
 
+            <article class="card">
+              <div>
+                <span class="tag live">Produit education</span>
+                <h3>SafeScol</h3>
+                <p>
+                  Plateforme educative de signalement, pilotage et prevention pour etablissements
+                  et equipes terrain.
+                </p>
+              </div>
+              <a class="button secondary" href="https://www.safescol.fr">Voir SafeScol</a>
+            </article>
+
             <article class="card future">
               <div>
-                <span class="tag">A venir</span>
-                <h3>Futurs projets</h3>
+                <span class="tag lab">Lab</span>
+                <h3>Voice Lab</h3>
                 <p>
-                  Nouveaux outils autour de l'audio, de la distribution et des droits createurs.
+                  Laboratoire audio pour livres et voix d'auteur, avec consentement explicite,
+                  suppression RGPD et moteur self-host.
                 </p>
               </div>
               <a class="button secondary" href="mailto:contact@essuf.fr">Echanger avec nous</a>
@@ -415,15 +461,30 @@
               <h2>Une societe francaise pour des produits durables.</h2>
               <p class="lead">
                 Essuf-Group SASU developpe et opere ses produits avec une attention forte portee a
-                la propriete intellectuelle, la clarte contractuelle et la confiance entre auteurs,
-                lecteurs et partenaires.
+                la propriete intellectuelle, la clarte contractuelle, la responsabilite des donnees
+                et la confiance entre auteurs, utilisateurs et partenaires.
               </p>
+              <div class="proof-strip" aria-label="Engagements Essuf-Group">
+                <div class="proof-item">
+                  <strong>Paternite preservee</strong>
+                  <span class="muted">Les oeuvres publiees via Matrice restent sous le nom de l'auteur.</span>
+                </div>
+                <div class="proof-item">
+                  <strong>Preuve et signature</strong>
+                  <span class="muted">Horodatage, passeport d'oeuvre et signature electronique via Essuf-Sign.</span>
+                </div>
+                <div class="proof-item">
+                  <strong>Cadre pro</strong>
+                  <span class="muted">Societe immatriculee, contact administratif dedie et facturation professionnelle.</span>
+                </div>
+              </div>
             </div>
             <div class="legal-list" aria-label="Informations legales">
               <p><strong>Raison sociale :</strong> Essuf-Group SASU</p>
-              <p><strong>SIREN :</strong> a renseigner avant mise en ligne publique</p>
+              <p><strong>SIREN :</strong> 105 453 864</p>
               <p><strong>Siege social :</strong> 47 Rue Vivienne, 75002 Paris, France</p>
-              <p><strong>Email :</strong> <a href="mailto:contact@essuf.fr">contact@essuf.fr</a></p>
+              <p><strong>Contact :</strong> <a href="mailto:contact@essuf.fr">contact@essuf.fr</a></p>
+              <p><strong>Administratif / facturation :</strong> <a href="mailto:contact@essuf.fr">contact@essuf.fr</a></p>
             </div>
           </div>
         </section>
@@ -435,6 +496,7 @@
           <div class="footer-links">
             <a href="https://matrice.essuf.fr">Matrice</a>
             <a href="https://sign.essuf.fr">Essuf-Sign</a>
+            <a href="https://www.safescol.fr">SafeScol</a>
             <a href="mailto:contact@essuf.fr">Contact</a>
           </div>
         </div>

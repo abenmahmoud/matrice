@@ -9,6 +9,8 @@ const required = [
   "Essuf-Group",
   "https://matrice.essuf.fr",
   "https://sign.essuf.fr",
+  "https://www.safescol.fr",
+  "105 453 864",
   "contact@essuf.fr",
   "47 Rue Vivienne",
 ];
