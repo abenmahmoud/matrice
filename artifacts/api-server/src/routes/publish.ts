@@ -14,6 +14,10 @@ import {
 
 const router: IRouter = Router();
 
+function hasGlobalProjectAccess(access: ReturnType<typeof getProductAccess>): boolean {
+  return access.viewer.source === "private-mode" || access.viewer.source === "admin-token";
+}
+
 type ProjectRow = typeof projectsTable.$inferSelect;
 type PublishAccessContext = {
   project: ProjectRow;
@@ -244,7 +248,7 @@ async function resolvePublishAccess(req: Request, res: Response): Promise<Publis
     return null;
   }
 
-  const canRead = access.viewer.role === "owner" || Boolean(user && project.ownerUserId === user.id);
+  const canRead = hasGlobalProjectAccess(access) || Boolean(user && project.ownerUserId === user.id);
   if (!canRead) {
     res.status(404).json({ error: "Projet non trouve" });
     return null;
@@ -253,7 +257,7 @@ async function resolvePublishAccess(req: Request, res: Response): Promise<Publis
   return {
     project,
     user,
-    canWriteSales: access.viewer.role === "owner" || Boolean(user && project.ownerUserId === user.id),
+    canWriteSales: hasGlobalProjectAccess(access) || Boolean(user && project.ownerUserId === user.id),
     authorDisplayName: await resolveProjectAuthorDisplayName(project, user),
   };
 }

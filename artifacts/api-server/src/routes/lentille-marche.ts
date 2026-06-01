@@ -107,7 +107,6 @@ async function verifyProjectAccess(projectId: string | undefined, user: Authenti
     .where(eq(projectsTable.id, projectId))
     .limit(1);
   if (!project) return false;
-  if (user.role === "owner" || user.role === "admin") return true;
   return project.ownerUserId === user.id;
 }
 

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiFetch } from "@/lib/apiFetch";
+import { cn } from "@/lib/utils";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -53,6 +54,8 @@ const PACKS: Array<{ key: CreditPack; label: string; credits: number; price: str
   { key: "pack_300", label: "300 credits", credits: 300, price: "9,99 EUR" },
   { key: "pack_1000", label: "1000 credits", credits: 1000, price: "24,99 EUR" },
 ];
+
+const BILLING_CARD_CLASS = "border-matrice-sable bg-white text-matrice-encre shadow-sm";
 
 const PLAN_LABELS: Record<string, string> = {
   free: "Free",
@@ -179,7 +182,7 @@ export default function BillingPage() {
         </div>
 
         <div className="mb-6 grid gap-4 md:grid-cols-3">
-          <Card>
+          <Card className={BILLING_CARD_CLASS}>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <WalletCards className="h-5 w-5" />
@@ -200,7 +203,7 @@ export default function BillingPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className={BILLING_CARD_CLASS}>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <CreditCard className="h-5 w-5" />
@@ -228,7 +231,7 @@ export default function BillingPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className={BILLING_CARD_CLASS}>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Couts actions</CardTitle>
             </CardHeader>
@@ -241,7 +244,7 @@ export default function BillingPage() {
         </div>
 
         <Tabs defaultValue="credits">
-          <TabsList className="mb-4">
+          <TabsList className="mb-4 bg-matrice-sable text-matrice-encre/75">
             <TabsTrigger value="credits">Credits</TabsTrigger>
             <TabsTrigger value="subscription">Abonnement</TabsTrigger>
             <TabsTrigger value="invoices">Factures</TabsTrigger>
@@ -250,14 +253,14 @@ export default function BillingPage() {
           <TabsContent value="credits" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               {PACKS.map((pack) => (
-                <Card key={pack.key}>
+                <Card key={pack.key} className={BILLING_CARD_CLASS}>
                   <CardHeader>
                     <CardTitle className="text-lg">{pack.label}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <p className="text-2xl font-semibold">{pack.price}</p>
                     <p className="text-sm text-matrice-encre/65">{pack.credits} credits permanents.</p>
-                    <Button className="w-full" variant="outline" disabled={!!loading} onClick={() => startRecharge(pack.key)}>
+                    <Button className="w-full border-matrice-encre bg-white text-matrice-encre hover:bg-matrice-sable/60" variant="outline" disabled={!!loading} onClick={() => startRecharge(pack.key)}>
                       {loading === pack.key ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
                       Acheter
                     </Button>
@@ -266,7 +269,7 @@ export default function BillingPage() {
               ))}
             </div>
 
-            <Card>
+            <Card className={BILLING_CARD_CLASS}>
               <CardHeader>
                 <CardTitle>Historique credits</CardTitle>
               </CardHeader>
@@ -341,7 +344,7 @@ export default function BillingPage() {
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 {PLANS.map((plan) => (
-                  <Card key={plan.key} className={subscription?.plan === plan.key ? "border-matrice-success" : ""}>
+                  <Card key={plan.key} className={cn(BILLING_CARD_CLASS, subscription?.plan === plan.key && "border-matrice-success")}>
                     <CardHeader>
                       <CardTitle className="flex items-center justify-between">
                         {plan.label}
@@ -365,7 +368,7 @@ export default function BillingPage() {
           </TabsContent>
 
           <TabsContent value="invoices">
-            <Card>
+            <Card className={BILLING_CARD_CLASS}>
               <CardHeader>
                 <CardTitle>Factures Stripe</CardTitle>
               </CardHeader>

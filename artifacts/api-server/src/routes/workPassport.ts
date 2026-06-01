@@ -23,6 +23,10 @@ import { resolveAuthorDisplayName } from "../services/authorDisplayNameService.j
 const router: IRouter = Router();
 const OWNER_PASSPORT_ID = "owner";
 
+function hasGlobalProjectAccess(access: ReturnType<typeof getProductAccess>): boolean {
+  return access.viewer.source === "private-mode" || access.viewer.source === "admin-token";
+}
+
 type ProjectRow = typeof projectsTable.$inferSelect;
 
 type PassportAccessContext = {
@@ -54,7 +58,7 @@ async function resolvePassportAccess(req: Request, res: Response): Promise<Passp
     return null;
   }
 
-  if (access.viewer.role === "owner") {
+  if (hasGlobalProjectAccess(access)) {
     const ownerId = project.ownerUserId ?? OWNER_PASSPORT_ID;
     const authorName = await resolveAuthorName(ownerId, user, project);
     return { project, passportOwnerId: ownerId, authorName, user };

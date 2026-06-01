@@ -29,7 +29,7 @@ type UserDetailPayload = {
     createdAt: string;
   };
   stats: { projects_count: number; lentille_analyses: number; exports: number; mandates: number; active_mandates: number };
-  projects: Array<{ id: string; title: string; genre: string; updatedAt: string }>;
+  projects: Array<{ title: string; genre: string; updatedAt: string }>;
   mandates: Array<{ id: string; status: string; verifyUrl?: string | null; createdAt: string }>;
   credits: {
     balance: { monthly: number; extra: number; total: number };
@@ -87,7 +87,7 @@ export default function AdminUserDetailPage() {
   }
 
   return (
-    <AdminShell title="Fiche utilisateur" subtitle="Vue support complete : usage, projets, mandats, sante du compte et actions tracees.">
+    <AdminShell title="Fiche utilisateur" subtitle="Vue support confidentielle : usage, projets, mandats, sante du compte et actions tracees sans ouvrir les idees privees.">
       <Link href="/admin/users" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-matrice-or-fonce hover:text-matrice-encre">
         <ArrowLeft className="h-4 w-4" />
         Retour aux utilisateurs
@@ -245,11 +245,15 @@ export default function AdminUserDetailPage() {
 
           <section className="grid gap-4 lg:grid-cols-2">
             <ListPanel title="Projets">
+              <div className="rounded-xl border border-matrice-or-fonce/25 bg-matrice-ivoire px-4 py-3 text-sm leading-6 text-matrice-encre/80">
+                Les contenus creatifs restent prives. Le cockpit affiche seulement les metadonnees utiles au support.
+                Un acces intervention devra etre motive, journalise et limite dans le temps.
+              </div>
               {data.projects.length ? data.projects.map((project) => (
-                <Link key={project.id} href={`/projects/${project.id}`} className="block rounded-xl border border-matrice-sable px-4 py-3 hover:bg-matrice-sable/35">
+                <div key={`${project.title}-${project.updatedAt}`} className="block rounded-xl border border-matrice-sable px-4 py-3">
                   <span className="font-medium text-matrice-encre">{project.title}</span>
                   <span className="block text-sm text-matrice-encre/60">{project.genre} · {new Date(project.updatedAt).toLocaleDateString("fr-FR")}</span>
-                </Link>
+                </div>
               )) : <p className="text-sm text-matrice-encre/65">Aucun projet.</p>}
             </ListPanel>
             <ListPanel title="Actions admin recentes">

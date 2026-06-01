@@ -73,7 +73,7 @@ function parseMandateInput(body: unknown): { ok: true; input: MandateInput } | {
 async function loadOwnedProject(projectId: string, user: AuthenticatedUser) {
   const [project] = await db.select().from(projectsTable).where(eq(projectsTable.id, projectId)).limit(1);
   if (!project) return null;
-  if (user.role === "owner" || user.role === "admin" || project.ownerUserId === user.id) return project;
+  if (project.ownerUserId === user.id) return project;
   return null;
 }
 

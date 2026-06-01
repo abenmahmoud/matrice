@@ -311,13 +311,13 @@ export default function NewProject() {
               value={spark}
               onChange={e => setSpark(e.target.value)}
               placeholder={`"Je vois une femme debout dans une gare vide à 3h du matin. Autour d'elle, des valises abandonnées. Elle ne part pas — elle attend quelqu'un qui ne viendra jamais. Et elle le sait."\n\n— Ou bien : un rêve, une image, un sentiment impossible à nommer...`}
-              className="w-full h-48 bg-white/[0.03] border border-white/[0.09] rounded-2xl p-5 text-sm text-white/80 placeholder:text-white/20 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/30 transition-all leading-relaxed"
+              className="w-full h-72 md:h-80 bg-white border border-matrice-sable rounded-2xl p-5 text-sm text-matrice-encre placeholder:text-matrice-encre/45 resize-y focus:outline-none focus:ring-2 focus:ring-matrice-or-fonce/40 focus:border-matrice-or-fonce/40 transition-all leading-relaxed shadow-sm"
               autoFocus
             />
             <p className={cn(
               "text-xs mt-2 text-right transition-colors",
-              spark.length < 10 ? "text-white/15" : "text-violet-400/50"
-            )}>{spark.length} caractères {spark.length >= 10 && "✓"}</p>
+              spark.length < 10 ? "text-matrice-error" : "text-matrice-encre/60"
+            )}>{spark.length} caractères - idée longue acceptée {spark.length >= 10 && "✓"}</p>
 
             {/* Manuscript toggle */}
             <div className="mt-5">
@@ -365,7 +365,7 @@ export default function NewProject() {
                     value={manuscriptExcerpt}
                     onChange={e => setManuscriptExcerpt(e.target.value)}
                     placeholder={"Collez ici un extrait de votre brouillon, une scène, une page d'ouverture, des dialogues...\n\nL'IA analysera votre voix d'auteur et liera automatiquement les compétences narratives\nqui correspondent à votre style naturel et aux techniques à développer."}
-                    className="w-full h-52 bg-white/[0.02] border border-violet-500/20 rounded-xl p-4 text-sm text-white/75 placeholder:text-white/18 resize-none focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500/25 transition-all leading-relaxed"
+                    className="w-full h-64 bg-white border border-matrice-sable rounded-xl p-4 text-sm text-matrice-encre placeholder:text-matrice-encre/45 resize-y focus:outline-none focus:ring-2 focus:ring-matrice-or-fonce/35 focus:border-matrice-or-fonce/35 transition-all leading-relaxed shadow-sm"
                     autoFocus
                   />
                   <div className="flex items-center justify-between mt-2">

@@ -27,6 +27,10 @@ import { tensionArcsTable, atmosphereDataTable, echoTempsTable, miroirArtistique
 
 const router: IRouter = Router();
 
+function hasGlobalProjectAccess(access: ReturnType<typeof getProductAccess>): boolean {
+  return access.viewer.source === "private-mode" || access.viewer.source === "admin-token";
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -132,10 +136,11 @@ router.get("/projects", async (req, res) => {
     const user = getAuthUser(req);
     // SECURITY: filter projects strictly by viewer role to prevent leaking projects across users
     let projects: (typeof projectsTable.$inferSelect)[];
-    if (access.viewer.role === "owner") {
-      // Private mode OR admin token: see everything
+    if (hasGlobalProjectAccess(access)) {
+      // Private maintenance mode or explicit admin token only: see everything.
+      // A normal owner/admin login must not expose user creative content by default.
       projects = await db.select().from(projectsTable).orderBy(projectsTable.updatedAt);
-    } else if (access.viewer.role === "user" && user) {
+    } else if (user) {
       // Authenticated user: see ONLY projects they own (never NULL owner_user_id projects)
       projects = await db.select().from(projectsTable)
         .where(eq(projectsTable.ownerUserId, user.id))
@@ -177,7 +182,7 @@ router.post("/projects", async (req, res) => {
       cinematicReferences: body.cinematicReferences ?? "",
       inspirationSources: body.inspirationSources ?? "",
       manuscriptExcerpt: body.manuscriptExcerpt ?? "",
-      ownerUserId: access.viewer.role === "user" ? user?.id : null,
+      ownerUserId: user ? user.id : null,
       progression: 5,
     });
 
@@ -193,7 +198,7 @@ router.post("/projects", async (req, res) => {
     }
 
     const [project] = await db.insert(projectsTable).values(parsedProject.data).returning();
-    if (user && access.viewer.role === "user") {
+    if (user) {
       await db.update(appUsersTable)
         .set({ projectsCreated: user.projectsCreated + 1, updatedAt: new Date() })
         .where(eq(appUsersTable.id, user.id));
@@ -211,13 +216,15 @@ router.use("/projects/:id", async (req, res, next) => {
     const access = getProductAccess(req);
     const user = getAuthUser(req);
     // SECURITY: defense in depth - explicit role-based access check
-    // Owner (private mode or admin) bypasses (sees everything intentionally)
-    if (access.viewer.role === "owner") {
+    // Global bypass is reserved for private maintenance mode or explicit admin token.
+    // A normal owner/admin login can only open its own projects unless a future
+    // break-glass intervention flow grants temporary audited access.
+    if (hasGlobalProjectAccess(access)) {
       next();
       return;
     }
-    // Authenticated user: must own the project (NULL owner = belongs to creator, never accessible to users)
-    if (access.viewer.role === "user" && user) {
+    // Authenticated user: must own the project (NULL owner = legacy/private mode, never accessible to users)
+    if (user) {
       const [project] = await db
         .select({ ownerUserId: projectsTable.ownerUserId })
         .from(projectsTable)
@@ -319,7 +326,13 @@ router.delete("/projects/:id", async (req, res) => {
 // GET /api/dashboard/summary
 router.get("/dashboard/summary", async (req, res) => {
   try {
-    const projects = await db.select().from(projectsTable);
+    const access = getProductAccess(req);
+    const user = getAuthUser(req);
+    const projects = hasGlobalProjectAccess(access)
+      ? await db.select().from(projectsTable)
+      : user
+        ? await db.select().from(projectsTable).where(eq(projectsTable.ownerUserId, user.id))
+        : [];
     const totalProjects = projects.length;
     const averageProgression = totalProjects > 0 ? projects.reduce((sum, p) => sum + p.progression, 0) / totalProjects : 0;
     const genreCount: Record<string, number> = {};

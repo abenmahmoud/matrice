@@ -165,7 +165,7 @@ router.get("/admin/users/:id", async (req, res) => {
   }
 
   const [projects, [lentille], [exports], mandates, betaUsages, recentActions, creditBalance, creditHistory] = await Promise.all([
-    db.select({ id: projectsTable.id, title: projectsTable.title, genre: projectsTable.genre, updatedAt: projectsTable.updatedAt, createdAt: projectsTable.createdAt }).from(projectsTable).where(eq(projectsTable.ownerUserId, user.id)).orderBy(desc(projectsTable.updatedAt)).limit(50),
+    db.select({ title: projectsTable.title, genre: projectsTable.genre, updatedAt: projectsTable.updatedAt, createdAt: projectsTable.createdAt }).from(projectsTable).where(eq(projectsTable.ownerUserId, user.id)).orderBy(desc(projectsTable.updatedAt)).limit(50),
     db.select({ total: count() }).from(lentilleAnalysesTable).where(eq(lentilleAnalysesTable.userId, user.id)),
     db.select({ total: count() }).from(exportJobsTable).where(eq(exportJobsTable.userId, user.id)),
     db.select().from(delegationMandateTable).where(eq(delegationMandateTable.userId, user.id)).orderBy(desc(delegationMandateTable.createdAt)),
