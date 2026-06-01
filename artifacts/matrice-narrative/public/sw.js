@@ -1,9 +1,9 @@
-const CACHE_NAME = "matrice-shell-v1";
+const CACHE_NAME = "matrice-shell-v2";
 const STATIC_ASSET_RE = /\.(?:js|css|svg|png|jpg|jpeg|webp|woff2?)$/;
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(["/", "/manifest.json", "/favicon.svg"]))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(["/", "/dashboard", "/manifest.json", "/favicon.svg", "/icons/icon-192.png", "/icons/icon-512.png"]))
   );
   self.skipWaiting();
 });

@@ -6,7 +6,7 @@ import {
   Search, Activity, Book, Film, Tv, Presentation, Download, ScanText,
   FileSearch, LayoutGrid, CheckCircle2, Circle, TrendingUp, Palette, Sparkles, MessageCircle,
   Printer, Clock, Telescope, BarChart2, Clapperboard, ScrollText, Wand2, Aperture, BrainCircuit, BookMarked, ShieldCheck, FileSignature,
-  CircleUserRound, ChevronDown, LogOut, UserRound, FlaskConical, Bell, Coins, X, type LucideIcon
+  CircleUserRound, ChevronDown, LogOut, UserRound, FlaskConical, Bell, Coins, X, Compass, type LucideIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGetProject } from "@workspace/api-client-react";
@@ -178,6 +178,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const rootNav = [
     { name: "Accueil", href: "/dashboard", icon: Home },
+    { name: "Guide modules", href: "/modules-guide", icon: Compass },
     { name: "Credits & facturation", href: "/billing", icon: Coins },
     { name: "Mes ventes", href: "/sales", icon: TrendingUp },
     { name: "Œuvres verrouillées", href: "/locked-works", icon: ShieldCheck },

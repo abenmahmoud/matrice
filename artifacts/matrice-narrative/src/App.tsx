@@ -52,6 +52,7 @@ import AccessRedirectPage from "./pages/access-redirect";
 import VerifyWorkPage from "./pages/verify-work";
 
 import ExperimentalModulesPage from "./pages/experimental-modules";
+import ModulesGuidePage from "./pages/modules-guide";
 
 import Dashboard from "./pages/dashboard";
 import MyLockedWorksPage from "./pages/my-locked-works";
@@ -201,6 +202,7 @@ function Router() {
       <Route path="/verify/:hash" component={VerifyWorkPage} />
 
       <Route path="/experimental-modules" component={ExperimentalModulesPage} />
+      <Route path="/modules-guide" component={ModulesGuidePage} />
 
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/locked-works" component={MyLockedWorksPage} />

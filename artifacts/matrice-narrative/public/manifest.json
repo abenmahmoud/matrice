@@ -1,12 +1,14 @@
 {
   "name": "Matrice - Essuf-Group",
   "short_name": "Matrice",
-  "description": "Atelier d'ecriture evolutif et collaboratif.",
+  "id": "/dashboard",
+  "description": "L'OS creatif du recit : ecrire, proteger et publier ton oeuvre sous ton nom.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#F5F1E8",
-  "theme_color": "#C9A961",
+  "theme_color": "#F5F1E8",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -14,6 +16,41 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "books", "entertainment"],
+  "shortcuts": [
+    {
+      "name": "Tableau de bord",
+      "short_name": "Dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "name": "Nouvelle vision",
+      "short_name": "Vision",
+      "url": "/projects/new"
+    },
+    {
+      "name": "Guide modules",
+      "short_name": "Guide",
+      "url": "/modules-guide"
+    },
+    {
+      "name": "Support",
+      "short_name": "Support",
+      "url": "/support"
     }
   ]
 }

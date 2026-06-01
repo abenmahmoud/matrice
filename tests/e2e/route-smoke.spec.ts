@@ -50,6 +50,7 @@ const ROUTES: SmokeRoute[] = [
   { name: "profile", path: "/profile", appLayout: true },
   { name: "locked-works", path: "/locked-works", appLayout: true },
   { name: "memory", path: "/memory", appLayout: true },
+  { name: "modules-guide", path: "/modules-guide", appLayout: true },
   { name: "analyse", path: "/analyse", appLayout: true },
   { name: "lentille-marche", path: "/lentille-marche", appLayout: true },
   { name: "experimental-modules", path: "/experimental-modules", appLayout: true },
