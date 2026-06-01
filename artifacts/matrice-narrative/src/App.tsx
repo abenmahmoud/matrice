@@ -301,6 +301,21 @@ function Router() {
 
 }
 
+function NavigationHistory() {
+  const [location] = useLocation();
+
+  useEffect(() => {
+    const current = `${window.location.pathname}${window.location.search}`;
+    const previous = window.sessionStorage.getItem("matrice_current_path");
+    if (previous && previous !== current) {
+      window.sessionStorage.setItem("matrice_previous_path", previous);
+    }
+    window.sessionStorage.setItem("matrice_current_path", current);
+  }, [location]);
+
+  return null;
+}
+
 function RedirectTo({ to }: { to: string }) {
   const [, navigate] = useLocation();
 
@@ -337,6 +352,8 @@ function App() {
         <TooltipProvider>
 
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+
+            <NavigationHistory />
 
             <Router />
 

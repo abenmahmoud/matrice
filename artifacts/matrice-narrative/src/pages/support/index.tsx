@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { AlertCircle, CheckCircle2, Clock3, MessageCircle, Plus, Search } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { SmartBackButton } from "@/components/navigation/SmartBackButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { apiFetch } from "@/lib/apiFetch";
@@ -72,6 +73,8 @@ export default function SupportPage() {
   return (
     <AppLayout>
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+        <SmartBackButton fallback="/dashboard" label="Retour au tableau de bord" avoidPrefixes={["/support"]} className="w-fit" />
+
         <header className="rounded-2xl border border-matrice-sable bg-white p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-matrice-or-fonce">Reclamations & support</p>
           <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

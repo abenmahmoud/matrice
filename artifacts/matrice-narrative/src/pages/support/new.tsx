@@ -1,8 +1,9 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
-import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
+import { useLocation } from "wouter";
+import { CheckCircle2, Send } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { SmartBackButton } from "@/components/navigation/SmartBackButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,10 +68,7 @@ export default function NewSupportTicketPage() {
   return (
     <AppLayout>
       <main className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <Link href="/support" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-matrice-or-fonce hover:text-matrice-encre">
-          <ArrowLeft className="h-4 w-4" />
-          Retour au support
-        </Link>
+        <SmartBackButton fallback="/support" label="Retour" className="w-fit" />
 
         <header className="rounded-2xl border border-matrice-sable bg-white p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-matrice-or-fonce">Nouvelle reclamation</p>

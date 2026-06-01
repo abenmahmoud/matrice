@@ -1,9 +1,10 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useRoute } from "wouter";
-import { ArrowLeft, Bot, CheckCircle2, CircleAlert, Clock3, Send, ShieldCheck, UserRound } from "lucide-react";
+import { useRoute } from "wouter";
+import { Bot, CheckCircle2, CircleAlert, Clock3, Send, ShieldCheck, UserRound } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { SmartBackButton } from "@/components/navigation/SmartBackButton";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -105,10 +106,7 @@ export default function SupportTicketDetailPage() {
   return (
     <AppLayout>
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <Link href="/support" className="inline-flex min-h-[44px] items-center gap-2 text-sm font-medium text-matrice-or-fonce hover:text-matrice-encre">
-          <ArrowLeft className="h-4 w-4" />
-          Retour aux reclamations
-        </Link>
+        <SmartBackButton fallback="/support" label="Retour" avoidPrefixes={["/support/new"]} className="w-fit" />
 
         <header className="rounded-2xl border border-matrice-sable bg-white p-6 shadow-sm">
           {isLoading ? (

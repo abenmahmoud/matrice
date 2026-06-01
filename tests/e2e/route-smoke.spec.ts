@@ -44,6 +44,7 @@ const ROUTES: SmokeRoute[] = [
   { name: "community-new", path: "/community/new", appLayout: true },
   { name: "support", path: "/support", appLayout: true },
   { name: "support-new", path: "/support/new", appLayout: true },
+  { name: "support-ticket-detail", path: "/support/tickets/ticket-e2e", appLayout: true },
   { name: "billing", path: "/billing", appLayout: true },
   { name: "sales", path: "/sales", appLayout: true },
   { name: "notifications", path: "/notifications", appLayout: true },
@@ -63,6 +64,7 @@ const ROUTES: SmokeRoute[] = [
   { name: "admin-invites", path: "/admin/invites", appLayout: true },
   { name: "admin-audit", path: "/admin/audit", appLayout: true },
   { name: "admin-support", path: "/admin/support", appLayout: true },
+  { name: "admin-support-ticket-detail", path: "/admin/support/ticket-e2e", appLayout: true },
   { name: "admin-community", path: "/admin/community", appLayout: true },
   { name: "admin-system", path: "/admin/system", appLayout: true },
   { name: "creator-lab", path: "/creator-lab", appLayout: true },
@@ -210,6 +212,24 @@ test.describe("route smoke visual audit", () => {
     await page.getByRole("button", { name: /Marquer email verifie/i }).click();
     await expect.poll(() => rescueCalled).toBe(true);
   });
+
+  test("support pages return to the previous dashboard context", async ({ page }) => {
+    await page.goto("/dashboard", { waitUntil: "networkidle" });
+    await page.getByRole("link", { name: "Support" }).first().click();
+    await expect(page).toHaveURL(/\/support$/);
+
+    await page.getByRole("button", { name: /Retour au tableau de bord/i }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+  });
+
+  test("support ticket detail returns to the support list", async ({ page }) => {
+    await page.goto("/support", { waitUntil: "networkidle" });
+    await page.getByText("Question beta").click();
+    await expect(page).toHaveURL(/\/support\/tickets\/ticket-e2e$/);
+
+    await page.getByRole("button", { name: "Retour" }).click();
+    await expect(page).toHaveURL(/\/support$/);
+  });
 });
 
 async function mockMatriceApi(page: Page) {
@@ -236,6 +256,7 @@ async function mockMatriceApi(page: Page) {
     if (pathname === "/api/community/threads") return json(route, { threads: [communityThread()] });
     if (pathname === "/api/community/threads/thread-e2e") return json(route, { thread: communityThread(), posts: [communityPost()] });
     if (pathname === "/api/support/tickets") return json(route, { tickets: [supportTicket()] });
+    if (pathname === "/api/support/tickets/ticket-e2e") return json(route, { ticket: supportTicket(), messages: [supportMessage()] });
     if (pathname === "/api/manuscripts") return json(route, []);
     if (pathname === "/api/memory") return json(route, [memoryEntry()]);
 
@@ -245,6 +266,7 @@ async function mockMatriceApi(page: Page) {
     if (pathname === "/api/admin/invites") return json(route, { codes: [], stats: { total: 0, total_uses: 0, active: 0 } });
     if (pathname === "/api/admin/audit") return json(route, { actions: [] });
     if (pathname === "/api/admin/support/tickets") return json(route, { tickets: [adminTicket()] });
+    if (pathname === "/api/admin/support/tickets/ticket-e2e") return json(route, { ticket: adminTicket(), messages: [supportMessage()] });
     if (pathname.startsWith("/api/admin/finance")) return json(route, adminFinance(pathname));
     if (pathname.startsWith("/api/admin/authors")) return json(route, adminAuthors());
 
@@ -778,6 +800,10 @@ function communityPost() {
 
 function supportTicket() {
   return { id: "ticket-e2e", subject: "Question beta", category: "general", priority: "normal", status: "open", updatedAt: now, createdAt: now };
+}
+
+function supportMessage() {
+  return { id: "message-e2e", senderType: "user", body: "Message de support E2E.", createdAt: now };
 }
 
 function adminTicket() {

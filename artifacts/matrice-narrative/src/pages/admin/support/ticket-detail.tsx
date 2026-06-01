@@ -4,6 +4,7 @@ import { useRoute } from "wouter";
 import { Send } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminButton } from "@/components/admin/AdminBits";
+import { SmartBackButton } from "@/components/navigation/SmartBackButton";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/apiFetch";
@@ -45,6 +46,7 @@ export default function AdminSupportTicketPage() {
 
   return (
     <AdminShell title={data?.ticket.subject ?? "Ticket"} subtitle={`Statut ${data?.ticket.status ?? ""} · ${data?.ticket.category ?? ""}`}>
+      <SmartBackButton fallback="/admin/support" label="Retour" className="w-fit" />
       <div className="flex flex-wrap gap-2">
         {["in_progress", "waiting_user", "resolved", "closed"].map((status) => (
           <AdminButton key={status} variant="secondary" onClick={() => setStatus.mutate(status)}>{status}</AdminButton>
