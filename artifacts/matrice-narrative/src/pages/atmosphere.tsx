@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles, Palette, Music2, Eye, Wind, Layers } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -35,7 +36,7 @@ export default function AtmospherePage() {
 
   const { data: atm, isLoading } = useQuery<AtmosphereData>({
     queryKey: [`/api/projects/${id}/atmosphere`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/atmosphere`).then(async r => {
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/atmosphere`).then(async r => {
       if (!r.ok) throw new Error("not found");
       return r.json() as Promise<AtmosphereData>;
     }),
@@ -44,7 +45,7 @@ export default function AtmospherePage() {
   });
 
   const generate = useMutation({
-    mutationFn: () => fetch(`${BASE}/api/projects/${id}/generate-atmosphere`, { method: "POST" }).then(r => r.json()),
+    mutationFn: () => apiFetch(`${BASE}/api/projects/${id}/generate-atmosphere`, { method: "POST" }).then(r => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [`/api/projects/${id}/atmosphere`] });
       toast({ title: "Atmosphère générée", description: "Votre chambre des atmosphères est prête." });

@@ -9,6 +9,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine
 } from "recharts";
 import { motion } from "framer-motion";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -62,7 +63,7 @@ export default function TensionArcPage() {
 
   const { data: arc, isLoading } = useQuery<TensionArc>({
     queryKey: [`/api/projects/${id}/tension-arc`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/tension-arc`).then(async r => {
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/tension-arc`).then(async r => {
       if (!r.ok) throw new Error("not found");
       return r.json() as Promise<TensionArc>;
     }),
@@ -71,7 +72,7 @@ export default function TensionArcPage() {
   });
 
   const generate = useMutation({
-    mutationFn: () => fetch(`${BASE}/api/projects/${id}/generate-tension-arc`, { method: "POST" }).then(r => r.json()),
+    mutationFn: () => apiFetch(`${BASE}/api/projects/${id}/generate-tension-arc`, { method: "POST" }).then(r => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [`/api/projects/${id}/tension-arc`] });
       toast({ title: "Arc de tension généré", description: "Votre courbe dramatique est prête." });

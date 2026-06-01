@@ -6,6 +6,7 @@ import { Loader2, Sparkles, Clapperboard, ChevronDown, ChevronUp, Clock, MapPin,
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -68,7 +69,7 @@ export default function SequencierPage() {
 
   const { data, isLoading } = useQuery<SequencierData>({
     queryKey: [`/api/projects/${id}/sequencier`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/sequencier`).then(async r => {
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/sequencier`).then(async r => {
       if (!r.ok) throw new Error("not found");
       return r.json() as Promise<SequencierData>;
     }),
@@ -76,7 +77,7 @@ export default function SequencierPage() {
   });
 
   const generate = useMutation({
-    mutationFn: () => fetch(`${BASE}/api/projects/${id}/generate-sequencier`, { method: "POST" }).then(r => r.json()),
+    mutationFn: () => apiFetch(`${BASE}/api/projects/${id}/generate-sequencier`, { method: "POST" }).then(r => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [`/api/projects/${id}/sequencier`] });
       setExpanded(null);

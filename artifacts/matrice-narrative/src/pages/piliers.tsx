@@ -6,6 +6,7 @@ import { Loader2, Sparkles, BarChart2, Smile, Zap, Heart, Feather, Star } from "
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -56,7 +57,7 @@ export default function PiliersPage() {
 
   const { data, isLoading } = useQuery<PiliersData>({
     queryKey: [`/api/projects/${id}/cinq-piliers`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/cinq-piliers`).then(async r => {
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/cinq-piliers`).then(async r => {
       if (!r.ok) throw new Error("not found");
       return r.json() as Promise<PiliersData>;
     }),
@@ -64,7 +65,7 @@ export default function PiliersPage() {
   });
 
   const generate = useMutation({
-    mutationFn: () => fetch(`${BASE}/api/projects/${id}/generate-cinq-piliers`, { method: "POST" }).then(r => r.json()),
+    mutationFn: () => apiFetch(`${BASE}/api/projects/${id}/generate-cinq-piliers`, { method: "POST" }).then(r => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [`/api/projects/${id}/cinq-piliers`] });
       setSelected(null);

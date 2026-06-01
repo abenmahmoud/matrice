@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -65,7 +66,7 @@ export default function DialoguePage() {
     const newHistory: Message[] = [...history, { role: "user", content: msg }];
     setHistory(newHistory);
     try {
-      const res = await fetch(`${BASE}/api/projects/${id}/characters/${selected.id}/dialogue`, {
+      const res = await apiFetch(`${BASE}/api/projects/${id}/characters/${selected.id}/dialogue`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: msg, history }),
@@ -85,7 +86,7 @@ export default function DialoguePage() {
     setGeneratingFountain(true);
     setFountainResult(null);
     try {
-      const res = await fetch(`${BASE}/api/projects/${id}/generate-fountain-dialogue`, {
+      const res = await apiFetch(`${BASE}/api/projects/${id}/generate-fountain-dialogue`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

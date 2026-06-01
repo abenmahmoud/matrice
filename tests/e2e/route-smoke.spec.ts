@@ -69,14 +69,34 @@ const ROUTES: SmokeRoute[] = [
   { name: "creator-system", path: "/creator-lab/system", appLayout: true },
   { name: "project-overview", path: `/projects/${PROJECT_ID}`, appLayout: true },
   { name: "project-matrix", path: `/projects/${PROJECT_ID}/matrix`, appLayout: true },
+  { name: "project-emotional-core", path: `/projects/${PROJECT_ID}/emotional-core`, appLayout: true },
   { name: "project-characters", path: `/projects/${PROJECT_ID}/characters`, appLayout: true },
+  { name: "project-relationships", path: `/projects/${PROJECT_ID}/relationships`, appLayout: true },
+  { name: "project-world", path: `/projects/${PROJECT_ID}/world`, appLayout: true },
+  { name: "project-research", path: `/projects/${PROJECT_ID}/research`, appLayout: true },
+  { name: "project-hpsa", path: `/projects/${PROJECT_ID}/hpsa`, appLayout: true },
   { name: "project-book", path: `/projects/${PROJECT_ID}/book`, appLayout: true },
+  { name: "project-screenplay", path: `/projects/${PROJECT_ID}/screenplay`, appLayout: true },
+  { name: "project-series", path: `/projects/${PROJECT_ID}/series`, appLayout: true },
   { name: "project-exports", path: `/projects/${PROJECT_ID}/exports`, appLayout: true },
   { name: "project-publish", path: `/projects/${PROJECT_ID}/publish`, appLayout: true },
   { name: "project-passport", path: `/projects/${PROJECT_ID}/passport`, appLayout: true },
   { name: "project-pitch", path: `/projects/${PROJECT_ID}/pitch`, appLayout: true },
   { name: "project-prisme", path: `/projects/${PROJECT_ID}/prisme`, appLayout: true },
   { name: "project-mandate", path: `/projects/${PROJECT_ID}/mandate`, appLayout: true },
+  { name: "project-analyse", path: `/projects/${PROJECT_ID}/analyse`, appLayout: true },
+  { name: "project-tension-arc", path: `/projects/${PROJECT_ID}/tension-arc`, appLayout: true },
+  { name: "project-atmosphere", path: `/projects/${PROJECT_ID}/atmosphere`, appLayout: true },
+  { name: "project-constellation", path: `/projects/${PROJECT_ID}/constellation`, appLayout: true },
+  { name: "project-dialogue", path: `/projects/${PROJECT_ID}/dialogue`, appLayout: true },
+  { name: "project-director", path: `/projects/${PROJECT_ID}/director`, appLayout: true },
+  { name: "project-notebook", path: `/projects/${PROJECT_ID}/notebook`, appLayout: true },
+  { name: "project-echo-temps", path: `/projects/${PROJECT_ID}/echo-temps`, appLayout: true },
+  { name: "project-miroir", path: `/projects/${PROJECT_ID}/miroir`, appLayout: true },
+  { name: "project-piliers", path: `/projects/${PROJECT_ID}/piliers`, appLayout: true },
+  { name: "project-sequencier", path: `/projects/${PROJECT_ID}/sequencier`, appLayout: true },
+  { name: "project-note-intention", path: `/projects/${PROJECT_ID}/note-intention`, appLayout: true },
+  { name: "project-film-scenes", path: `/projects/${PROJECT_ID}/film-scenes`, appLayout: true },
   { name: "redirect-compte", path: "/compte", expectedPath: "/profile", appLayout: true },
   { name: "redirect-admin-dashboard", path: "/admin/dashboard", expectedPath: "/admin", appLayout: true },
   { name: "redirect-project-overview", path: `/projects/${PROJECT_ID}/overview`, expectedPath: `/projects/${PROJECT_ID}`, appLayout: true },
@@ -236,10 +256,25 @@ async function mockMatriceApi(page: Page) {
     if (pathname === `/api/projects/${PROJECT_ID}`) return json(route, project());
     if (pathname === `/api/projects/${PROJECT_ID}/status`) return json(route, projectStatus());
     if (pathname === `/api/projects/${PROJECT_ID}/matrix`) return json(route, matrix());
+    if (pathname === `/api/projects/${PROJECT_ID}/emotional-core`) return json(route, emotionalCore());
     if (pathname === `/api/projects/${PROJECT_ID}/characters`) return json(route, []);
+    if (pathname === `/api/projects/${PROJECT_ID}/relationships`) return json(route, []);
+    if (pathname === `/api/projects/${PROJECT_ID}/world`) return json(route, worldData());
+    if (pathname === `/api/projects/${PROJECT_ID}/research`) return json(route, researchData());
+    if (pathname === `/api/projects/${PROJECT_ID}/hpsa`) return json(route, hpsaData());
     if (pathname === `/api/projects/${PROJECT_ID}/book`) return json(route, bookPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/screenplay`) return json(route, screenplayPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/series`) return json(route, seriesPayload());
     if (pathname === `/api/projects/${PROJECT_ID}/pitch`) return json(route, pitchPayload());
     if (pathname === `/api/projects/${PROJECT_ID}/prisme`) return json(route, prismePayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/tension-arc`) return json(route, tensionArcPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/atmosphere`) return json(route, atmospherePayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/echo-temps`) return json(route, echoTempsPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/miroir`) return json(route, miroirPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/cinq-piliers`) return json(route, piliersPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/sequencier`) return json(route, sequencierPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/note-intention`) return json(route, noteIntentionPayload());
+    if (pathname === `/api/projects/${PROJECT_ID}/film-scenes`) return json(route, filmScenesPayload());
     if (pathname === `/api/projects/${PROJECT_ID}/publish-plan`) return json(route, publishPlan());
     if (pathname === `/api/projects/${PROJECT_ID}/sales`) return json(route, sales());
     if (pathname === `/api/projects/${PROJECT_ID}/publishing/finance`) return json(route, publishingFinance());
@@ -378,6 +413,83 @@ function matrix() {
   };
 }
 
+function emotionalCore() {
+  return {
+    id: "core-e2e",
+    projectId: PROJECT_ID,
+    dominantEmotion: "Colere defensive masquant une soif de reconnaissance",
+    hiddenWound: "Avoir ete eclipsee par une figure dominante.",
+    emotionalLack: "La certitude d'exister sans se battre.",
+    innerChildSignal: "Quand son travail est minimise, elle se ferme.",
+    protectionMask: "Ironie et controle",
+    apparentDesire: "Reussir seule",
+    deepNeed: "Etre reconnue sans se justifier",
+    centralFear: "Devenir invisible",
+    shamePoint: "Avoir besoin des autres",
+    guiltyPoint: "Confondre aide et dette",
+    emotionalContradiction: "Elle veut etre libre tout en reclamant validation.",
+    symbolicObject: "Le cheque dechire",
+    symbolicPlace: "L'atelier lumineux",
+    emotionalAntagonist: "Le paternalisme",
+    correctionPath: "Accepter l'alliance sans perdre sa voix.",
+    transformationArc: "De la defense a la confiance.",
+    finalEmotionalState: "Calme et affirmation.",
+  };
+}
+
+function worldData() {
+  return {
+    id: "world-e2e",
+    projectId: PROJECT_ID,
+    locations: [{ name: "Atelier", description: "Lieu de creation et de conflit.", atmosphere: "Lumineux, tendu" }],
+    atmospheres: ["Lumineux", "Ironique"],
+    temporalRules: "Chronologie contemporaine resserree.",
+    parallelTimelines: [],
+    dreamLayers: [],
+    timelineEvents: [{ date: "Acte 1", event: "Rencontre", significance: "Declenche le conflit." }],
+    forbiddenRules: [],
+    causeEffectLogic: "Chaque geste d'aide cree une dette symbolique.",
+  };
+}
+
+function researchData() {
+  return {
+    id: "research-e2e",
+    projectId: PROJECT_ID,
+    referenceWorks: [{ title: "Lucifer", author: "Joe Henderson", medium: "Serie", relevance: "Duo conflictuel ironique." }],
+    successSignals: ["Romance a conflit clair"],
+    currentTrends: ["Comedie romantique sociale"],
+    clicheRisks: ["Patron sauveur trop unilateral"],
+    originalityOpportunities: ["Renverser la dynamique de dette"],
+    criticalNotes: ["Clarifier la paternite artistique."],
+    abstractMechanics: ["Opposition don/controle"],
+    humorPatterns: ["Reparties de statut"],
+    suspensePatterns: ["Malentendus d'intention"],
+    tearTriggers: ["Reconnaissance tardive"],
+    creationNotes: "Note E2E.",
+  };
+}
+
+function hpsaData() {
+  const axis = {
+    score: 72,
+    diagnostic: "Base solide.",
+    weaknesses: [],
+    corrections: ["Renforcer le retournement final."],
+    suggestions: [],
+  };
+  return {
+    id: "hpsa-e2e",
+    projectId: PROJECT_ID,
+    globalScore: 74,
+    humour: { ...axis, score: 78 },
+    pleur: { ...axis, score: 68 },
+    suspense: { ...axis, score: 70 },
+    attractivite: { ...axis, score: 82 },
+    priorityFixes: ["Rendre l'objectif antagoniste plus explicite."],
+  };
+}
+
 function bookPayload() {
   return {
     id: "book-e2e",
@@ -386,6 +498,34 @@ function bookPayload() {
     chapters: [{ title: "Chapitre 1", summary: "Ouverture", purpose: "Installer l'autrice" }],
     createdAt: now,
     updatedAt: now,
+  };
+}
+
+function screenplayPayload() {
+  return {
+    id: "screenplay-e2e",
+    projectId: PROJECT_ID,
+    tagline: "Une alliance mal comprise devient une histoire d'amour.",
+    logline: "Une artiste et un patron perfectionniste s'affrontent autour d'un financement.",
+    cinematicSynopsis: "Synopsis cinematographique E2E.",
+    treatment: "Traitement court.",
+    beats: [{ number: 1, label: "Image d'ouverture", description: "L'atelier avant la rupture.", pageRange: "1-3" }],
+    scenes: [{ number: 1, heading: "INT. ATELIER - JOUR", description: "Elle refuse le cheque.", dramaticFunction: "Incident", emotionalTone: "Tendu" }],
+  };
+}
+
+function seriesPayload() {
+  return {
+    id: "series-e2e",
+    projectId: PROJECT_ID,
+    format: "Mini-serie romantique",
+    loglineSerie: "Chaque episode deplace la relation de pouvoir.",
+    seasonConcept: "Une saison sur la reconnaissance artistique.",
+    seriesPotential: "Potentiel limite mais clair.",
+    longArcs: ["La dette devient confiance."],
+    episodes: [{ number: 1, title: "Le cheque", summary: "Le malentendu initial.", aPlot: "Financement", bPlot: "Orgueil", cliffhanger: "Elle refuse." }],
+    progressiveRevelations: ["Il ne cherche pas a la posseder."],
+    secondaryCharacters: ["Une galeriste lucide"],
   };
 }
 
@@ -401,6 +541,117 @@ function pitchPayload() {
     createdAt: now,
     updatedAt: now,
   };
+}
+
+function tensionArcPayload() {
+  return {
+    acts: [
+      { label: "Rencontre", description: "Le financement declenche le conflit.", tension: 45, emotion: "mefiance", keyEvent: "Cheque refuse" },
+      { label: "Confrontation", description: "Les intentions se brouillent.", tension: 72, emotion: "colere", keyEvent: "Accusation publique" },
+      { label: "Reconnaissance", description: "La dette devient alliance.", tension: 58, emotion: "apaisement", keyEvent: "Excuses franches" },
+    ],
+    overallShape: "Courbe romance conflictuelle.",
+    recommendation: "Monter la tension de statut au milieu.",
+  };
+}
+
+function atmospherePayload() {
+  return {
+    colorPalette: [
+      { name: "Ivoire", hex: "#F5F1E8", role: "Fond calme" },
+      { name: "Encre", hex: "#2A2520", role: "Conflit" },
+      { name: "Or sourd", hex: "#8B6F2E", role: "Valeur" },
+    ],
+    lightingStyle: "Lumiere d'atelier naturelle avec ombres nettes.",
+    musicReferences: [{ genre: "Neo-soul", artists: ["FKJ"], mood: "Intime" }],
+    cinematicStyle: "Comedie romantique lumineuse.",
+    textures: ["Toile", "Papier", "Bois clair"],
+    sensoryNotes: { smell: "Peinture fraiche", sound: "Rue lointaine", touch: "Papier epais" },
+    visualReferences: ["Ateliers parisiens", "Galleries contemporaines"],
+  };
+}
+
+function echoTempsPayload() {
+  return {
+    mythicResonances: [{ myth: "Pygmalion inverse", culture: "Europe", connection: "L'oeuvre refuse l'emprise." }],
+    historicalParallels: [{ period: "XXIe siecle", region: "France", connection: "Independance creative." }],
+    culturalEchoes: [{ culture: "Comedie romantique", storyTitle: "Duo oppose", connection: "Attraction par friction." }],
+    temporalAnchor: "Economie creative contemporaine",
+    universalWound: "Etre reconnu sans etre possede",
+    futureResonance: "La paternite artistique comme droit moral",
+  };
+}
+
+function miroirPayload() {
+  return {
+    trueTheme: "La difference entre soutenir et controler.",
+    shadowStory: "Une peur d'etre achetee.",
+    blindSpots: ["Le geste financier manque d'ambiguite morale."],
+    resonanceGaps: [{ zone: "Antagonisme", reflection: "Le patron doit aussi perdre quelque chose." }],
+    artisticInvitations: [{ invitation: "Faire du cheque un symbole recurrent.", why: "Il cristallise la dette." }],
+    mirrorPhrase: "Ce n'est pas l'argent qui blesse, c'est le pouvoir qu'on lui prete.",
+  };
+}
+
+function piliersPayload() {
+  return {
+    pillars: [
+      { name: "Humour", presence: 75, type: "Repartie", analysis: "Ironie active.", strongMoment: "Premier refus", artisticSuggestion: "Accentuer le timing." },
+      { name: "Suspense", presence: 60, type: "Malentendu", analysis: "Tension relationnelle.", strongMoment: "Accusation", artisticSuggestion: "Retarder l'explication." },
+    ],
+    dominantPillar: "Humour",
+    weakestPillar: "Surprise",
+    globalBalance: "Equilibre viable, surprise a renforcer.",
+  };
+}
+
+function sequencierPayload() {
+  return {
+    sequences: [{
+      numero: 1,
+      titre: "Le financement",
+      lieu: "Atelier",
+      moment: "Jour",
+      personnages: ["Julien", "Capucine"],
+      fonctionDramatique: "Incident declencheur",
+      arcEmotionnel: "Mefiance vers colere",
+      dureeEstimee: 5,
+      liensThematiques: "Argent et reconnaissance",
+      noteRealisateur: "Plan fixe sur le cheque.",
+    }],
+    totalDuree: 5,
+    structure: "Court metrage",
+    noteGlobale: "Sequence lisible.",
+  };
+}
+
+function noteIntentionPayload() {
+  return {
+    vision: "Raconter une reconciliation sans effacer le conflit social.",
+    partiPrisMiseEnScene: "Camera proche des gestes.",
+    personnagesVision: [{ nom: "Capucine", visionRealisateur: "Independante, vive, defensive." }],
+    universVisuel: "Atelier lumineux et bureaux froids.",
+    musiqueEtSon: "Silences et respirations.",
+    positionnement: "Comedie romantique contemporaine.",
+    pourquoiMaintenant: "La question du pouvoir dans l'aide est actuelle.",
+    motFinal: "Une histoire de paternite artistique.",
+  };
+}
+
+function filmScenesPayload() {
+  return [{
+    id: "scene-e2e",
+    projectId: PROJECT_ID,
+    sceneNumber: 1,
+    title: "Le cheque",
+    intExt: "INT",
+    location: "ATELIER",
+    timeOfDay: "JOUR",
+    charactersPresent: ["Julien", "Capucine"],
+    actionDescription: "Elle comprend son geste comme une tentative de controle.",
+    hpsaCheck: { humour: 70, pleur: 40, suspense: 60, attractivite: 80 },
+    narrativeFunction: "Incident declencheur",
+  }];
 }
 
 function prismePayload() {
@@ -645,7 +896,7 @@ function adminFinance(pathname: string) {
   if (pathname.includes("subscriptions")) return { subscriptions: [] };
   if (pathname.includes("transactions")) return { transactions: [] };
   if (pathname.includes("vat-report")) return { report: null };
-  return { revenue_eur: 0, mrr_eur: 15, active_subscriptions: 1, failed_payments: 0 };
+  return { mrr_eur: "15.00", active_subscriptions: 1, ca_month_eur: "0.00", commissions_eur: "0.00" };
 }
 
 function creatorFeatures() {

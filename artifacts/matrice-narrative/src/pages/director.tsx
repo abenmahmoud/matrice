@@ -10,6 +10,7 @@ import {
   ChevronRight, Film, SlidersHorizontal, Lightbulb, RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -60,7 +61,7 @@ export default function DirectorPage() {
 
   const analyze = useMutation({
     mutationFn: async () => {
-      const r = await fetch(`${BASE}/api/projects/${id}/director-mode`, {
+      const r = await apiFetch(`${BASE}/api/projects/${id}/director-mode`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ passage }),

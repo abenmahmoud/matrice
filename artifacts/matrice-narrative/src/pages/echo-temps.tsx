@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles, Clock, Globe2, BookOpen, Heart, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -33,7 +34,7 @@ export default function EchoTempsPage() {
 
   const { data, isLoading } = useQuery<EchoData>({
     queryKey: [`/api/projects/${id}/echo-temps`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/echo-temps`).then(async r => {
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/echo-temps`).then(async r => {
       if (!r.ok) throw new Error("not found");
       return r.json() as Promise<EchoData>;
     }),
@@ -41,7 +42,7 @@ export default function EchoTempsPage() {
   });
 
   const generate = useMutation({
-    mutationFn: () => fetch(`${BASE}/api/projects/${id}/generate-echo-temps`, { method: "POST" }).then(r => r.json()),
+    mutationFn: () => apiFetch(`${BASE}/api/projects/${id}/generate-echo-temps`, { method: "POST" }).then(r => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [`/api/projects/${id}/echo-temps`] });
       toast({ title: "Écho du Temps généré", description: "Les résonances à travers les âges sont prêtes." });

@@ -5,6 +5,7 @@ import { Loader2, History, RotateCcw, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -43,7 +44,7 @@ export function VersionHistoryDrawer({
   const loadVersions = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${BASE}/api/projects/${projectId}/versions/${contentType}/${contentKey}`);
+      const res = await apiFetch(`${BASE}/api/projects/${projectId}/versions/${contentType}/${contentKey}`);
       const data = await res.json() as VersionMeta[];
       setVersions(Array.isArray(data) ? data : []);
     } catch {
@@ -61,7 +62,7 @@ export function VersionHistoryDrawer({
   const restore = async (versionId: string) => {
     setRestoring(versionId);
     try {
-      const res = await fetch(`${BASE}/api/projects/${projectId}/versions/single/${versionId}`);
+      const res = await apiFetch(`${BASE}/api/projects/${projectId}/versions/single/${versionId}`);
       if (!res.ok) throw new Error("Not found");
       const version = await res.json() as VersionFull;
       onRestore(version.data);

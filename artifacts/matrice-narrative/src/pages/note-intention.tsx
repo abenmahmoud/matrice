@@ -7,6 +7,7 @@ import { Loader2, Sparkles, FileText, Printer, Copy, Check, ChevronDown, Chevron
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -91,7 +92,7 @@ export default function NoteIntentionPage() {
 
   const { data, isLoading } = useQuery<NoteIntentionData>({
     queryKey: [`/api/projects/${id}/note-intention`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/note-intention`).then(async r => {
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/note-intention`).then(async r => {
       if (!r.ok) throw new Error("not found");
       return r.json() as Promise<NoteIntentionData>;
     }),
@@ -99,7 +100,7 @@ export default function NoteIntentionPage() {
   });
 
   const generate = useMutation({
-    mutationFn: () => fetch(`${BASE}/api/projects/${id}/generate-note-intention`, { method: "POST" }).then(r => r.json()),
+    mutationFn: () => apiFetch(`${BASE}/api/projects/${id}/generate-note-intention`, { method: "POST" }).then(r => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [`/api/projects/${id}/note-intention`] });
       toast({ title: "Note d'intention générée", description: "Votre document de présentation est prêt." });

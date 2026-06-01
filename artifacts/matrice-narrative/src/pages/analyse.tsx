@@ -7,6 +7,7 @@ import {
   CheckCircle2, AlertCircle, Lightbulb, Clock, Library, ArrowRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -292,13 +293,13 @@ export default function AnalysePage() {
   const loadHistory = useCallback(async () => {
     if (historyLoaded) return;
     try {
-      const res = await fetch(`${BASE}/api/manuscripts`);
+      const res = await apiFetch(`${BASE}/api/manuscripts`);
       if (res.ok) { setHistory(await res.json() as Analysis[]); setHistoryLoaded(true); }
     } catch {/* ignore */}
   }, [historyLoaded]);
 
   const deleteAnalysis = async (id: string) => {
-    await fetch(`${BASE}/api/manuscripts/${id}`, { method: "DELETE" });
+    await apiFetch(`${BASE}/api/manuscripts/${id}`, { method: "DELETE" });
     setHistory(h => h.filter(a => a.id !== id));
     if (analysis?.id === id) setAnalysis(null);
   };
@@ -314,7 +315,7 @@ export default function AnalysePage() {
     setAnalysis(null);
 
     try {
-      const res = await fetch(`${BASE}/api/manuscripts/analyze`, {
+      const res = await apiFetch(`${BASE}/api/manuscripts/analyze`, {
         method: "POST",
         headers: { Accept: "text/event-stream", "Content-Type": "application/json" },
         body: JSON.stringify({ content, projectTitle }),

@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { GenerateEmptyState } from "@/components/GenerateEmptyState";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -301,12 +302,12 @@ export default function FilmScenesPage() {
 
   const { data: scenes = [], isLoading } = useQuery<FilmScene[]>({
     queryKey: [`/api/projects/${id}/film-scenes`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/film-scenes`).then(r => r.json()) as Promise<FilmScene[]>,
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/film-scenes`).then(r => r.json()) as Promise<FilmScene[]>,
     enabled: !!id,
   });
 
   const generate = useMutation({
-    mutationFn: () => fetch(`${BASE}/api/projects/${id}/generate-film-scenes`, {
+    mutationFn: () => apiFetch(`${BASE}/api/projects/${id}/generate-film-scenes`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     }).then(async r => {

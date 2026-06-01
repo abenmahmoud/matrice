@@ -6,6 +6,7 @@ import { Loader2, Sparkles, Telescope, Eye, HelpCircle, ChevronDown } from "luci
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -26,7 +27,7 @@ export default function MiroirPage() {
 
   const { data, isLoading } = useQuery<MiroirData>({
     queryKey: [`/api/projects/${id}/miroir`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/miroir`).then(async r => {
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/miroir`).then(async r => {
       if (!r.ok) throw new Error("not found");
       return r.json() as Promise<MiroirData>;
     }),
@@ -34,7 +35,7 @@ export default function MiroirPage() {
   });
 
   const generate = useMutation({
-    mutationFn: () => fetch(`${BASE}/api/projects/${id}/generate-miroir`, { method: "POST" }).then(r => r.json()),
+    mutationFn: () => apiFetch(`${BASE}/api/projects/${id}/generate-miroir`, { method: "POST" }).then(r => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [`/api/projects/${id}/miroir`] });
       toast({ title: "Miroir généré", description: "La réflexion artistique de votre œuvre est prête." });

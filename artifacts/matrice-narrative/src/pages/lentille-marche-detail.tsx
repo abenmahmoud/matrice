@@ -10,7 +10,6 @@ import { HookProposal } from "@/components/lentille/HookProposal";
 import { PropositionBlock } from "@/components/lentille/PropositionBlock";
 import { ScoreGauge } from "@/components/lentille/ScoreGauge";
 import { apiFetch } from "@/lib/apiFetch";
-import { userAuthHeaders } from "@/lib/userAuth";
 import {
   analysisRowToResult,
   type LentilleAnalysisRow,
@@ -127,10 +126,7 @@ export default function LentilleMarcheDetailPage() {
 
   async function deleteAnalysis() {
     if (!id || !window.confirm("Supprimer cet audit Lentille Marché ?")) return;
-    const response = await fetch(`${BASE}/api/lentille-marche/${id}`, {
-      method: "DELETE",
-      headers: userAuthHeaders(),
-    });
+    const response = await apiFetch(`${BASE}/api/lentille-marche/${id}`, { method: "DELETE" });
     if (response.ok) setLocation("/lentille-marche");
   }
 

@@ -11,6 +11,7 @@ import {
   Minus, ArrowUpRight, ArrowDownRight, Flame, Calendar, Trophy
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -537,14 +538,14 @@ export default function ProjectAnalysePage() {
   // Auto-load history on mount
   useEffect(() => {
     if (!id) return;
-    void fetch(`${BASE}/api/manuscripts?projectId=${id}`)
+    void apiFetch(`${BASE}/api/manuscripts?projectId=${id}`)
       .then(r => r.ok ? r.json() as Promise<Analysis[]> : Promise.resolve([]))
       .then(data => setHistory(data))
       .catch(() => undefined);
   }, [id]);
 
   const deleteAnalysis = async (aid: string) => {
-    await fetch(`${BASE}/api/manuscripts/${aid}`, { method: "DELETE" });
+    await apiFetch(`${BASE}/api/manuscripts/${aid}`, { method: "DELETE" });
     setHistory(h => h.filter(a => a.id !== aid));
     if (analysis?.id === aid) setAnalysis(null);
   };
@@ -559,7 +560,7 @@ export default function ProjectAnalysePage() {
     setGenState({ isGenerating: true, progress: 5, step: "Connexion...", error: "" });
     setAnalysis(null);
     try {
-      const res = await fetch(`${BASE}/api/manuscripts/analyze`, {
+      const res = await apiFetch(`${BASE}/api/manuscripts/analyze`, {
         method: "POST",
         headers: { Accept: "text/event-stream", "Content-Type": "application/json" },
         body: JSON.stringify({ content, projectId: id, analyseType: analyseType === "auto" ? undefined : analyseType }),

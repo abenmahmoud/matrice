@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Loader2, Printer, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
+import { apiFetch } from "@/lib/apiFetch";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -40,7 +41,7 @@ export default function DirectorNotebookPage() {
 
   const { data: atm, isLoading: atmLoading } = useQuery<AtmosphereData>({
     queryKey: [`/api/projects/${id}/atmosphere`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/atmosphere`).then(async r => {
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/atmosphere`).then(async r => {
       if (!r.ok) throw new Error("not found");
       return r.json() as Promise<AtmosphereData>;
     }),
@@ -49,7 +50,7 @@ export default function DirectorNotebookPage() {
 
   const { data: arc, isLoading: arcLoading } = useQuery<TensionArc>({
     queryKey: [`/api/projects/${id}/tension-arc`],
-    queryFn: () => fetch(`${BASE}/api/projects/${id}/tension-arc`).then(async r => {
+    queryFn: () => apiFetch(`${BASE}/api/projects/${id}/tension-arc`).then(async r => {
       if (!r.ok) throw new Error("not found");
       return r.json() as Promise<TensionArc>;
     }),
