@@ -9,9 +9,9 @@ interface SectionCardProps {
 
 export function SectionCard({ title, icon, children }: SectionCardProps) {
   return (
-    <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
+    <Card className="border-matrice-sable bg-white text-matrice-encre shadow-sm">
       <CardHeader className="pb-4">
-        <CardTitle className="text-base font-semibold flex items-center gap-2">
+        <CardTitle className="text-base font-semibold flex items-center gap-2 text-matrice-encre">
           {icon}
           {title}
         </CardTitle>

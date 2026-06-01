@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "wouter";
 import {
   ArrowDownToLine,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
-import { useAdmin } from "@/context/AdminContext";
+import { apiFetch } from "@/lib/apiFetch";
 import { cn } from "@/lib/utils";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -65,8 +65,8 @@ function dateInputValue(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-async function fetchJson<T>(url: string, headers: HeadersInit): Promise<T> {
-  const response = await fetch(url, { headers });
+async function fetchJson<T>(url: string): Promise<T> {
+  const response = await apiFetch(url);
   if (!response.ok) {
     const payload = (await response.json().catch(() => ({}))) as { error?: string };
     throw new Error(payload.error ?? `Erreur HTTP ${response.status}`);
@@ -84,7 +84,6 @@ function euro(value: string): string {
 }
 
 export default function AdminFinancePage() {
-  const { isLoggedIn, adminHeaders } = useAdmin();
   const [tab, setTab] = useState<TabKey>("subscriptions");
   const [overview, setOverview] = useState<Overview | null>(null);
   const [subscriptions, setSubscriptions] = useState<SubscriptionRow[]>([]);
@@ -98,19 +97,15 @@ export default function AdminFinancePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const headers = useMemo(() => adminHeaders(), [adminHeaders]);
-
   async function loadAll() {
-    if (!isLoggedIn) return;
     setLoading(true);
     setError("");
     try {
       const [overviewPayload, subscriptionsPayload, transactionsPayload] = await Promise.all([
-        fetchJson<Overview>(`${BASE}/api/admin/finance/overview`, headers),
-        fetchJson<{ subscriptions: SubscriptionRow[] }>(`${BASE}/api/admin/finance/subscriptions`, headers),
+        fetchJson<Overview>(`${BASE}/api/admin/finance/overview`),
+        fetchJson<{ subscriptions: SubscriptionRow[] }>(`${BASE}/api/admin/finance/subscriptions`),
         fetchJson<{ transactions: TransactionRow[] }>(
-          `${BASE}/api/admin/finance/transactions?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-          headers
+          `${BASE}/api/admin/finance/transactions?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
         ),
       ]);
       setOverview(overviewPayload);
@@ -128,8 +123,7 @@ export default function AdminFinancePage() {
     setError("");
     try {
       const payload = await fetchJson<{ transactions: TransactionRow[] }>(
-        `${BASE}/api/admin/finance/transactions?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-        headers
+        `${BASE}/api/admin/finance/transactions?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
       );
       setTransactions(payload.transactions);
     } catch (err) {
@@ -144,8 +138,7 @@ export default function AdminFinancePage() {
     setError("");
     try {
       const payload = await fetchJson<VatReport>(
-        `${BASE}/api/admin/finance/vat-report?year=${encodeURIComponent(year)}&quarter=${encodeURIComponent(quarter)}`,
-        headers
+        `${BASE}/api/admin/finance/vat-report?year=${encodeURIComponent(year)}&quarter=${encodeURIComponent(quarter)}`
       );
       setVatReport(payload);
     } catch (err) {
@@ -159,10 +152,7 @@ export default function AdminFinancePage() {
     setBusy(true);
     setError("");
     try {
-      const response = await fetch(
-        `${BASE}/api/admin/finance/export/csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-        { headers }
-      );
+      const response = await apiFetch(`${BASE}/api/admin/finance/export/csv?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
       if (!response.ok) throw new Error(`Export impossible (${response.status})`);
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -180,23 +170,9 @@ export default function AdminFinancePage() {
 
   useEffect(() => {
     void loadAll();
-  }, [isLoggedIn]);
+  }, []);
 
   const transactionTotal = transactions.reduce((sum, row) => sum + Number(row.amount_eur), 0).toFixed(2);
-
-  if (!isLoggedIn) {
-    return (
-      <PageShell variant="travail" className="flex items-center justify-center px-4">
-        <div className="max-w-md rounded-2xl border border-matrice-sable bg-white p-8 text-center shadow-xl shadow-black/10">
-          <h1 className="font-serif text-2xl font-semibold">Acces admin requis</h1>
-          <p className="mt-3 text-sm text-matrice-encre/60">Connectez-vous au Studio pour ouvrir le suivi comptable.</p>
-          <Button asChild className="mt-6 bg-matrice-terracotta text-white hover:bg-matrice-terracotta/90">
-            <Link href="/admin">Connexion admin</Link>
-          </Button>
-        </div>
-      </PageShell>
-    );
-  }
 
   return (
     <PageShell variant="travail">

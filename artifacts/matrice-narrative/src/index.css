@@ -386,6 +386,15 @@
     background-color: color-mix(in srgb, var(--matrice-sable) 48%, transparent) !important;
   }
 
+  .matrice-work [class*="bg-card"] {
+    background-color: #ffffff !important;
+  }
+
+  .matrice-work [class*="border-border"],
+  .matrice-work [class*="border-card"] {
+    border-color: var(--matrice-sable) !important;
+  }
+
   .matrice-work [class~="text-white"],
   .matrice-work [class~="text-white/90"],
   .matrice-work [class~="text-white/88"],
@@ -408,9 +417,21 @@
   .matrice-work [class~="text-white/28"],
   .matrice-work [class~="text-white/25"],
   .matrice-work [class~="text-white/24"],
+  .matrice-work [class~="text-white/22"],
   .matrice-work [class~="text-white/20"],
-  .matrice-work [class~="text-white/15"] {
+  .matrice-work [class~="text-white/15"],
+  .matrice-work [class~="text-white/12"],
+  .matrice-work [class*="text-white"] {
     color: color-mix(in srgb, var(--matrice-encre) 78%, transparent) !important;
+  }
+
+  .matrice-work [class*="text-foreground"],
+  .matrice-work [class*="text-card-foreground"] {
+    color: var(--matrice-encre) !important;
+  }
+
+  .matrice-work [class*="text-muted-foreground"] {
+    color: color-mix(in srgb, var(--matrice-encre) 62%, transparent) !important;
   }
 
   .matrice-work [class*="border-white/"],

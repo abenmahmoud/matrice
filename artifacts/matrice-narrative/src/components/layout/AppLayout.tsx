@@ -177,8 +177,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const rootNav = [
-    { name: "Accueil", href: "/", icon: Home },
-    { name: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Accueil", href: "/dashboard", icon: Home },
     { name: "Credits & facturation", href: "/billing", icon: Coins },
     { name: "Mes ventes", href: "/sales", icon: TrendingUp },
     { name: "Œuvres verrouillées", href: "/locked-works", icon: ShieldCheck },
@@ -242,7 +241,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Logo */}
         <div className="px-5 py-5 border-b border-matrice-sable flex-shrink-0">
-          <Link href="/">
+          <Link href="/dashboard">
             <h1 className="text-base font-serif font-bold text-matrice-or-fonce cursor-pointer tracking-[0.18em] uppercase">
               MATRICE
             </h1>

@@ -42,10 +42,10 @@ const router: IRouter = Router();
 // Public
 router.use(healthRouter);
 router.use(adminRouter);
-router.use(adminFinanceRouter);
 router.use(authContextMiddleware);
 router.use(authRouter);
 router.use(accessRouter);
+router.use(adminFinanceRouter);
 router.use(experimentalModulesRouter);
 router.use(lentilleMarcheRouter);
 router.use(mandateRouter);

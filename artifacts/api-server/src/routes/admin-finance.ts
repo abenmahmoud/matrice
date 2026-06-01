@@ -1,4 +1,4 @@
-import { Router, type IRouter } from "express";
+import { Router, type IRouter, type NextFunction, type Request, type Response } from "express";
 import { count, desc, eq, ilike, isNotNull, or, sql } from "drizzle-orm";
 import type Stripe from "stripe";
 import {
@@ -9,13 +9,24 @@ import {
   subscriptionsTable,
   workPassportsTable,
 } from "@workspace/db";
-import { adminAuthMiddleware } from "../middleware/adminAuth.js";
+import { generateAdminToken } from "../middleware/adminAuth.js";
+import { requireAdmin } from "../lib/auth.js";
 import { stripe } from "../services/stripeService.js";
 
 const router: IRouter = Router();
 
-router.use("/admin/finance", adminAuthMiddleware);
-router.use("/admin/authors", adminAuthMiddleware);
+function requireFinanceAdmin(req: Request, res: Response, next: NextFunction): void {
+  const adminPassword = process.env["ADMIN_PASSWORD"];
+  const token = req.headers["x-admin-token"] as string | undefined;
+  if (adminPassword && token === generateAdminToken(adminPassword)) {
+    next();
+    return;
+  }
+  requireAdmin(req, res, next);
+}
+
+router.use("/admin/finance", requireFinanceAdmin);
+router.use("/admin/authors", requireFinanceAdmin);
 
 function centsToEuroString(cents: number): string {
   return (cents / 100).toFixed(2);
